@@ -1,24 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { privateRoutes } from './routes/index'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import {adminLayout, defaultLayout, loginLayout} from './component/Layout'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className='m-0 p-0'>
+        <Routes>
+          {privateRoutes.map((route, index) => {
+            const Layout = route.layout === 'admin'
+            ? adminLayout
+            :route.layout === 'login'
+            ? loginLayout
+            :defaultLayout
+            const Page = route.component
+            return (
+              <Route 
+                key={index} 
+                path={route.path} 
+                element={
+                  <Layout>
+                    <Page />
+                  </Layout>
+                }>
+              </Route>
+            )
+          })}
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
