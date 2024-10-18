@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meiko", "Meiko\Meiko.csproj", "{EB6C0103-15B6-48A2-99FE-981DE3455B12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataProcessing", "DataProcessing\DataProcessing.csproj", "{498D7E28-4B6F-466E-82DB-2AFE275AB635}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{A7142D24-E17C-4485-8BD6-61F90FF3E08D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EB6C0103-15B6-48A2-99FE-981DE3455B12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EB6C0103-15B6-48A2-99FE-981DE3455B12}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EB6C0103-15B6-48A2-99FE-981DE3455B12}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EB6C0103-15B6-48A2-99FE-981DE3455B12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{498D7E28-4B6F-466E-82DB-2AFE275AB635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{498D7E28-4B6F-466E-82DB-2AFE275AB635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{498D7E28-4B6F-466E-82DB-2AFE275AB635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{498D7E28-4B6F-466E-82DB-2AFE275AB635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7142D24-E17C-4485-8BD6-61F90FF3E08D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7142D24-E17C-4485-8BD6-61F90FF3E08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7142D24-E17C-4485-8BD6-61F90FF3E08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7142D24-E17C-4485-8BD6-61F90FF3E08D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
