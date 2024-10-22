@@ -1,3 +1,5 @@
+using API.Extention;
+
 namespace Meiko
 {
 	public class Program
@@ -5,6 +7,8 @@ namespace Meiko
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
+
+			builder.Services.AddExtentionsService(builder.Configuration);
 
 			// Add services to the container.
 
@@ -15,12 +19,15 @@ namespace Meiko
 
 			var app = builder.Build();
 
+			app.UseCors("AllowSpecificOrigins");
+
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 			{
 				app.UseSwagger();
 				app.UseSwaggerUI();
 			}
+			app.UseCors("AllowAllOrigins");
 
 			app.UseHttpsRedirection();
 
