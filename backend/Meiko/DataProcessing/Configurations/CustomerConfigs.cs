@@ -39,21 +39,9 @@ namespace DataProcessing.Configurations
                 .IsRequired()
                 .HasComment("Trạng thái không được để trống.");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-            builder.HasOne(c => c.Accounts)
-                .WithOne(a => a.Customers)
-                .HasForeignKey<Customers>(c => c.IdAccount)
-=======
             builder.HasOne(c => c.ApplicationUser)
                 .WithOne(a => a.Customers)
                 .HasForeignKey<Customers>(c => c.ApplicationUserId)
->>>>>>> cuong
-=======
-            builder.HasOne(c => c.ApplicationUser)
-                .WithOne(a => a.Customers)
-                .HasForeignKey<Customers>(c => c.ApplicationUserId)
->>>>>>> cuong
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Cấu hình quan hệ với Address
