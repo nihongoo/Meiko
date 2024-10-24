@@ -20,25 +20,35 @@ namespace API.Controllers
         [HttpPost("register-customer")]
         public async Task<IActionResult> RegisterCustomer([FromBody] RegisterCustomerDto registerDto)
         {
-            var result = await _accountService.RegisterCustomerAsync(registerDto);
-            if (!result.Succeeded)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(result.Errors.Select(e => e.Description));
+                return BadRequest(ModelState);
             }
 
-            return Ok("Đăng ký khách hàng thành công.");
+            var result = await _accountService.RegisterCustomerAsync(registerDto);
+            if (result.Succeeded)
+            {
+                return Ok("Đăng ký thành công!");
+            }
+
+            return BadRequest(result.Errors);
         }
 
         [HttpPost("register-staff")]
         public async Task<IActionResult> RegisterStaff([FromBody] RegisterStaffDto registerDto)
         {
-            var result = await _accountService.RegisterStaffAsync(registerDto);
-            if (!result.Succeeded)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(result.Errors.Select(e => e.Description));
+                return BadRequest(ModelState);
             }
 
-            return Ok("Đăng ký nhân viên thành công.");
+            var result = await _accountService.RegisterStaffAsync(registerDto);
+            if (result.Succeeded)
+            {
+                return Ok("Đăng ký nhân viên thành công!");
+            }
+
+            return BadRequest(result.Errors);
         }
 
         [HttpPost("login")]
