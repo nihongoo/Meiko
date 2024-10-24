@@ -18,6 +18,7 @@ namespace DataProcessing.Configurations
             // Cấu hình quan hệ với Accounts
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             builder.HasOne(s => s.Accounts)
                 .WithOne(a => a.Staffs)
                 .HasForeignKey<Staffs>(s => s.IdAccount)
@@ -31,6 +32,11 @@ namespace DataProcessing.Configurations
                 .WithOne(a => a.Staffs)
                 .HasForeignKey<Staffs>(s => s.ApplicationUserId)
 >>>>>>> cuong
+=======
+            builder.HasOne(s => s.Accounts)
+                .WithOne(a => a.Staffs)
+                .HasForeignKey<Staffs>(s => s.IdAccount)
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Cấu hình quan hệ với Bills

@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using API.Extention;
 =======
 =======
@@ -17,6 +18,8 @@ using System.Text;
 =======
 >>>>>>> cuong
 
+=======
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
 namespace Meiko
 {
 	public class Program
@@ -24,6 +27,7 @@ namespace Meiko
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
+<<<<<<< HEAD
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
@@ -66,11 +70,16 @@ namespace Meiko
 >>>>>>> cuong
 =======
 >>>>>>> cuong
+=======
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
+			// Add services to the container.
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
+
+			builder.Services.AddControllers();
+			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
+
 			var app = builder.Build();
 
 			app.UseCors("AllowSpecificOrigins");
@@ -85,9 +94,7 @@ namespace Meiko
 
 			app.UseHttpsRedirection();
 
-			app.UseAuthentication();
-
-            app.UseAuthorization();
+			app.UseAuthorization();
 
 
 			app.MapControllers();

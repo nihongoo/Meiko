@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
+=======
+﻿using System;
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -8,8 +12,25 @@ using System.Threading.Tasks;
 
 namespace DataProcessing.Models
 {
+<<<<<<< HEAD
     public class ApplicationUser : IdentityUser
     {
+=======
+    public class Accounts
+    {
+        [Key]
+        [Required(ErrorMessage = "Id không được để trống.")]
+        public Guid Id { get; set; }
+
+        [Required(ErrorMessage = "Tên đăng nhập không được để trống.")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Tên đăng nhập phải từ 3 đến 50 ký tự.")]
+        public string Username { get; set; }
+
+        [Required(ErrorMessage = "Mật khẩu không được để trống.")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải từ 6 đến 100 ký tự.")]
+        public string Password { get; set; }
+
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
         [Required(ErrorMessage = "Trạng thái không được để trống.")]
         [Range(0, 5, ErrorMessage = "Trạng thái phải từ 0 đến 5.")]
         public int Status { get; set; }
@@ -22,6 +43,10 @@ namespace DataProcessing.Models
         public DateTime CreatTime { get; set; }
 
         public Guid? IdStaff { get; set; }
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
         public Guid? IdCustomer { get; set; }
 
         public virtual Staffs? Staffs { get; set; }

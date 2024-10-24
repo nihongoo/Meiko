@@ -39,8 +39,10 @@ namespace DataProcessing.Models
         [Range(0, 5, ErrorMessage = "Trạng thái phải từ 0 đến 5.")]
         public int Status { get; set; }
 
-        public string? ApplicationUserId { get; set; }
+        [Required(ErrorMessage = "Id tài khoản không được để trống.")]
+        public Guid IdAccount { get; set; }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         public virtual Accounts? Accounts { get; set; }
@@ -50,6 +52,9 @@ namespace DataProcessing.Models
 =======
         public virtual ApplicationUser? ApplicationUser { get; set; }
 >>>>>>> cuong
+=======
+        public virtual Accounts? Accounts { get; set; }
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
         public virtual ICollection<Bills>? Bills { get; set; }
 
     }

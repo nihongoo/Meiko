@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     <PackageReference Include="CloudinaryDotNet" Version="1.26.2" />
@@ -21,12 +22,13 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.20" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.1.2" />
 >>>>>>> cuong
+=======
+>>>>>>> parent of f60d5c4 (Đăng ký/ Đăng nhập)
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DataProcessing\DataProcessing.csproj" />
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>
