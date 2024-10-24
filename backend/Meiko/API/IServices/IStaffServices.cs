@@ -1,0 +1,11 @@
+﻿using DataProcessing.Models;
+
+namespace API.IServices
+{
+    public interface IStaffServices
+    {
+        public Task<IEnumerable<Staffs>> GetAllStaffsAsync();
+        public Task<Staffs> GetStaffByIdAsync(Guid staffId);
+        public Task<bool> UpdateStaffAsync(Staffs staff);
+    }
+}
