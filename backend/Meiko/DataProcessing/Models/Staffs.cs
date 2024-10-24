@@ -39,10 +39,9 @@ namespace DataProcessing.Models
         [Range(0, 5, ErrorMessage = "Trạng thái phải từ 0 đến 5.")]
         public int Status { get; set; }
 
-        [Required(ErrorMessage = "Id tài khoản không được để trống.")]
-        public Guid IdAccount { get; set; }
+        public string? ApplicationUserId { get; set; }
 
-        public virtual Accounts? Accounts { get; set; }
+        public virtual ApplicationUser? ApplicationUser { get; set; }
         public virtual ICollection<Bills>? Bills { get; set; }
 
     }
