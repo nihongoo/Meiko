@@ -37,9 +37,9 @@ namespace DataProcessing.Models
         [Range(0, 5, ErrorMessage = "Trạng thái phải từ 0 đến 5.")]
         public int Status { get; set; }
 
-        public Guid? IdAccount { get; set; }
+        public string? ApplicationUserId { get; set; }
 
-        public virtual Accounts? Accounts { get; set; }
+        public virtual ApplicationUser? ApplicationUser { get; set; }
         public virtual ICollection<Address>? Address { get; set; }
         public virtual ICollection<VoucherDetails>? VoucherDetails { get; set; }
         public virtual ICollection<Bills>? Bills { get; set; }

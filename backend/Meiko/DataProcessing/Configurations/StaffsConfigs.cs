@@ -16,9 +16,15 @@ namespace DataProcessing.Configurations
             builder.HasKey(s => s.Id);
 
             // Cấu hình quan hệ với Accounts
+<<<<<<< HEAD
             builder.HasOne(s => s.Accounts)
                 .WithOne(a => a.Staffs)
                 .HasForeignKey<Staffs>(s => s.IdAccount)
+=======
+            builder.HasOne(s => s.ApplicationUser)
+                .WithOne(a => a.Staffs)
+                .HasForeignKey<Staffs>(s => s.ApplicationUserId)
+>>>>>>> cuong
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Cấu hình quan hệ với Bills

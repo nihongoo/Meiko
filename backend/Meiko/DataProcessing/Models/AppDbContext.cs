@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataProcessing.Models
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         public AppDbContext()
         {
@@ -18,7 +19,6 @@ namespace DataProcessing.Models
         public AppDbContext(DbContextOptions options) : base(options)
         {
         }
-        public DbSet<Accounts> Accounts { get; set; }
         public DbSet<Address> Address { get; set; }
         public DbSet<BillDetails> BillDetails { get; set; }
         public DbSet<Bills> Bills { get; set; }
@@ -47,6 +47,10 @@ namespace DataProcessing.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+<<<<<<< HEAD
+=======
+            base.OnModelCreating(modelBuilder);
+>>>>>>> cuong
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
     }
