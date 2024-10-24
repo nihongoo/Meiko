@@ -19,6 +19,9 @@ namespace Meiko
                 options.UseSqlServer(connectionString));
             //Service
             builder.Services.AddScoped<IAccountServices, AccountService>();
+            builder.Services.AddScoped<IAddressServices, AddressServices>();
+            builder.Services.AddScoped<IStaffServices, StaffServices>();
+            builder.Services.AddScoped<ICustomerServices, CustomerServices>();
             // Thêm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()

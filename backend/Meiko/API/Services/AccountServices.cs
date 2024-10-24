@@ -26,6 +26,16 @@ namespace API.Services
             _appDbContext = appDbContext;
         }
 
+        public async Task<ApplicationUser> GetAccountByIdAsync(Guid addressId)
+        {
+            return await _appDbContext.Users.FindAsync(addressId);
+        }
+
+        public async Task<IEnumerable<ApplicationUser>> GetAllAccountsAsync()
+        {
+            return await _appDbContext.Users.ToListAsync();
+        }
+
         public async Task<JwtTokenDto> LoginAsync(LoginDto loginDto)
         {
             var user = await _userManager.FindByNameAsync(loginDto.Username);
@@ -229,7 +239,7 @@ namespace API.Services
 
         private async Task<string> GenerateUniqueStaffCodeAsync()
         {
-            string prefix = "KH";
+            string prefix = "NV";
             var random = new Random();
             string staffCode;
 
