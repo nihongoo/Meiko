@@ -42,7 +42,11 @@ namespace DataProcessing.Models
         public string? ApplicationUserId { get; set; }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         public virtual Accounts? Accounts { get; set; }
+=======
+        public virtual ApplicationUser? ApplicationUser { get; set; }
+>>>>>>> cuong
 =======
         public virtual ApplicationUser? ApplicationUser { get; set; }
 >>>>>>> cuong

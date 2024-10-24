@@ -1,6 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 using API.Extention;
 =======
+=======
+>>>>>>> cuong
 using API.IServices;
 using API.Services;
 using DataProcessing.Models;
@@ -9,6 +12,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+<<<<<<< HEAD
+>>>>>>> cuong
+=======
 >>>>>>> cuong
 
 namespace Meiko
@@ -27,12 +33,16 @@ namespace Meiko
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 			builder.Services.AddExtentionsService(builder.Configuration);
 
 			// Add services to the container.
 =======
+=======
+
+>>>>>>> cuong
             //JWT Authentication
             builder.Services.AddAuthentication(options =>
             {
@@ -52,6 +62,9 @@ namespace Meiko
                 };
             });
             // Add services to the container.
+<<<<<<< HEAD
+>>>>>>> cuong
+=======
 >>>>>>> cuong
 
             builder.Services.AddControllers();

@@ -50,6 +50,9 @@ namespace DataProcessing.Models
 <<<<<<< HEAD
 =======
             base.OnModelCreating(modelBuilder);
+<<<<<<< HEAD
+>>>>>>> cuong
+=======
 >>>>>>> cuong
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }

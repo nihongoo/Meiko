@@ -17,9 +17,15 @@ namespace DataProcessing.Configurations
 
             // Cấu hình quan hệ với Accounts
 <<<<<<< HEAD
+<<<<<<< HEAD
             builder.HasOne(s => s.Accounts)
                 .WithOne(a => a.Staffs)
                 .HasForeignKey<Staffs>(s => s.IdAccount)
+=======
+            builder.HasOne(s => s.ApplicationUser)
+                .WithOne(a => a.Staffs)
+                .HasForeignKey<Staffs>(s => s.ApplicationUserId)
+>>>>>>> cuong
 =======
             builder.HasOne(s => s.ApplicationUser)
                 .WithOne(a => a.Staffs)
