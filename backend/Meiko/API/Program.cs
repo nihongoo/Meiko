@@ -23,12 +23,16 @@ namespace Meiko
             builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
             //Service
             builder.Services.AddScoped<IAccountServices, AccountService>();
+
             builder.Services.AddScoped<IAddressServices, AddressServices>();
             builder.Services.AddScoped<IStaffServices, StaffServices>();
             builder.Services.AddScoped<ICustomerServices, CustomerServices>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IOtpService, OtpService>();
-            // Thêm Identity
+
+            builder.Services.AddScoped<IMaterialServices, MaterialServices>();
+            builder.Services.AddScoped<IBrandServices, BrandServices>();
+            // ThÃªm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();

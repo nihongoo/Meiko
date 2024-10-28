@@ -242,7 +242,6 @@ namespace API.Services
             string prefix = "NV";
             var random = new Random();
             string staffCode;
-
             do
             {
                 var randomNumbers = random.Next(10000, 99999);
