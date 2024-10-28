@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using API.ViewModel;
+using DataProcessing.Models;
 
 namespace API.IServices
 {
@@ -6,8 +7,8 @@ namespace API.IServices
     {
         public Task<List<Colors>> GetAll();
         public Task<Colors> GetById(Guid id);
-        public Task Create(Colors colors);
-        public Task Update(Colors colors);
+        public Task Create(ColorViewModel colorViewModel);
+        public Task Update(ColorViewModel colorViewModel);
         public Task Delete(Guid id);
     }
 }

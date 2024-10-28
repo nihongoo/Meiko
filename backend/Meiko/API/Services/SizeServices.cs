@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,9 +12,16 @@ namespace API.Services
         {
             _dbcontext = dbcontext;
         }
-        public async Task Create(Sizes sizes)
+        public async Task Create(SizeViewModel sizeViewModel)
         {
-            _dbcontext.Sizes.Add(sizes);
+            var size = new Sizes
+            {
+                Id = Guid.NewGuid(),
+                Name = sizeViewModel.Name,
+                Status = sizeViewModel.Status
+            };
+
+            _dbcontext.Sizes.Add(size);
             await _dbcontext.SaveChangesAsync();
         }
 
@@ -34,9 +42,15 @@ namespace API.Services
             return await _dbcontext.Sizes.FindAsync(id);
         }
 
-        public Task Update(Sizes sizes)
+        public async Task Update(SizeViewModel sizeViewModel)
         {
-            throw new NotImplementedException();
+            var size = await _dbcontext.Sizes.FindAsync(sizeViewModel.Id);
+            if (size == null) throw new Exception("Brand not found");
+
+            size.Name = sizeViewModel.Name;
+            size.Status = sizeViewModel.Status;
+
+            await _dbcontext.SaveChangesAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using API.ViewModel;
+using DataProcessing.Models;
 
 namespace API.IServices
 {
@@ -6,8 +7,8 @@ namespace API.IServices
     {
         public Task<List<TargretCustomers>> GetAll();
         public Task<TargretCustomers> GetById(Guid id);
-        public Task Create(TargretCustomers targretCustomers);
-        public Task Update(TargretCustomers targretCustomers);
+        public Task Create(TargretCustomerViewModel targretCustomer);
+        public Task Update(TargretCustomerViewModel targretCustomers);
         public Task Delete(Guid id);
     }
 }

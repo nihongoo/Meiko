@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using API.ViewModel;
+using DataProcessing.Models;
 
 namespace API.IServices
 {
@@ -6,8 +7,8 @@ namespace API.IServices
     {
         public Task<List<Brands>> GetAll();
         public Task<Brands> GetById(Guid id);
-        public Task Create(Brands brands);
-        public Task Update(Brands brands);
+        public Task Create(BrandViewModel model);
+        public Task Update(BrandViewModel model);
         public Task Delete(Guid id);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,9 +12,16 @@ namespace API.Services
         {
             _dbcontext = dbcontext;
         }
-        public async Task Create(TargretCustomers targretCustomers)
+        public async Task Create(TargretCustomerViewModel targretCustomers)
         {
-            _dbcontext.TargretCustomers.Add(targretCustomers);
+            var targetcustomer = new TargretCustomers
+            {
+                Id = Guid.NewGuid(),
+                Name = targretCustomers.Name,
+                Status = targretCustomers.Status
+            };
+
+            _dbcontext.TargretCustomers.Add(targetcustomer);
             await _dbcontext.SaveChangesAsync();
         }
 
@@ -34,9 +42,15 @@ namespace API.Services
             return await _dbcontext.TargretCustomers.FindAsync(id);
         }
 
-        public Task Update(TargretCustomers targretCustomers)
+        public async Task Update(TargretCustomerViewModel targretCustomers)
         {
-            throw new NotImplementedException();
+            var targetCustimer = await _dbcontext.TargretCustomers.FindAsync(targretCustomers.Id);
+            if (targetCustimer == null) throw new Exception("Brand not found");
+
+            targetCustimer.Name = targretCustomers.Name;
+            targetCustimer.Status = targretCustomers.Status;
+
+            await _dbcontext.SaveChangesAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,15 +12,27 @@ namespace API.Services
         {
             _dbcontext = dbcontext;
         }
-        public async Task Create(Brands brands)
+        public async Task Create(BrandViewModel model)
         {
-            _dbcontext.Brands.Add(brands);
+            var brand = new Brands
+            {
+                Id = Guid.NewGuid(),
+                Name = model.Name,
+                BrandCode = model.BrandCode,
+                Status = model.Status
+            };
+
+            _dbcontext.Brands.Add(brand);
             await _dbcontext.SaveChangesAsync();
         }
 
         public async Task Delete(Guid id)
         {
             var item = await GetById(id);
+            if (item == null)
+            {
+                throw new KeyNotFoundException($"Brand với Id = {id} không tồn tại.");
+            }
             _dbcontext.Brands.Remove(item);
             await _dbcontext.SaveChangesAsync();
         }
@@ -34,9 +47,16 @@ namespace API.Services
             return await _dbcontext.Brands.FindAsync(id);
         }
 
-        public Task Update(Brands brands)
+        public async Task Update(BrandViewModel model)
         {
-            throw new NotImplementedException();
+            var brand = await _dbcontext.Brands.FindAsync(model.Id);
+            if (brand == null) throw new Exception("Brand not found");
+
+            brand.Name = model.Name;
+            brand.BrandCode = model.BrandCode;
+            brand.Status = model.Status;
+
+            await _dbcontext.SaveChangesAsync();
         }
     }
 }

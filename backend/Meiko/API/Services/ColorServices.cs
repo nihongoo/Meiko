@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,9 +12,17 @@ namespace API.Services
         {
             _dbcontext = appDbContext;
         }
-        public async Task Create(Colors colors)
+        public async Task Create(ColorViewModel colorViewModel)
         {
-            _dbcontext.Colors.Add(colors);
+            var color = new Colors
+            {
+                Id = Guid.NewGuid(),
+                Name = colorViewModel.Name,
+                Hex = colorViewModel.Hex,
+                Status = colorViewModel.Status
+            };
+
+            _dbcontext.Colors.Add(color);
             await _dbcontext.SaveChangesAsync();
         }
 
@@ -34,9 +43,16 @@ namespace API.Services
             return await _dbcontext.Colors.FindAsync(id);
         }
 
-        public Task Update(Colors colors)
+        public async Task Update(ColorViewModel colorViewModel)
         {
-            throw new NotImplementedException();
+            var color = await _dbcontext.Colors.FindAsync(colorViewModel.Id);
+            if (color == null) throw new Exception("Brand not found");
+
+            color.Name = colorViewModel.Name;
+            color.Hex = colorViewModel.Hex;
+            color.Status = colorViewModel.Status;
+
+            await _dbcontext.SaveChangesAsync();
         }
     }
 }

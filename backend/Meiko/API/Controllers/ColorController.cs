@@ -1,5 +1,6 @@
 ﻿using API.IServices;
 using API.Services;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,24 +16,45 @@ namespace API.Controllers
             _colorServices = colorServices;
         }
         [HttpGet("get-all")]
-        public async Task<List<Colors>> GetAll()
+        public async Task<ActionResult<IEnumerable<Colors>>> GetAll()
         {
-            return await _colorServices.GetAll();
+            var colors = await _colorServices.GetAll();
+            return Ok(colors);
         }
         [HttpGet("{id}")]
-        public async Task<Colors> GetById(Guid id)
+        public async Task<ActionResult<Colors>> GetBrand(Guid id)
         {
-            return await _colorServices.GetById(id);
+            var color = await _colorServices.GetById(id);
+            if (color == null) return NotFound();
+            return Ok(color);
         }
         [HttpPost("add-brand")]
-        public async Task Create(Colors colors)
+        public async Task<ActionResult> Create([FromBody] ColorViewModel model)
         {
-            await _colorServices.Create(colors);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _colorServices.Create(model);
+            return Ok(model);
+        }
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] ColorViewModel model)
+        {
+            if (id != model.Id || !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _colorServices.Update(model);
+            return NoContent();
         }
         [HttpDelete("{id}")]
-        public async Task Delete(Guid id)
+        public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _colorServices.Delete(id);
+            return NoContent();
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using API.IServices;
+using API.Services;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,24 +16,45 @@ namespace API.Controllers
             _targetServices = targetServices;
         }
         [HttpGet("get-all")]
-        public async Task<List<TargretCustomers>> GetAll()
+        public async Task<ActionResult<IEnumerable<TargretCustomers>>> GetAll()
         {
-            return await _targetServices.GetAll();
+            var targretCustomers = await _targetServices.GetAll();
+            return Ok(targretCustomers);
         }
         [HttpGet("{id}")]
-        public async Task<TargretCustomers> GetById(Guid id)
+        public async Task<ActionResult<TargretCustomers>> GetBrand(Guid id)
         {
-            return await _targetServices.GetById(id);
+            var targret = await _targetServices.GetById(id);
+            if (targret == null) return NotFound();
+            return Ok(targret);
         }
         [HttpPost("add-brand")]
-        public async Task Create(TargretCustomers targretCustomers)
+        public async Task<ActionResult> Create([FromBody] TargretCustomerViewModel model)
         {
-            await _targetServices.Create(targretCustomers);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _targetServices.Create(model);
+            return Ok(model);
+        }
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] TargretCustomerViewModel model)
+        {
+            if (id != model.Id || !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _targetServices.Update(model);
+            return NoContent();
         }
         [HttpDelete("{id}")]
-        public async Task Delete(Guid id)
+        public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _targetServices.Delete(id);
+            return NoContent();
         }
     }
 }

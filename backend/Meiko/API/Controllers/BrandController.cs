@@ -1,4 +1,6 @@
 ﻿using API.IServices;
+using API.Services;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,24 +16,45 @@ namespace API.Controllers
             _brandServices = brandServices;
         }
         [HttpGet("get-all")]
-        public async Task<List<Brands>> GetAll()
+        public async Task<ActionResult<IEnumerable<Brands>>> GetAll()
         {
-            return await _brandServices.GetAll();
+            var brands = await _brandServices.GetAll();
+            return Ok(brands);
         }
         [HttpGet("{id}")]
-        public async Task<Brands> GetById(Guid id)
+        public async Task<ActionResult<Brands>> GetBrand(Guid id)
         {
-            return await _brandServices.GetById(id);
+            var brand = await _brandServices.GetById(id);
+            if (brand == null) return NotFound();
+            return Ok(brand);
         }
         [HttpPost("add-brand")]
-        public async Task Create(Brands brands)
+        public async Task<ActionResult> Create([FromBody] BrandViewModel model)
         {
-            await _brandServices.Create(brands);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _brandServices.Create(model);
+            return Ok(model);
+        }
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] BrandViewModel model)
+        {
+            if (id != model.Id || !ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _brandServices.Update(model);
+            return NoContent();
         }
         [HttpDelete("{id}")]
-        public async Task Delete(Guid id)
+        public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _brandServices.Delete(id);
+            return NoContent();
         }
     }
 }
