@@ -236,6 +236,7 @@ namespace API.Services
 
             return IdentityResult.Success;
         }
+
         private async Task<string> GenerateUniqueStaffCodeAsync()
         {
             string prefix = "NV";

@@ -28,7 +28,15 @@ namespace Meiko
             builder.Services.AddScoped<ICustomerServices, CustomerServices>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IOtpService, OtpService>();
-            // Thêm Identity
+            builder.Services.AddScoped<IMaterialServices, MaterialServices>();
+            builder.Services.AddScoped<IBrandServices, BrandServices>();
+            builder.Services.AddScoped<ICategoryServices, CategoryServices>();
+            builder.Services.AddScoped<IColorServices, ColorServices>();
+            builder.Services.AddScoped<ISizeServices, SizeServices>();
+            builder.Services.AddScoped<ITargetServices, TargetServices>();
+            builder.Services.AddScoped<IProductServices, ProductServices>();
+            builder.Services.AddScoped<IProductDetailServices, ProductDetailServices>();
+            // ThÃªm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
