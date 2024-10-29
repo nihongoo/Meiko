@@ -1,3 +1,4 @@
+using API.Extention;
 using API.IServices;
 using API.Services;
 using DataProcessing.Models;
@@ -19,6 +20,8 @@ namespace Meiko
                 options.UseSqlServer(connectionString));
             //Service
             builder.Services.AddScoped<IAccountServices, AccountService>();
+            builder.Services.AddExtentionsService(builder.Configuration);
+
             // Thêm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()

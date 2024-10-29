@@ -38,7 +38,7 @@ namespace DataProcessing.Configurations
             builder.Property(c => c.Status)
                 .IsRequired()
                 .HasComment("Trạng thái không được để trống.");
-
+            //account
             builder.HasOne(c => c.ApplicationUser)
                 .WithOne(a => a.Customers)
                 .HasForeignKey<Customers>(c => c.ApplicationUserId)
