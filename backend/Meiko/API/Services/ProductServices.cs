@@ -1,5 +1,6 @@
 ﻿using API.IServices;
 using API.ViewModel;
+using CloudinaryDotNet;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +9,12 @@ namespace API.Services
     public class ProductServices : IProductServices
     {
         private readonly AppDbContext _context;
+        private readonly Cloudinary _cloudinary;
 
-        public ProductServices(AppDbContext context)
+        public ProductServices(AppDbContext context, Cloudinary cloudinary)
         {
             _context = context;
+            _cloudinary = cloudinary;
         }
 
         public async Task<IEnumerable<Products>> GetAllAsync()
@@ -34,13 +37,15 @@ namespace API.Services
 
         public async Task CreateAsync(ProductViewModel model)
         {
+            var imgUrl = await GetAnImage(model.ImageUrl);
+
             var product = new Products
             {
                 Id = Guid.NewGuid(),
                 Name = model.Name,
                 Description = model.Description,
                 ProductCode = model.ProductCode,
-                ImageUrl = model.ImageUrl,
+                ImageUrl = imgUrl,
                 WarrantyPeriod = model.WarrantyPeriod,
                 CreateTime = model.CreateTime,
                 Status = model.Status,
@@ -56,13 +61,15 @@ namespace API.Services
 
         public async Task UpdateAsync(ProductViewModel model)
         {
+            var imgUrl = await GetAnImage(model.ImageUrl);
+
             var product = await _context.Products.FindAsync(model.Id);
             if (product == null) throw new Exception("Product not found");
 
             product.Name = model.Name;
             product.Description = model.Description;
             product.ProductCode = model.ProductCode;
-            product.ImageUrl = model.ImageUrl;
+            product.ImageUrl = imgUrl;
             product.WarrantyPeriod = model.WarrantyPeriod;
             product.CreateTime = model.CreateTime;
             product.Status = model.Status;
@@ -81,6 +88,14 @@ namespace API.Services
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<string> GetAnImage(string publicId)
+        {
+            string defaultUrl = "https://res.cloudinary.com/dtsqxauba/image/upload/v1730177470/default_image.png";
+            var res = _cloudinary.GetResource(publicId);
+            if(res.Url!=null) return res.Url;
+            else return defaultUrl;
         }
     }
 }
