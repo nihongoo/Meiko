@@ -12,6 +12,8 @@ import ManageSale from '../pages/manage-sale/manageSale'
 import Account from '../pages/account/account'
 import ManageCustomer from '../pages/manage-customer/manageCustomer'
 
+import Login from '../component/Layout/loginLayout/login'
+
 const privateRoutes = [
     {path: '/', component: Home, layout: 'admin'},
     { path: '/soldoffline', component: SoldOffline, layout: 'admin' },
@@ -25,10 +27,12 @@ const privateRoutes = [
     { path: '/managevoucher', component: ManageVoucher, layout: 'admin' },
     { path: '/managesale', component: ManageSale, layout: 'admin' },
     { path: '/account', component: Account, layout: 'admin' },
-    { path: '/managecustomer', component: ManageCustomer, layout: 'admin'}
+    { path: '/managecustomer', component: ManageCustomer, layout: 'admin'},
+    {path:'/login',component:Login, layout:'login'}
 ]
 
 const publicRoutes = [
+    {path:'/login',component:Login, layout:'login'},
 
 ]
 
