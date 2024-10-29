@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { privateRoutes } from './routes/index'
+import { privateRoutes, publicRoutes } from './routes/index'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import {adminLayout, defaultLayout, loginLayout} from './component/Layout'
+import { adminLayout, defaultLayout, loginLayout } from './component/Layout'
 
 function App() {
   return (
@@ -10,15 +10,30 @@ function App() {
         <Routes>
           {privateRoutes.map((route, index) => {
             const Layout = route.layout === 'admin'
-            ? adminLayout
-            :route.layout === 'login'
-            ? loginLayout
-            :defaultLayout
+              ? adminLayout
+              : loginLayout
             const Page = route.component
             return (
-              <Route 
-                key={index} 
-                path={route.path} 
+              <Route
+                key={index}
+                path={route.path}
+                element={
+                  <Layout>
+                    <Page />
+                  </Layout>
+                }>
+              </Route>
+            )
+          })}
+          {publicRoutes.map((route, index) => {
+            const Layout = route.layout === 'user'
+              ? defaultLayout
+              : loginLayout
+            const Page = route.component
+            return (
+              <Route
+                key={index}
+                path={route.path}
                 element={
                   <Layout>
                     <Page />
