@@ -39,8 +39,6 @@ namespace API.ViewModel
         [Required(ErrorMessage = "Id màu sắc không được để trống.")]
         public Guid ColorId { get; set; }
 
-        public Guid? SaleId { get; set; }
-
         [Required(ErrorMessage = "Id kích thước không được để trống.")]
         public Guid SizeId { get; set; }
     }

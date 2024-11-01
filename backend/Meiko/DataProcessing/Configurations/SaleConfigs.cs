@@ -16,8 +16,8 @@ namespace DataProcessing.Configurations
             builder.HasKey(s => s.Id);
 
             // Cấu hình quan hệ với ProductDetails
-            builder.HasMany(s => s.ProductDetails)
-                .WithOne(pd => pd.Sales)
+            builder.HasMany(s => s.SaleProducts)
+                .WithOne(pd => pd.sales)
                 .HasForeignKey(pd => pd.SaleId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

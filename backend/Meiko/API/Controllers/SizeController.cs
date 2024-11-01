@@ -28,7 +28,7 @@ namespace API.Controllers
             if (size == null) return NotFound();
             return Ok(size);
         }
-        [HttpPost("add-brand")]
+        [HttpPost("add-size")]
         public async Task<ActionResult> Create([FromBody] SizeViewModel model)
         {
             if (!ModelState.IsValid)

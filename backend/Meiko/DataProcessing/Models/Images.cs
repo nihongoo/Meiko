@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -20,6 +21,7 @@ namespace DataProcessing.Models
         [Required(ErrorMessage = "Id chi tiết sản phẩm không được để trống.")]
         public Guid ProductDetailId { get; set; }
 
+        [JsonIgnore]
         public virtual ProductDetails? ProductDetails { get; set; }
     }
 }

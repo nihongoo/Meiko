@@ -20,7 +20,6 @@ namespace API.Services
                 .Include(pd => pd.Products)
                 .Include(pd => pd.Colors)
                 .Include(pd => pd.Sizes)
-                .Include(pd => pd.Sales)
                 .ToListAsync();
         }
 
@@ -30,7 +29,6 @@ namespace API.Services
                 .Include(pd => pd.Products)
                 .Include(pd => pd.Colors)
                 .Include(pd => pd.Sizes)
-                .Include(pd => pd.Sales)
                 .FirstOrDefaultAsync(pd => pd.Id == id);
         }
 
@@ -48,7 +46,6 @@ namespace API.Services
                 Status = model.Status,
                 ProductId = model.ProductId,
                 ColorId = model.ColorId,
-                SaleId = model.SaleId,
                 SizeId = model.SizeId
             };
 
@@ -70,7 +67,6 @@ namespace API.Services
             productDetail.Status = model.Status;
             productDetail.ProductId = model.ProductId;
             productDetail.ColorId = model.ColorId;
-            productDetail.SaleId = model.SaleId;
             productDetail.SizeId = model.SizeId;
 
             await _context.SaveChangesAsync();

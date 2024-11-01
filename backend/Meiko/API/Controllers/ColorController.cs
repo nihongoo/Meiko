@@ -28,7 +28,7 @@ namespace API.Controllers
             if (color == null) return NotFound();
             return Ok(color);
         }
-        [HttpPost("add-brand")]
+        [HttpPost("add-color")]
         public async Task<ActionResult> Create([FromBody] ColorViewModel model)
         {
             if (!ModelState.IsValid)
