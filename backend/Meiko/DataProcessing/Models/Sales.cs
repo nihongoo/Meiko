@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -41,7 +42,8 @@ namespace DataProcessing.Models
         [Range(0, 5, ErrorMessage = "Trạng thái phải từ 0 đến 5.")]
         public int Status { get; set; }
 
-        public virtual ICollection<ProductDetails>? ProductDetails { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<SaleProducts> SaleProducts { get; set; }
     }
 }
 public class CustomDateRange : ValidationAttribute

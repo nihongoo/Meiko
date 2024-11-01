@@ -28,7 +28,7 @@ namespace API.Controllers
             if (categorie == null) return NotFound();
             return Ok(categorie);
         }
-        [HttpPost("add-brand")]
+        [HttpPost("add-category")]
         public async Task<ActionResult> Create([FromBody] CategoryViewModel model)
         {
             if (!ModelState.IsValid)

@@ -16,11 +16,12 @@ namespace API.Services
 
         public async Task<IEnumerable<Products>> GetAllAsync()
         {
-            return await _context.Products.Include(p => p.Materials)
-                                          .Include(p => p.Brands)
-                                          .Include(p => p.Categories)
-                                          .Include(p => p.TargretCustomers)
-                                          .ToListAsync();
+            return await _context.Products
+                                 .Include(p => p.Materials)
+                                 .Include(p => p.Brands)
+                                 .Include(p => p.Categories)
+                                 .Include(p => p.TargretCustomers)
+                                 .ToListAsync();
         }
 
         public async Task<Products> GetByIdAsync(Guid id)

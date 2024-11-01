@@ -28,7 +28,7 @@ namespace API.Controllers
             if (targret == null) return NotFound();
             return Ok(targret);
         }
-        [HttpPost("add-brand")]
+        [HttpPost("add-target")]
         public async Task<ActionResult> Create([FromBody] TargretCustomerViewModel model)
         {
             if (!ModelState.IsValid)

@@ -4,6 +4,7 @@ using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataProcessing.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241101034847_3st")]
+    partial class _3st
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +73,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Address", (string)null);
+                    b.ToTable("Address");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.ApplicationUser", b =>
@@ -178,7 +180,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Banners", (string)null);
+                    b.ToTable("Banners");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.BillDetails", b =>
@@ -216,7 +218,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("ProductDetailId");
 
-                    b.ToTable("BillDetails", (string)null);
+                    b.ToTable("BillDetails");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Bills", b =>
@@ -331,7 +333,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("Bills", (string)null);
+                    b.ToTable("Bills");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Brands", b =>
@@ -358,7 +360,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Brands", (string)null);
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.CartDetails", b =>
@@ -395,7 +397,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("ProductDetailsId");
 
-                    b.ToTable("CartDetails", (string)null);
+                    b.ToTable("CartDetails");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Carts", b =>
@@ -426,7 +428,7 @@ namespace DataProcessing.Migrations
                     b.HasIndex("CustomerId")
                         .IsUnique();
 
-                    b.ToTable("Carts", (string)null);
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Categories", b =>
@@ -472,7 +474,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Colors", (string)null);
+                    b.ToTable("Colors");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Customers", b =>
@@ -535,7 +537,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("IdCustomer");
 
-                    b.ToTable("FavoriteProducts", (string)null);
+                    b.ToTable("FavoriteProducts");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Images", b =>
@@ -555,7 +557,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("ProductDetailId");
 
-                    b.ToTable("Images", (string)null);
+                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Materials", b =>
@@ -574,7 +576,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Materials", (string)null);
+                    b.ToTable("Materials");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Otp", b =>
@@ -601,7 +603,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("otps", (string)null);
+                    b.ToTable("otps");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.ProductDetails", b =>
@@ -650,7 +652,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("SizeId");
 
-                    b.ToTable("ProductDetails", (string)null);
+                    b.ToTable("ProductDetails");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Products", b =>
@@ -710,7 +712,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("TargretCustomerId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.SaleProducts", b =>
@@ -734,7 +736,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("SaleProducts", (string)null);
+                    b.ToTable("SaleProducts");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Sales", b =>
@@ -772,7 +774,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sales", (string)null);
+                    b.ToTable("Sales");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Sizes", b =>
@@ -791,7 +793,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sizes", (string)null);
+                    b.ToTable("Sizes");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Staffs", b =>
@@ -838,7 +840,7 @@ namespace DataProcessing.Migrations
                         .IsUnique()
                         .HasFilter("[ApplicationUserId] IS NOT NULL");
 
-                    b.ToTable("Staffs", (string)null);
+                    b.ToTable("Staffs");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.TargretCustomers", b =>
@@ -859,7 +861,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TargretCustomers", (string)null);
+                    b.ToTable("TargretCustomers");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.VoucherDetails", b =>
@@ -888,7 +890,7 @@ namespace DataProcessing.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("VoucherDetails", (string)null);
+                    b.ToTable("VoucherDetails");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Vouchers", b =>
@@ -925,7 +927,7 @@ namespace DataProcessing.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vouchers", (string)null);
+                    b.ToTable("Vouchers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

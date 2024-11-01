@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -46,14 +47,14 @@ namespace DataProcessing.Models
         [Required(ErrorMessage = "Id màu sắc không được để trống.")]
         public Guid ColorId { get; set; }
 
-        public Guid? SaleId { get; set; }
-
         [Required(ErrorMessage = "Id kích thước không được để trống.")]
         public Guid SizeId { get; set; }
 
+        [JsonIgnore]
         public virtual Products? Products { get; set; }
         public virtual Colors? Colors { get; set; }
-        public virtual Sales? Sales { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<SaleProducts> SaleProducts { get; set; }
         public virtual Sizes? Sizes { get; set; }
         public virtual ICollection<CartDetails>? CartDetails { get; set; }
         public virtual ICollection<BillDetails>? BillDetails { get; set; }

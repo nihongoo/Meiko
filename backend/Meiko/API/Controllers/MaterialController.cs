@@ -28,7 +28,7 @@ namespace API.Controllers
             if (material == null) return NotFound();
             return Ok(material);
         }
-        [HttpPost("add-brand")]
+        [HttpPost("add-material")]
         public async Task<ActionResult> Create([FromBody] MaterialViewModel model)
         {
             if (!ModelState.IsValid)
