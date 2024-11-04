@@ -633,25 +633,20 @@ namespace DataProcessing.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("SaleId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("SizeId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("Weight")
-                        .HasColumnType("int");
+                    b.Property<double>("Weight")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ColorId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("SaleId");
 
                     b.HasIndex("SizeId");
 
@@ -716,6 +711,30 @@ namespace DataProcessing.Migrations
                     b.HasIndex("TargretCustomerId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.SaleProducts", b =>
+                {
+                    b.Property<Guid>("ProductDetailId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("DiscountedPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("EffectiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ProductDetailId", "SaleId");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("SaleProducts");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Sales", b =>
@@ -1179,11 +1198,6 @@ namespace DataProcessing.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DataProcessing.Models.Sales", "Sales")
-                        .WithMany("ProductDetails")
-                        .HasForeignKey("SaleId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("DataProcessing.Models.Sizes", "Sizes")
                         .WithMany("ProductDetails")
                         .HasForeignKey("SizeId")
@@ -1193,8 +1207,6 @@ namespace DataProcessing.Migrations
                     b.Navigation("Colors");
 
                     b.Navigation("Products");
-
-                    b.Navigation("Sales");
 
                     b.Navigation("Sizes");
                 });
@@ -1232,6 +1244,25 @@ namespace DataProcessing.Migrations
                     b.Navigation("Materials");
 
                     b.Navigation("TargretCustomers");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.SaleProducts", b =>
+                {
+                    b.HasOne("DataProcessing.Models.ProductDetails", "Productdetail")
+                        .WithMany("SaleProducts")
+                        .HasForeignKey("ProductDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataProcessing.Models.Sales", "sales")
+                        .WithMany("SaleProducts")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Productdetail");
+
+                    b.Navigation("sales");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Staffs", b =>
@@ -1371,6 +1402,8 @@ namespace DataProcessing.Migrations
                     b.Navigation("CartDetails");
 
                     b.Navigation("Images");
+
+                    b.Navigation("SaleProducts");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Products", b =>
@@ -1382,7 +1415,7 @@ namespace DataProcessing.Migrations
 
             modelBuilder.Entity("DataProcessing.Models.Sales", b =>
                 {
-                    b.Navigation("ProductDetails");
+                    b.Navigation("SaleProducts");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Sizes", b =>

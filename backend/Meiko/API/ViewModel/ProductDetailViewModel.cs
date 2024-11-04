@@ -4,19 +4,17 @@ namespace API.ViewModel
 {
     public class ProductDetailViewModel
     {
-        public Guid Id { get; set; }
-
         [Required(ErrorMessage = "Mã chi tiết sản phẩm không được để trống.")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Mã chi tiết sản phẩm phải từ 3 đến 50 ký tự.")]
         public string ProductDetailCode { get; set; }
 
         [Required(ErrorMessage = "Số lượng không được để trống.")]
-        [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
         public int Quantity { get; set; }
 
         [Required(ErrorMessage = "Cân nặng không được để trống.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Cân nặng phải lớn hơn 0.")]
-        public int Weight { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Cân nặng phải lớn hơn 0.")]
+        public double Weight { get; set; }
 
         [Required(ErrorMessage = "Giá nhập không được để trống.")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá nhập phải lớn hơn hoặc bằng 0.")]
@@ -38,8 +36,6 @@ namespace API.ViewModel
 
         [Required(ErrorMessage = "Id màu sắc không được để trống.")]
         public Guid ColorId { get; set; }
-
-        public Guid? SaleId { get; set; }
 
         [Required(ErrorMessage = "Id kích thước không được để trống.")]
         public Guid SizeId { get; set; }

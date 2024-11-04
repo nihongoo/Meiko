@@ -38,6 +38,8 @@ namespace Meiko
             builder.Services.AddScoped<IProductDetailServices, ProductDetailServices>();
             builder.Services.AddScoped<ICartServices, CartServices>();
             builder.Services.AddScoped<ICartDetailServices, CartDetailServices>();
+            builder.Services.AddScoped<ISaleServices, SaleServices>();
+            builder.Services.AddScoped<ISaleProductServices, SaleProductServices>();
             // Thêm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()

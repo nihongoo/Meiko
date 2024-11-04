@@ -28,7 +28,7 @@ namespace API.Controllers
             if (targret == null) return NotFound();
             return Ok(targret);
         }
-        [HttpPost("add-brand")]
+        [HttpPost("add-target")]
         public async Task<ActionResult> Create([FromBody] TargretCustomerViewModel model)
         {
             if (!ModelState.IsValid)
@@ -42,12 +42,12 @@ namespace API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] TargretCustomerViewModel model)
         {
-            if (id != model.Id || !ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _targetServices.Update(model);
+            await _targetServices.Update(id, model);
             return NoContent();
         }
         [HttpDelete("{id}")]

@@ -28,7 +28,7 @@ namespace API.Controllers
             if (categorie == null) return NotFound();
             return Ok(categorie);
         }
-        [HttpPost("add-brand")]
+        [HttpPost("add-category")]
         public async Task<ActionResult> Create([FromBody] CategoryViewModel model)
         {
             if (!ModelState.IsValid)
@@ -42,12 +42,12 @@ namespace API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] CategoryViewModel model)
         {
-            if (id != model.Id || !ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _categoryServices.Update(model);
+            await _categoryServices.Update(id, model);
             return NoContent();
         }
         [HttpDelete("{id}")]
