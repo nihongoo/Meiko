@@ -11,8 +11,8 @@ namespace API.ViewModel
         public string ProductDetailCode { get; set; }
 
         [Required(ErrorMessage = "Số lượng không được để trống.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
-        public double Quantity { get; set; }
+        [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
+        public int Quantity { get; set; }
 
         [Required(ErrorMessage = "Cân nặng không được để trống.")]
         [Range(1, int.MaxValue, ErrorMessage = "Cân nặng phải lớn hơn 0.")]
