@@ -73,7 +73,9 @@ namespace API.Services
 						.Include(cd => cd.ProductDetails)
 						.Include(cd => cd.Carts)
 						.FirstOrDefaultAsync();
-					var productDetail = await _appDbContext.ProductDetails.FindAsync(ProductDetailId);
+					var productDetail = await _appDbContext.ProductDetails.Where(pd => pd.Id == ProductDetailId)
+						.Include(pd => pd.Products)
+						.FirstOrDefaultAsync();
 
 					var response = $"Đã thêm {Quantity} {productDetail.Products.Name} vào giỏ hàng!";
 

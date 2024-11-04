@@ -87,6 +87,7 @@ namespace API.Services
 					var cart = await _dbcontext.Carts.FindAsync(CartId);
 					if (cart == null) return false;
 
+					cart.Total = 0;
 					_dbcontext.CartDetails.Where(cd => cd.CartId == CartId).ToList()
 						.ForEach(cd =>
 						{

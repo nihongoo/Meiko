@@ -25,14 +25,14 @@ namespace API.Controllers
 		}
 
 		// GET api/<CartDetailsController>/5
-		[HttpGet("{cartid}")]
+		[HttpGet("get-all-cartdetail-by/{cartid}")]
 		public async Task<IEnumerable<CartDetails>> Get(Guid cartid)
 		{
 			return await _cartDetailServices.GetCDsByCartId(cartid);
 		}
 
 		// POST api/<CartDetailsController>
-		[HttpPost]
+		[HttpPost("add-to-cart")]
 		public async Task<string> AddToCart(Guid CartId, Guid ProductDetailId, int Quantity)
 		{
 			var response = await _cartDetailServices.AddToCart(CartId, ProductDetailId, Quantity);
@@ -42,7 +42,7 @@ namespace API.Controllers
 		}
 
 		// PUT api/<CartDetailsController>/5
-		[HttpPut("{cartdetailid}")]
+		[HttpPut("change-stock-only/{cartdetailid}")]
 		public async Task<string> ChangeStockOnly(Guid cartdetailid, Guid ProductDetailId, int Quantity)
 		{
 			var response = await _cartDetailServices.ChangeStockOnly(cartdetailid, ProductDetailId, Quantity);
@@ -52,13 +52,27 @@ namespace API.Controllers
 		}
 
 		// DELETE api/<CartDetailsController>/5
-		[HttpDelete("{cartdetailid}")]
+		[HttpDelete("remove-from-cart/{cartdetailid}")]
 		public async Task<IActionResult> RemoveFromCart(Guid cartdetailid)
 		{
+			var cartId = await _cartDetailServices.GetCartIdByCDId(cartdetailid);
+
 			var response = await _cartDetailServices.RemoveFromCart(cartdetailid);
 
-			await _cartServices.UpdateCartAsync(await _cartDetailServices.GetCartIdByCDId(cartdetailid), null);
 			if (!response) return BadRequest("Không thể xoá sản phẩm này!");
+			
+			await _cartServices.UpdateCartAsync(cartId, null);
+			return Ok();
+		}
+
+		[HttpDelete("clear-cart/{cartid}")]
+		public async Task<IActionResult> ClearCart(Guid cartid)
+		{
+			var response = await _cartDetailServices.ClearCart(cartid);
+
+			if (!response) return BadRequest("Đã có lỗi xảy ra khi xoá sản phẩm trong giỏ hàng!");
+
+			await _cartServices.UpdateCartAsync(cartid, null);
 			return Ok();
 		}
 	}
