@@ -8,7 +8,7 @@ namespace API.IServices
         public Task<List<Brands>> GetAll();
         public Task<Brands> GetById(Guid id);
         public Task Create(BrandViewModel model);
-        public Task Update(BrandViewModel model);
+        public Task Update(Guid id, BrandViewModel model);
         public Task Delete(Guid id);
     }
 }

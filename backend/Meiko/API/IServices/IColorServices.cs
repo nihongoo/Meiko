@@ -8,7 +8,7 @@ namespace API.IServices
         public Task<List<Colors>> GetAll();
         public Task<Colors> GetById(Guid id);
         public Task Create(ColorViewModel colorViewModel);
-        public Task Update(ColorViewModel colorViewModel);
+        public Task Update(Guid id, ColorViewModel colorViewModel);
         public Task Delete(Guid id);
     }
 }

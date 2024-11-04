@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = targretCustomers.Name,
-                Status = targretCustomers.Status
+                Status = 1
             };
 
             _dbcontext.TargretCustomers.Add(targetcustomer);
@@ -42,9 +42,9 @@ namespace API.Services
             return await _dbcontext.TargretCustomers.FindAsync(id);
         }
 
-        public async Task Update(TargretCustomerViewModel targretCustomers)
+        public async Task Update(Guid id,TargretCustomerViewModel targretCustomers)
         {
-            var targetCustimer = await _dbcontext.TargretCustomers.FindAsync(targretCustomers.Id);
+            var targetCustimer = await _dbcontext.TargretCustomers.FindAsync(id);
             if (targetCustimer == null) throw new Exception("Brand not found");
 
             targetCustimer.Name = targretCustomers.Name;

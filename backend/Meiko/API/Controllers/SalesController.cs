@@ -69,7 +69,7 @@ namespace API.Controllers
                 StartDay = saleDto.StartDay,
                 EndDay = saleDto.EndDay,
                 Description = saleDto.Description,
-                Status = saleDto.Status,
+                Status = 1,
                 SaleProducts = new List<SaleProducts>()
             };
 

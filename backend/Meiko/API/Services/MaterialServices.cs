@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = materialViewModel.Name,
-                Status = materialViewModel.Status
+                Status = 1
             };
 
             _dbcontext.Materials.Add(material);
@@ -42,9 +42,9 @@ namespace API.Services
             return await _dbcontext.Materials.FindAsync(id);
         }
 
-        public async Task Update(MaterialViewModel materialViewModel)
+        public async Task Update(Guid id, MaterialViewModel materialViewModel)
         {
-            var material = await _dbcontext.Materials.FindAsync(materialViewModel.Id);
+            var material = await _dbcontext.Materials.FindAsync(id);
             if (material == null) throw new Exception("Brand not found");
 
             material.Name = materialViewModel.Name;

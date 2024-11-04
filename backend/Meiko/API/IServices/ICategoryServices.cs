@@ -8,7 +8,7 @@ namespace API.IServices
         public Task<List<Categories>> GetAll();
         public Task<Categories> GetById(Guid id);
         public Task Create(CategoryViewModel categoryViewModel);
-        public Task Update(CategoryViewModel categoryViewModel);
+        public Task Update(Guid id, CategoryViewModel categoryViewModel);
         public Task Delete(Guid id);
     }
 }

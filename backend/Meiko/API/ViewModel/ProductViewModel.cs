@@ -4,8 +4,6 @@ namespace API.ViewModel
 {
     public class ProductViewModel
     {
-        public Guid Id { get; set; } // Dùng cho sửa và xóa
-
         [Required(ErrorMessage = "Tên sản phẩm không được để trống.")]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "Tên sản phẩm phải từ 3 đến 100 ký tự.")]
         public string Name { get; set; }

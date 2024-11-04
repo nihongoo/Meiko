@@ -8,7 +8,7 @@ namespace API.IServices
         public Task<IEnumerable<ProductDetails>> GetAllAsync();
         public Task<ProductDetails> GetByIdAsync(Guid id);
         public Task CreateAsync(ProductDetailViewModel model);
-        public Task UpdateAsync(ProductDetailViewModel model);
+        public Task UpdateAsync(Guid id, ProductDetailViewModel model);
         public Task DeleteAsync(Guid id);
     }
 }
