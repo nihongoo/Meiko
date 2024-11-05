@@ -19,12 +19,12 @@ namespace DataProcessing.Models
         public string ProductDetailCode { get; set; }
 
         [Required(ErrorMessage = "Số lượng không được để trống.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
-        public double Quantity { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
+        public int Quantity { get; set; }
 
         [Required(ErrorMessage = "Cân nặng không được để trống.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Cân nặng phải lớn hơn 0.")]
-        public int Weight { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Cân nặng phải lớn hơn 0.")]
+        public double Weight { get; set; }
 
         [Required(ErrorMessage = "Giá nhập không được để trống.")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá nhập phải lớn hơn hoặc bằng 0.")]
@@ -56,7 +56,9 @@ namespace DataProcessing.Models
         [JsonIgnore]
         public virtual ICollection<SaleProducts> SaleProducts { get; set; }
         public virtual Sizes? Sizes { get; set; }
+        [JsonIgnore]
         public virtual ICollection<CartDetails>? CartDetails { get; set; }
+        [JsonIgnore]
         public virtual ICollection<BillDetails>? BillDetails { get; set; }
 
         public virtual ICollection<Images>? Images { get; set; }

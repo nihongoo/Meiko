@@ -43,7 +43,7 @@ namespace API.Services
                 ImportPrice = model.ImportPrice,
                 Price = model.Price,
                 CreatTime = model.CreatTime,
-                Status = model.Status,
+                Status = 1,
                 ProductId = model.ProductId,
                 ColorId = model.ColorId,
                 SizeId = model.SizeId
@@ -53,9 +53,9 @@ namespace API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(ProductDetailViewModel model)
+        public async Task UpdateAsync(Guid id, ProductDetailViewModel model)
         {
-            var productDetail = await _context.ProductDetails.FindAsync(model.Id);
+            var productDetail = await _context.ProductDetails.FindAsync(id);
             if (productDetail == null) throw new Exception("ProductDetail not found");
 
             productDetail.ProductDetailCode = model.ProductDetailCode;

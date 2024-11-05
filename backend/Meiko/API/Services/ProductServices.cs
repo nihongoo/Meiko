@@ -44,7 +44,7 @@ namespace API.Services
                 ImageUrl = model.ImageUrl,
                 WarrantyPeriod = model.WarrantyPeriod,
                 CreateTime = model.CreateTime,
-                Status = model.Status,
+                Status = 1,
                 MaterialId = model.MaterialId,
                 BrandId = model.BrandId,
                 CategoryId = model.CategoryId,
@@ -55,9 +55,9 @@ namespace API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(ProductViewModel model)
+        public async Task UpdateAsync(Guid id, ProductViewModel model)
         {
-            var product = await _context.Products.FindAsync(model.Id);
+            var product = await _context.Products.FindAsync(id);
             if (product == null) throw new Exception("Product not found");
 
             product.Name = model.Name;

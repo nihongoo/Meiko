@@ -42,12 +42,12 @@ namespace API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] SizeViewModel model)
         {
-            if (id != model.Id || !ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _sizeServices.Update(model);
+            await _sizeServices.Update(id, model);
             return NoContent();
         }
         [HttpDelete("{id}")]

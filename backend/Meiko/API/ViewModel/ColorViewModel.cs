@@ -4,7 +4,6 @@ namespace API.ViewModel
 {
     public class ColorViewModel
     {
-        public Guid Id { get; set; }
 
         [Required(ErrorMessage = "Tên màu sắc không được để trống.")]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "Tên màu sắc phải từ 3 đến 100 ký tự.")]
