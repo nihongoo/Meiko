@@ -13,7 +13,7 @@ namespace API.Services
         }
         public async Task<string> AddToCart(Guid CartId, Guid productDetailId, int Quantity)
 		{
-			using (var dbTrans = _appDbContext.Database.BeginTransaction())
+			using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
 			{
 				try
 				{
@@ -22,13 +22,13 @@ namespace API.Services
 						&& cd.ProductDetailsId == productDetailId)
 						.FirstOrDefaultAsync();
 
-					var productDetail = _appDbContext.ProductDetails.Where(pd => pd.Id == productDetailId)
+					var productDetail = await _appDbContext.ProductDetails.Where(pd => pd.Id == productDetailId)
 						.Include(p => p.Products)
-						.FirstOrDefault();
+						.FirstOrDefaultAsync();
 
-					var text = $"Đã thêm {productDetail.Products.Name} vào giỏ hàng!";
+					var response = $"Đã thêm {productDetail.Products.Name} vào giỏ hàng!";
 
-					if (cartDetailEntity == null) _appDbContext.CartDetails.Add(new CartDetails()
+					if (cartDetailEntity == null) await _appDbContext.CartDetails.AddAsync(new CartDetails()
 					{
 						Id = Guid.NewGuid(),
 						Quantity = Quantity,
@@ -44,19 +44,21 @@ namespace API.Services
 						if (cartDetailEntity.Quantity > productDetail.Quantity)
 						{
 							cartDetailEntity.Quantity = productDetail.Quantity;
-							text = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
+							response = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
 						}
 
 						cartDetailEntity.Price = cartDetailEntity.Quantity * productDetail.Price;
 
 						_appDbContext.CartDetails.Update(cartDetailEntity);
 					}
-					_appDbContext.SaveChanges();
-					dbTrans.Commit();
-					return text;
-				}catch (Exception ex)
+
+					await _appDbContext.SaveChangesAsync();
+					await dbTrans.CommitAsync();
+					return response;
+
+				} catch (Exception ex)
 				{
-					dbTrans.Rollback();
+					await dbTrans.RollbackAsync();
 					return ex.Message;
 				}
 			}
@@ -64,7 +66,7 @@ namespace API.Services
 
 		public async Task<string> ChangeStockOnly(Guid CartDetailId, Guid ProductDetailId, int Quantity)
 		{
-			using (var dbTrans = _appDbContext.Database.BeginTransaction())
+			using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
 			{
 				try
 				{
@@ -93,14 +95,14 @@ namespace API.Services
 						_appDbContext.CartDetails.Update(cartDetail);
 					}
 
-					_appDbContext.SaveChanges();
-					dbTrans.Commit();
+					await _appDbContext.SaveChangesAsync();
+					await dbTrans.CommitAsync();
 
 					return response;
 				}
 				catch (Exception ex)
 				{
-					dbTrans.Rollback();
+					await dbTrans.RollbackAsync();
 					return ex.Message;
 				}
 			}
@@ -108,20 +110,22 @@ namespace API.Services
 
 		public async Task<bool> ClearCart(Guid CartId)
 		{
-			using (var dbTrans = _appDbContext.Database.BeginTransaction())
+			using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
 			{
 				try
 				{
-					var cartDetails = _appDbContext.CartDetails.Where(cd => cd.CartId == CartId).ToList();
+					var cartDetails = await _appDbContext.CartDetails
+						.Where(cd => cd.CartId == CartId)
+						.ToListAsync();
 					_appDbContext.CartDetails.RemoveRange(cartDetails);
-					_appDbContext.SaveChanges();
+					await _appDbContext.SaveChangesAsync();
 
-					dbTrans.Commit();
+					await dbTrans.CommitAsync();
 					return true;
 				}
 				catch (Exception ex)
 				{
-					dbTrans.Rollback();
+					await dbTrans.RollbackAsync();
 					return false;
 				}
 			}
@@ -156,7 +160,7 @@ namespace API.Services
 
 		public async Task<bool> RemoveFromCart(Guid CartDetailId)
 		{
-			using (var dbTrans = _appDbContext.Database.BeginTransaction())
+			using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
 			{
 				try
 				{
@@ -164,14 +168,14 @@ namespace API.Services
 					if (cartDetail == null) return false;
 
 					_appDbContext.CartDetails.Remove(cartDetail);
-					_appDbContext.SaveChanges();
+					await _appDbContext.SaveChangesAsync();
 
-					dbTrans.Commit();
+					await dbTrans.CommitAsync();
 					return true;
 				}
 				catch (Exception ex)
 				{
-					dbTrans.Rollback();
+					await dbTrans.RollbackAsync();
 					return false;
 				}
 			}

@@ -7,13 +7,13 @@ namespace API.Services
 	public class CartServices : ICartServices
 	{
 		public readonly AppDbContext _dbcontext;
-        public CartServices(AppDbContext db)
-        {
-            _dbcontext = db;
-        }
-        public async Task<bool> CreateCartAsync(Guid CustomerId)
+		public CartServices(AppDbContext db)
 		{
-			using (var dbTransaction = _dbcontext.Database.BeginTransaction())
+			_dbcontext = db;
+		}
+		public async Task<bool> CreateCartAsync(Guid CustomerId)
+		{
+			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
@@ -26,14 +26,15 @@ namespace API.Services
 						CustomerId = CustomerId
 					});
 
-					_dbcontext.SaveChanges();
+					await _dbcontext.SaveChangesAsync();
 
-					dbTransaction.Commit();
+					await dbTransaction.CommitAsync();
 					return true;
 
-				}catch (Exception ex)
+				}
+				catch (Exception ex)
 				{
-					dbTransaction.Rollback();
+					await dbTransaction.RollbackAsync();
 
 					Console.WriteLine(ex.Message);
 					return false;
@@ -43,23 +44,24 @@ namespace API.Services
 
 		public async Task<bool> DeleteCartAsync(Guid CustomerId)
 		{
-			using (var dbTransaction = _dbcontext.Database.BeginTransaction())
+			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
 					var cart = await _dbcontext.Carts.Where(c => c.CustomerId == CustomerId).FirstOrDefaultAsync();
+					if (cart == null) return false;
 
 					_dbcontext.Carts.Remove(cart);
 
-					_dbcontext.SaveChanges();
+					await _dbcontext.SaveChangesAsync();
 
-					dbTransaction.Commit();
+					await dbTransaction.CommitAsync();
 					return true;
 
 				}
 				catch (Exception ex)
 				{
-					dbTransaction.Rollback();
+					await dbTransaction.RollbackAsync();
 
 					Console.WriteLine(ex.Message);
 					return false;
@@ -80,7 +82,7 @@ namespace API.Services
 
 		public async Task<bool> UpdateCartAsync(Guid CartId, int? Status)
 		{
-			using (var dbTransaction = _dbcontext.Database.BeginTransaction())
+			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
@@ -88,26 +90,22 @@ namespace API.Services
 					if (cart == null) return false;
 
 					cart.Total = 0;
-					_dbcontext.CartDetails.Where(cd => cd.CartId == CartId).ToList()
-						.ForEach(cd =>
-						{
-							cart.Total += cd.Price;
-						});
+					cart.Total += await _dbcontext.CartDetails
+						.Where(cd => cd.CartId == CartId)
+						.SumAsync(cd => cd.Price);
 
-					if(Status != null) cart.Status = (int)Status;
+					if (Status != null) cart.Status = (int)Status;
 
-					_dbcontext.Update(cart);
-					_dbcontext.SaveChanges();
+					_dbcontext.Carts.Update(cart);
+					await _dbcontext.SaveChangesAsync();
 
-					dbTransaction.Commit();
+					await dbTransaction.CommitAsync();
 					return true;
 
 				}
 				catch (Exception ex)
 				{
-					dbTransaction.Rollback();
-
-					Console.WriteLine(ex.Message);
+					await dbTransaction.RollbackAsync();
 					return false;
 				}
 			}
