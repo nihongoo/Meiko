@@ -38,6 +38,7 @@ namespace Meiko
             builder.Services.AddScoped<IProductDetailServices, ProductDetailServices>();
             builder.Services.AddScoped<ISaleServices, SaleServices>();
             builder.Services.AddScoped<ISaleProductServices, SaleProductServices>();
+            builder.Services.AddScoped<IVoucherServices, VoucherServices>();
             // Thêm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()

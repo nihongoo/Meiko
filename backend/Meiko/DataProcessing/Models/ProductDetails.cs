@@ -56,9 +56,14 @@ namespace DataProcessing.Models
         [JsonIgnore]
         public virtual ICollection<SaleProducts> SaleProducts { get; set; }
         public virtual Sizes? Sizes { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<CartDetails>? CartDetails { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<BillDetails>? BillDetails { get; set; }
 
+        [JsonIgnore]
         public virtual ICollection<Images>? Images { get; set; }
     }
 }

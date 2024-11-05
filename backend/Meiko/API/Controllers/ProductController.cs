@@ -39,7 +39,7 @@ namespace API.Controllers
             }
 
             await _productServices.CreateAsync(model);
-            return CreatedAtAction(nameof(GetProduct), model);
+            return Ok();
         }
 
         [HttpPut("{id}")]

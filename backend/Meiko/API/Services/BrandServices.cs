@@ -19,7 +19,7 @@ namespace API.Services
                 Id = Guid.NewGuid(),
                 Name = model.Name,
                 BrandCode = model.BrandCode,
-                Status = 1 //Mặc định đang hoạt động
+                Status = model.Status,
         };
 
             _dbcontext.Brands.Add(brand);

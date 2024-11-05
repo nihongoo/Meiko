@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -52,7 +53,11 @@ namespace DataProcessing.Models
         public virtual Brands? Brands { get; set; }
         public virtual Categories? Categories { get; set; }
         public virtual TargretCustomers? TargretCustomers { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<ProductDetails>? ProductDetails { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<FavoriteProducts>? FavoriteProducts { get; set; }
     }
 }

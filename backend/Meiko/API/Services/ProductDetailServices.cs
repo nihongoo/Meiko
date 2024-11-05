@@ -43,7 +43,7 @@ namespace API.Services
                 ImportPrice = model.ImportPrice,
                 Price = model.Price,
                 CreatTime = model.CreatTime,
-                Status = 1,
+                Status = model.Status,
                 ProductId = model.ProductId,
                 ColorId = model.ColorId,
                 SizeId = model.SizeId
