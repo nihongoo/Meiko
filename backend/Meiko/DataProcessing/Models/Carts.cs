@@ -29,7 +29,6 @@ namespace DataProcessing.Models
         public Guid CustomerId { get; set; }
 
         public virtual Customers? Customers { get; set; }
-
         [JsonIgnore]
         public virtual ICollection<CartDetails>? CartDetails { get; set; }
     }

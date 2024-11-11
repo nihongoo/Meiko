@@ -1,4 +1,4 @@
-﻿using API.DTO;
+using API.DTO;
 using API.IServices;
 using API.Services;
 using DataProcessing.Models;
@@ -69,7 +69,7 @@ namespace API.Controllers
                 StartDay = saleDto.StartDay,
                 EndDay = saleDto.EndDay,
                 Description = saleDto.Description,
-                Status = 1,
+                Status = saleDto.Status,
                 SaleProducts = new List<SaleProducts>()
             };
 

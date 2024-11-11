@@ -53,7 +53,6 @@ namespace DataProcessing.Models
         public virtual Brands? Brands { get; set; }
         public virtual Categories? Categories { get; set; }
         public virtual TargretCustomers? TargretCustomers { get; set; }
-
         [JsonIgnore]
         public virtual ICollection<ProductDetails>? ProductDetails { get; set; }
 
