@@ -44,7 +44,7 @@ namespace API.Services
                 ImageUrl = model.ImageUrl,
                 WarrantyPeriod = model.WarrantyPeriod,
                 CreateTime = model.CreateTime,
-                Status = 1,
+                Status = model.Status,
                 MaterialId = model.MaterialId,
                 BrandId = model.BrandId,
                 CategoryId = model.CategoryId,

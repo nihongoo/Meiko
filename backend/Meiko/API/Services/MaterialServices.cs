@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = materialViewModel.Name,
-                Status = 1
+                Status = materialViewModel.Status,
             };
 
             _dbcontext.Materials.Add(material);

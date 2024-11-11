@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = categoryViewModel.Name,
-                Status = 1 //Mặc định đang hoạt động
+                Status = categoryViewModel.Status,
         };
 
             _dbcontext.Categories.Add(category);

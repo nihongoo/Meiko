@@ -91,7 +91,7 @@ namespace API.Controllers
             }
             var otpCode = await _tpService.GenerateAndStoreOtpAsync(model.Email);
 
-            await _emailService.SendOtpEmailAsync(model.Email, model.OtpCode);
+            await _emailService.SendOtpEmailAsync(model.Email, otpCode);
 
             return Ok("Mã OTP đã được gửi đến email của bạn.");
         }

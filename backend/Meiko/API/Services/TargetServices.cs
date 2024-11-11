@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = targretCustomers.Name,
-                Status = 1
+                Status = targretCustomers.Status
             };
 
             _dbcontext.TargretCustomers.Add(targetcustomer);
