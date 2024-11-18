@@ -1,3 +1,3 @@
-export { default as adminLayout } from './adminLayout'
-export { default as loginLayout } from './loginLayout'
-export { default as defaultLayout } from './defaultLayout'
+export { default as AdminLayout } from './AdminLayout'
+export { default as LoginLayout } from './LoginLayout'
+export { default as DefaultLayout } from './DefaultLayout'
