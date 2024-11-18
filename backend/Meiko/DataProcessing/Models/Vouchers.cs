@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -21,6 +22,10 @@ namespace DataProcessing.Models
         [Range(0, double.MaxValue, ErrorMessage = "Giá trị phải lớn hơn hoặc bằng 0.")]
         public double Value { get; set; }
 
+        [Required]
+        [Range(0, double.MaxValue, ErrorMessage = "Số tiền đặt hàng tối thiểu phải ít nhất là 0")]
+        public double MinimumOrderAmount { get; set; } // Số tiền tối thiểu để áp dụng voucher
+
         [Required(ErrorMessage = "Số lượng không được để trống.")]
         [Range(1, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 1.")]
         public int Quantity { get; set; }
@@ -36,7 +41,13 @@ namespace DataProcessing.Models
         [Range(0, 2, ErrorMessage = "Trạng thái phải từ 0 đến 2.")]
         public int Status { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng xác định loại voucher.")]
+        public bool IsPublic { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<VoucherDetails>? VoucherDetails { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<Bills>? Bills { get; set; }
 
     }

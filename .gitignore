@@ -361,5 +361,3 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/backend/Meiko/DataProcessing/Models/AppDbContext.cs
-/backend/Meiko/DataProcessing/Migrations

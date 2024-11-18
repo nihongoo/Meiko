@@ -39,18 +39,18 @@ namespace API.Controllers
             }
 
             await _productServices.CreateAsync(model);
-            return CreatedAtAction(nameof(GetProduct), new { id = model.Id }, model);
+            return Ok();
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateProduct(Guid id, [FromBody] ProductViewModel model)
         {
-            if (id != model.Id || !ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _productServices.UpdateAsync(model);
+            await _productServices.UpdateAsync(id, model);
             return NoContent();
         }
 

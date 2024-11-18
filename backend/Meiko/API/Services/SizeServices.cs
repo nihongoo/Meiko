@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = sizeViewModel.Name,
-                Status = sizeViewModel.Status
+                Status = sizeViewModel.Status,
             };
 
             _dbcontext.Sizes.Add(size);
@@ -42,9 +42,9 @@ namespace API.Services
             return await _dbcontext.Sizes.FindAsync(id);
         }
 
-        public async Task Update(SizeViewModel sizeViewModel)
+        public async Task Update(Guid id, SizeViewModel sizeViewModel)
         {
-            var size = await _dbcontext.Sizes.FindAsync(sizeViewModel.Id);
+            var size = await _dbcontext.Sizes.FindAsync(id);
             if (size == null) throw new Exception("Brand not found");
 
             size.Name = sizeViewModel.Name;

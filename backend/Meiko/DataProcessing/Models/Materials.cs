@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -20,6 +21,7 @@ namespace DataProcessing.Models
         [Range(0, 5, ErrorMessage = "Trạng thái phải nằm trong khoảng từ 0 đến 5.")]
         public int Status { get; set; }
 
+        [JsonIgnore]
         public virtual ICollection<Products>? Products { get; set; }
     }
 }

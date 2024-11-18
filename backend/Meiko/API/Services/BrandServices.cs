@@ -19,8 +19,8 @@ namespace API.Services
                 Id = Guid.NewGuid(),
                 Name = model.Name,
                 BrandCode = model.BrandCode,
-                Status = model.Status
-            };
+                Status = model.Status,
+        };
 
             _dbcontext.Brands.Add(brand);
             await _dbcontext.SaveChangesAsync();
@@ -47,9 +47,9 @@ namespace API.Services
             return await _dbcontext.Brands.FindAsync(id);
         }
 
-        public async Task Update(BrandViewModel model)
+        public async Task Update(Guid id, BrandViewModel model)
         {
-            var brand = await _dbcontext.Brands.FindAsync(model.Id);
+            var brand = await _dbcontext.Brands.FindAsync(id);
             if (brand == null) throw new Exception("Brand not found");
 
             brand.Name = model.Name;

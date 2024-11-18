@@ -19,7 +19,7 @@ namespace API.Services
                 Id = Guid.NewGuid(),
                 Name = colorViewModel.Name,
                 Hex = colorViewModel.Hex,
-                Status = colorViewModel.Status
+                Status = colorViewModel.Status,
             };
 
             _dbcontext.Colors.Add(color);
@@ -43,9 +43,9 @@ namespace API.Services
             return await _dbcontext.Colors.FindAsync(id);
         }
 
-        public async Task Update(ColorViewModel colorViewModel)
+        public async Task Update(Guid id, ColorViewModel colorViewModel)
         {
-            var color = await _dbcontext.Colors.FindAsync(colorViewModel.Id);
+            var color = await _dbcontext.Colors.FindAsync(id);
             if (color == null) throw new Exception("Brand not found");
 
             color.Name = colorViewModel.Name;

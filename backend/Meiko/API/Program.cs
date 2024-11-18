@@ -1,4 +1,3 @@
-using API.Extention;
 using API.IServices;
 using API.Services;
 using DataProcessing.Configurations;
@@ -24,8 +23,6 @@ namespace Meiko
             builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
             //Service
             builder.Services.AddScoped<IAccountServices, AccountService>();
-            builder.Services.AddExtentionsService(builder.Configuration);
-
             builder.Services.AddScoped<IAddressServices, AddressServices>();
             builder.Services.AddScoped<IStaffServices, StaffServices>();
             builder.Services.AddScoped<ICustomerServices, CustomerServices>();
@@ -39,6 +36,14 @@ namespace Meiko
             builder.Services.AddScoped<ITargetServices, TargetServices>();
             builder.Services.AddScoped<IProductServices, ProductServices>();
             builder.Services.AddScoped<IProductDetailServices, ProductDetailServices>();
+            builder.Services.AddScoped<ICartServices, CartServices>();
+            builder.Services.AddScoped<ICartDetailServices, CartDetailServices>();
+            builder.Services.AddScoped<ISaleServices, SaleServices>();
+            builder.Services.AddScoped<ISaleProductServices, SaleProductServices>();
+            builder.Services.AddScoped<IVoucherServices, VoucherServices>();
+
+            builder.Services.AddScoped<IImageServices, ImageServices>();
+
             // Thêm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
@@ -70,15 +75,12 @@ namespace Meiko
 			builder.Services.AddSwaggerGen();
 			var app = builder.Build();
 
-			app.UseCors("AllowSpecificOrigins");
-
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())
 			{
 				app.UseSwagger();
 				app.UseSwaggerUI();
 			}
-			app.UseCors("AllowAllOrigins");
 
 			app.UseHttpsRedirection();
 

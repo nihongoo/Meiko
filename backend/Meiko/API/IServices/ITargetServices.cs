@@ -8,7 +8,7 @@ namespace API.IServices
         public Task<List<TargretCustomers>> GetAll();
         public Task<TargretCustomers> GetById(Guid id);
         public Task Create(TargretCustomerViewModel targretCustomer);
-        public Task Update(TargretCustomerViewModel targretCustomers);
+        public Task Update(Guid id, TargretCustomerViewModel targretCustomers);
         public Task Delete(Guid id);
     }
 }

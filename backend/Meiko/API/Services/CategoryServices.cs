@@ -18,8 +18,8 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = categoryViewModel.Name,
-                Status = categoryViewModel.Status
-            };
+                Status = categoryViewModel.Status,
+        };
 
             _dbcontext.Categories.Add(category);
             await _dbcontext.SaveChangesAsync();
@@ -42,9 +42,9 @@ namespace API.Services
             return await _dbcontext.Categories.FindAsync(id);
         }
 
-        public async Task Update(CategoryViewModel categoryViewModel)
+        public async Task Update(Guid id, CategoryViewModel categoryViewModel)
         {
-            var category = await _dbcontext.Categories.FindAsync(categoryViewModel.Id);
+            var category = await _dbcontext.Categories.FindAsync(id);
             if (category == null) throw new Exception("Brand not found");
 
             category.Name = categoryViewModel.Name;

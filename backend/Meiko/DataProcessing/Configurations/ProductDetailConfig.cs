@@ -27,11 +27,9 @@ namespace DataProcessing.Configurations
                 .HasForeignKey(pd => pd.ColorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Cấu hình quan hệ với Sales
-            builder.HasOne(pd => pd.Sales)
-                .WithMany(s => s.ProductDetails)
-                .HasForeignKey(pd => pd.SaleId)
-                .OnDelete(DeleteBehavior.SetNull);
+            builder.HasMany(p => p.SaleProducts)
+            .WithOne(pd => pd.Productdetail)
+            .HasForeignKey(pd => pd.ProductDetailId);
 
             // Cấu hình quan hệ với Sizes
             builder.HasOne(pd => pd.Sizes)

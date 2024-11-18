@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -18,12 +19,12 @@ namespace DataProcessing.Models
         public string ProductDetailCode { get; set; }
 
         [Required(ErrorMessage = "Số lượng không được để trống.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
-        public double Quantity { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
+        public int Quantity { get; set; }
 
         [Required(ErrorMessage = "Cân nặng không được để trống.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Cân nặng phải lớn hơn 0.")]
-        public int Weight { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Cân nặng phải lớn hơn 0.")]
+        public double Weight { get; set; }
 
         [Required(ErrorMessage = "Giá nhập không được để trống.")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá nhập phải lớn hơn hoặc bằng 0.")]
@@ -46,18 +47,23 @@ namespace DataProcessing.Models
         [Required(ErrorMessage = "Id màu sắc không được để trống.")]
         public Guid ColorId { get; set; }
 
-        public Guid? SaleId { get; set; }
-
         [Required(ErrorMessage = "Id kích thước không được để trống.")]
         public Guid SizeId { get; set; }
 
+        [JsonIgnore]
         public virtual Products? Products { get; set; }
         public virtual Colors? Colors { get; set; }
-        public virtual Sales? Sales { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<SaleProducts> SaleProducts { get; set; }
         public virtual Sizes? Sizes { get; set; }
+        
+        [JsonIgnore]
         public virtual ICollection<CartDetails>? CartDetails { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<BillDetails>? BillDetails { get; set; }
 
+        [JsonIgnore]
         public virtual ICollection<Images>? Images { get; set; }
     }
 }

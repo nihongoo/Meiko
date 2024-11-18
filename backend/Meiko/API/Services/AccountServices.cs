@@ -18,12 +18,15 @@ namespace API.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _appDbContext;
+        private readonly ICartServices _cartServices;
 
-        public AccountService(UserManager<ApplicationUser> userManager, IConfiguration configuration, AppDbContext appDbContext)
+        public AccountService(UserManager<ApplicationUser> userManager, IConfiguration configuration, AppDbContext appDbContext
+            , ICartServices cartServices)
         {
             _userManager = userManager;
             _configuration = configuration;
             _appDbContext = appDbContext;
+            _cartServices = cartServices;
         }
 
         public async Task<ApplicationUser> GetAccountByIdAsync(Guid addressId)
@@ -150,6 +153,9 @@ namespace API.Services
 
             await _appDbContext.Customers.AddAsync(customer);
             await _appDbContext.SaveChangesAsync();
+
+            //Tạo giỏ hàng cho tài khoản
+            await _cartServices.CreateCartAsync(customer.Id);
 
             return IdentityResult.Success;
         }
