@@ -47,6 +47,23 @@ function App() {
               </Route>
             )
           })}
+          {publicRoutes.map((route, index) => {
+            const Layout = route.layout === 'user'
+              ? defaultLayout
+              : loginLayout
+            const Page = route.component
+            return (
+              <Route
+                key={index}
+                path={route.path}
+                element={
+                  <Layout>
+                    <Page />
+                  </Layout>
+                }>
+              </Route>
+            )
+          })}
         </Routes>
       </div>
     </Router>

@@ -24,7 +24,6 @@ namespace API.Controllers
             var createVoucher = await _voucherServices.CreateVoucherAsync(vouchers);
             return Ok(createVoucher);
         }
-
         [HttpGet("Get/{id}")]
         public async Task<IActionResult> GetVoucherById(Guid id)
         {
@@ -51,7 +50,7 @@ namespace API.Controllers
             }
             return Ok(success);
         }
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVoucher(Guid id)
         {
             await _voucherServices.DeleteVoucherAsync(id);
