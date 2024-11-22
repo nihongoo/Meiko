@@ -15,20 +15,16 @@ function Color({ onClose, onAddColor, colorSelect }) {
         }
     };
 
-const handleDelColor = () => {
-    try {
-        
-    } catch (error) {
-        
-    }
-}
+    const handleDelColor = () => {
+        try {
 
-    const { data: colors } = useFetchData(apiURL.color.all, (rawData) =>
-        rawData.map((item) => ({
-            id: item.idColor,
-            name: item.name,
-        }))
-    );
+        } catch (error) {
+
+        }
+    }
+
+    const { data: colors } = useFetchData(apiURL.color.all);
+    
     useEffect(() => {
         onAddColor(selectedColors)
     }, [selectedColors, onAddColor])
@@ -69,19 +65,19 @@ const handleDelColor = () => {
                                         key={color.id}
                                         onClick={() => handleColorSelect(color)}
                                         style={{
-                                            color: selectedColors.some(selected => selected.id === color.id) ? '#fff' : `${color.name}`,
+                                            color: selectedColors.some(selected => selected.id === color.id) ? '#fff' : `${color.hex}`,
                                             padding: '10px',
                                             margin: '5px',
                                             borderRadius: '5px',
                                             cursor: 'pointer',
-                                            border: selectedColors.some(selected => selected.id === color.id) ? `2px solid ${color.name}` : '2px solid',
-                                            backgroundColor: selectedColors.some(selected => selected.id === color.id) ? `${color.name}` : '#fff'
+                                            border: selectedColors.some(selected => selected.id === color.id) ? `2px solid ${color.hex}` : '2px solid',
+                                            backgroundColor: selectedColors.some(selected => selected.id === color.id) ? `${color.hex}` : '#fff'
                                         }}
                                         className="position-relative"
                                     >
-                                        <span 
-                                        className=" position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                        onClick={handleDelColor}
+                                        <span
+                                            className=" position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                            onClick={handleDelColor}
                                         >
                                             x
                                         </span>

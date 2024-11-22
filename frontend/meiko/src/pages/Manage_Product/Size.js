@@ -12,12 +12,7 @@ function Size({ onClose, onAddSize, SizeSelect }) {
         }
     };
 
-    const { data: sizes } = useFetchData(apiURL.size.all, (rawData) =>
-        rawData.map((item) => ({
-            id: item.idSize,
-            name: item.name,
-        }))
-    );
+    const { data: sizes } = useFetchData(apiURL.size.all);
 
     useEffect(() => {
         onAddSize(selectedSizes);

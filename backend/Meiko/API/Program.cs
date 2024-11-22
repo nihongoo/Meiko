@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Precious.core.Extention;
 using System.Text;
 
 namespace Meiko
@@ -19,6 +20,7 @@ namespace Meiko
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
+            builder.Services.AddExtentionsService(builder.Configuration);
             //Configure
             builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
             //Service
@@ -74,6 +76,8 @@ namespace Meiko
             builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 			var app = builder.Build();
+
+			app.UseCors("AllowSpecificOrigins");
 
 			// Configure the HTTP request pipeline.
 			if (app.Environment.IsDevelopment())

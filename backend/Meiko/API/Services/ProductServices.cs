@@ -1,27 +1,26 @@
 ﻿using API.IServices;
 using API.ViewModel;
+using CloudinaryDotNet;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
+using API.Extention;
 
 namespace API.Services
 {
     public class ProductServices : IProductServices
     {
         private readonly AppDbContext _context;
+        private readonly Cloudinary _cloudinary;
 
-        public ProductServices(AppDbContext context)
+        public ProductServices(AppDbContext context, Cloudinary cloudinary)
         {
             _context = context;
+            _cloudinary = cloudinary;
         }
 
         public async Task<IEnumerable<Products>> GetAllAsync()
         {
-            return await _context.Products
-                                 .Include(p => p.Materials)
-                                 .Include(p => p.Brands)
-                                 .Include(p => p.Categories)
-                                 .Include(p => p.TargretCustomers)
-                                 .ToListAsync();
+            return await _context.Products.ToListAsync();
         }
 
         public async Task<Products> GetByIdAsync(Guid id)
@@ -33,25 +32,50 @@ namespace API.Services
                                           .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task CreateAsync(ProductViewModel model)
+        public async Task CreateAsync(ProductViewModel model, List<ProductDetailViewModel> productDetails)
         {
-            var product = new Products
+            var imgUrl = await GetAnImage(model.ImageUrl);
+            var genCode = Extention.Extention.GenerateSerialCode();
+            model.ProductCode = genCode;
+
+			var product = new Products
             {
                 Id = Guid.NewGuid(),
                 Name = model.Name,
                 Description = model.Description,
-                ProductCode = model.ProductCode,
-                ImageUrl = model.ImageUrl,
+                ProductCode = genCode,
+                ImageUrl = imgUrl,
                 WarrantyPeriod = model.WarrantyPeriod,
-                CreateTime = model.CreateTime,
-                Status = model.Status,
+                CreateTime = DateTime.Now,
+                Status = 1,
                 MaterialId = model.MaterialId,
                 BrandId = model.BrandId,
                 CategoryId = model.CategoryId,
-                TargretCustomerId = model.TargretCustomerId
-            };
+                TargretCustomerId = model.TargretCustomerId,
+				ProductDetails = new List<ProductDetails>()
+			};
+            foreach (var details in productDetails)
+            {
+                var genCodeDetail = Extention.Extention.GenerateSerialCode();
+                details.ProductDetailCode = genCodeDetail;
 
-            _context.Products.Add(product);
+                product.ProductDetails.Add(new ProductDetails
+                {
+                    Id = Guid.NewGuid(),
+                    ProductDetailCode = genCodeDetail,
+                    Quantity = details.Quantity,
+                    Weight = details.Weight,
+                    ImportPrice = details.ImportPrice,
+                    Price = details.Price,
+                    CreatTime = DateTime.Now,
+                    Status = 1,
+                    ProductId = product.Id,
+                    ColorId = details.ColorId,
+                    SizeId = details.SizeId,
+                });
+            }
+
+            await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
         }
 
@@ -83,5 +107,22 @@ namespace API.Services
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
-    }
+
+		public async Task<string> GetAnImage(string publicId)
+		{
+			string defaultUrl = "https://res.cloudinary.com/dtlxhfejw/image/upload/v1728380665/notfound_lgqmju.png";
+			var res = _cloudinary.GetResource(publicId);
+			if (res.Url != null) return res.Url;
+			else return defaultUrl;
+		}
+
+		public async Task<IEnumerable<Products>> GetAllInfo()
+		{
+            return await _context.Products.Include(p => p.Materials)
+                                          .Include(p => p.Brands)
+                                          .Include(p => p.Categories)
+                                          .Include(p => p.TargretCustomers).
+                                          ToListAsync();
+		}
+	}
 }

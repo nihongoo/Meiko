@@ -21,12 +21,7 @@ function ManageTarget() {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();               
-                const formatData = data.map((item) => ({
-                    id: item.idTagetCustomer,
-                    name: item.name,
-                    status: item.status,
-                }))
-                settarget(formatData);
+                settarget(data);
                 setDataChange(false);
             } catch (err) {
                 setError(err.message);

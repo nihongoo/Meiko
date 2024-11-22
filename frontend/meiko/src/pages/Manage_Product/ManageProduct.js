@@ -16,11 +16,11 @@ function ManageProduct() {
     const [searchType, setSearchType] = useState('isSearchWithName=true');
 
     const formatProductData = (item) => ({
-        id: item.idProduct,
+        id: item.id,
         name: item.name,
         productCode: item.productCode,
         createTime: item.createTime,
-        image: item.image,
+        image: item.imageUrl,
         status: item.status,
     });
 
@@ -75,6 +75,9 @@ function ManageProduct() {
         },
         { Header: 'Status', accessor: 'status' },
     ];
+
+    console.log(product);
+    
 
     return (
         <div className="border bg-light rounded-3">

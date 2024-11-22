@@ -36,7 +36,7 @@ function TableLG({ columns, data }) {
                                         >
                                             Detail
                                         </button>
-                                        <Delete apiURL={apiURL.product.delete} id={item.id} onChangeData={() => { }} />
+                                        <Delete apiURL={apiURL.product.delete} id={item.id} onChangeData={() => {}} />
                                     </div>
                                 </td>
                             </tr>

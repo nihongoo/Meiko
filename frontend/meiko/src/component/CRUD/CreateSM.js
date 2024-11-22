@@ -7,7 +7,7 @@ function Create({moreField, onClose, pageName, apiURL, onChangeData }) {
         ...moreField,
         name
     }
-
+ 
     const handleAdd = async () => {
         try {
             const res = await fetch(apiURL, {
@@ -18,6 +18,9 @@ function Create({moreField, onClose, pageName, apiURL, onChangeData }) {
                 body: JSON.stringify(obj)
             })
 
+            var msg = await res.json()
+            console.log(msg);
+            
             if (res.ok) {
                 toast.success(`Thêm mới ${pageName} thành công`)
                 setName('')

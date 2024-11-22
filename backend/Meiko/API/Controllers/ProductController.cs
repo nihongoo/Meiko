@@ -31,14 +31,14 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateProduct([FromBody] ProductViewModel model)
+        public async Task<ActionResult> CreateProduct([FromBody] ProductDTO model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _productServices.CreateAsync(model);
+            await _productServices.CreateAsync(model.Product, model.ProductDetails);
             return Ok();
         }
 

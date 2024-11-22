@@ -22,54 +22,29 @@ function CreateLG() {
             name: '',
             description: '',
             productCode: '111',
-            image: '',
-            thoiGianBaoHanh: '',
+            imageUrl: '',
+            warrantyPeriod: '12 tháng',
             createTime: new Date().toISOString(),
             status: 0,
-            idBrand: '',
-            idCategory: '',
-            idMeterial: '',
-            idTagetCustomer: ''
+            materialId: '',
+            brandId: '',
+            categoryId: '',
+            targretCustomerId: ''
         },
         productDetails: []
     });
-    const { data: products } = useFetchData(apiURL.product.all, (rawData) =>
-        rawData.map((item) => ({
-            id: item.idProduct,
-            name: item.name,
-        }))
-    );
-    const { data: categories } = useFetchData(apiURL.category.all, (rawData) =>
-        rawData.map((item) => ({
-            id: item.idCategory,
-            name: item.name,
-        }))
-    );
-    const { data: brands } = useFetchData(apiURL.brand.all, (rawData) =>
-        rawData.map((item) => ({
-            id: item.idBrand,
-            name: item.name,
-        }))
-    );
-    const { data: target } = useFetchData(apiURL.target.all, (rawData) =>
-        rawData.map((item) => ({
-            id: item.idTagetCustomer,
-            name: item.name,
-        }))
-    );
-    const { data: meterials } = useFetchData(apiURL.meterial.all, (rawData) =>
-        rawData.map((item) => ({
-            id: item.idMeterial,
-            name: item.name,
-        }))
-    );
+    const { data: products } = useFetchData(apiURL.product.all);
+    const { data: categories } = useFetchData(apiURL.category.all);
+    const { data: brands } = useFetchData(apiURL.brand.all);
+    const { data: target } = useFetchData(apiURL.target.all);
+    const { data: meterials } = useFetchData(apiURL.meterial.all);
 
     const handleUploadImg = (fileName) => {
         setNewProduct(prev => ({
             ...prev,
             product: {
                 ...prev.product,
-                image: fileName
+                imageUrl: fileName
             }
         }));
     };
@@ -80,10 +55,12 @@ function CreateLG() {
             sizeSelected.map(size => ({
                 id: `${color.id}-${size.id}`,
                 quantity: 1,
-                giaNhap: 0,
-                giaBan: 0,
-                idColor: color.id,
-                idSize: size.id,
+                importPrice: 0,
+                price: 0,
+                colorId: color.id,
+                weight: 0,
+                createTime: new Date().toISOString(),
+                sizeId: size.id,
                 productDetailCode: '222'
             }))
         );
@@ -100,10 +77,10 @@ function CreateLG() {
             data.map(size => ({
                 id: `${color.id}-${size.id}`,
                 quantity: 1,
-                giaNhap: 0,
-                giaBan: 0,
-                idColor: color.id,
-                idSize: size.id,
+                importPrice: 0,
+                price: 0,
+                colorId: color.id,
+                sizeId: size.id,
                 productDetailCode: '222'
             }))
         );
@@ -129,8 +106,7 @@ function CreateLG() {
             )
         }));
     };
-
-
+    
     return (
         <div>
             {/* Thông tin sản phẩm */}
@@ -178,7 +154,7 @@ function CreateLG() {
                                         ...prev,
                                         product: {
                                             ...prev.product,
-                                            idCategory: newValue ? newValue.id : ''
+                                            categoryId: newValue ? newValue.id : ''
                                         }
                                     }));
                                     setError(false);
@@ -207,7 +183,7 @@ function CreateLG() {
                                         ...prev,
                                         product: {
                                             ...prev.product,
-                                            idBrand: newValue ? newValue.id : ''
+                                            brandId: newValue ? newValue.id : ''
                                         }
                                     }));
                                     setError(false);
@@ -238,7 +214,7 @@ function CreateLG() {
                                         ...prev,
                                         product: {
                                             ...prev.product,
-                                            idTagetCustomer: newValue ? newValue.id : ''
+                                            targretCustomerId: newValue ? newValue.id : ''
                                         }
                                     }));
                                     setError(false);
@@ -267,7 +243,7 @@ function CreateLG() {
                                         ...prev,
                                         product: {
                                             ...prev.product,
-                                            idMeterial: newValue ? newValue.id : ''
+                                            materialId: newValue ? newValue.id : ''
                                         }
                                     }));
                                     setError(false);
@@ -316,7 +292,7 @@ function CreateLG() {
                                     getImg={(data) => setImg(data)}
                                 />}
                             {
-                                newProduct.product.image &&
+                                newProduct.product.imageUrl &&
                                 <img alt="Preview" width="190px" src={img.preview} />
                             }
                             <button
@@ -350,8 +326,8 @@ function CreateLG() {
                                     key={color.id}
                                     style={{
                                         color: '#fff',
-                                        border: `2px solid ${color.name}`,
-                                        backgroundColor: color.name,
+                                        border: `2px solid ${color.hex}`,
+                                        backgroundColor: color.hex,
                                         cursor: 'auto'
                                     }}
                                     className='btn ms-2'
@@ -404,7 +380,7 @@ function CreateLG() {
                     <ProductDetail
                         key={c.id}
                         color={c}
-                        productDetails={newProduct.productDetails.filter(detail => detail.idColor === c.id)}
+                        productDetails={newProduct.productDetails.filter(detail => detail.colorId === c.id)}
                         nameProduct={newProduct.product.name}
                         size={sizeSelected}
                         onDelete={handleDeleteDetail}

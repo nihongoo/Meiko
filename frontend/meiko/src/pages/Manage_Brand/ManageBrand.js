@@ -3,6 +3,7 @@ import SearchInput from '../../component/Search/index.js';
 import apiURL from '../../Routes/API/index.js';
 import { useState, useEffect } from 'react';
 import Create from '../../component/CRUD/CreateSM.js';
+import generateSerialCode from '../../customHook/useRandom.js'
 
 function ManageBrand() {
     const [brand, setbrand] = useState([]);
@@ -21,16 +22,8 @@ function ManageBrand() {
             throw new Error('Network response was not ok');
           }
           const data = await response.json();
-
-          const formatData = data.map((item, index)=>({
-            id: item.idBrand,
-            brandCode: item.brandCode,
-            name: item.name,
-            status: item.status,
-          }))
-          setbrand(formatData);
+          setbrand(data);
           setDataChange(false);
-          localStorage.setItem('brand',JSON.stringify(formatData))
         } catch (err) {
           setError(err.message);
         } finally {
@@ -72,8 +65,9 @@ function ManageBrand() {
       { Header: 'Name', accessor: 'name' },
       { Header: 'Status', accessor: 'status' }
     ];
+    const code = generateSerialCode()
     const brandCode = {
-        brandCode: ''
+        brandCode: code
     }
   
     return (

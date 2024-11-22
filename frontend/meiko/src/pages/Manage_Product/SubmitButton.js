@@ -2,14 +2,14 @@ import apiURL from "../../Routes/API";
 import { toast } from "react-toastify";
 
 
-function SubmitButton({ obj, image }) {    
+function SubmitButton({ obj, image }) { 
     const handleCreateProduct = async () => {
         try {
             const formData = new FormData();
             formData.append('file', image.img);
-            formData.append('upload_preset', 'Khanh_Hoang');
+            formData.append('upload_preset', 'datnMeiko');
             const response = await fetch(
-                `https://api.cloudinary.com/v1_1/dtlxhfejw/image/upload`,
+                `https://api.cloudinary.com/v1_1/dtsqxauba/image/upload`,
                 {
                     method: 'POST',
                     body: formData,
@@ -27,17 +27,17 @@ function SubmitButton({ obj, image }) {
                 },
                 body: JSON.stringify(obj)
             })
-            const msg = await res.json()
-            console.log(res.ok);
-            
-            if (res.ok) {
-                toast.success(`Thêm mới sản phẩm thành công`)
+            if (!res.ok) {
+                const msg = await res.json()
+                const firstError = Object.entries(msg.errors)[0];
+                if (firstError) {
+                    const [field, messages] = firstError;
+                    toast.error(messages[0]);
+                    console.log(field);
+                }
             }
             else {
-                Object.entries(msg.errors).forEach(([field,message])=>{
-                    console.log(`${message[0]}`);
-                })
-                toast.error('Thêm thất bại')              
+                toast.success(`Thêm mới sản phẩm thành công`)
             }
 
         } catch (error) {

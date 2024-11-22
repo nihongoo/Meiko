@@ -3,19 +3,21 @@ import { ChromePicker } from 'react-color';
 import apiURL from '../../Routes/API';
 import { toast } from 'react-toastify';
 
-function ColorPicker({onClose }) {
-    const [color, setColor] = useState('#7D4141');
+function ColorPicker({ onClose }) {
+    const [obj, setObj] = useState({
+        name: '',
+        hex: '#7D4141',
+        status: 1
+    })
 
     const handleChangeComplete = (color) => {
-        setColor(color.hex);
+        setObj(prev => ({
+            ...prev,
+            hex: color.hex
+        }))
     };
 
     const handleAddColor = async () => {
-        const obj = {
-            name: color,
-            status: 1
-        };
-
         try {
             const res = await fetch(apiURL.color.create, {
                 method: 'POST',
@@ -38,23 +40,31 @@ function ColorPicker({onClose }) {
     return (
         <div>
             <ChromePicker
-                color={color}
+                color={obj.hex}
                 onChangeComplete={handleChangeComplete}
             />
             <div className='d-flex mt-2'>
-                <div className='d-flex align-items-center'>
-                    <p className='m-0'>{color}</p>    
-                </div>
-                <div
+                <div>
+                    <div className='d-flex align-items-center'>
+                        <input
+                            placeholder='Nhập tên cho màu'
+                            onChange={(e) => setObj((prev) => ({
+                                ...prev,
+                                name: e.target.value
+                            }))}
+                        />
+                    </div>
+                    {/* <div
                     style={{
                         padding: '10px',
                         margin: '5px',
                         borderRadius: '5px',
-                        backgroundColor: color,
+                        backgroundColor: obj.hex,
                         width: '85px'
                     }}
-                />
-                <button 
+                /> */}
+                </div>
+                <button
                     className='btn'
                     onClick={handleAddColor}
                 >

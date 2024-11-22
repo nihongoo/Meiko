@@ -5,7 +5,7 @@ import { Button } from '@mui/material';
 function ProductDetail({size, nameProduct, productDetails, color, onDelete, onUpdate }) {
     const rows = productDetails.map(product => ({
         ...product,
-        size: size.find(c => c.id === product.idSize).name || 'N/A',
+        size: size.find(c => c.id === product.sizeId).name || 'N/A',
     }));
 
     if (!rows || rows.length === 0) {

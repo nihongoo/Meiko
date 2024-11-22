@@ -21,14 +21,8 @@ function ManageMeterial() {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                const formatData = data.map((item) => ({
-                    id: item.idMeterial,
-                    name: item.name,
-                    status: item.status,
-                }))
-                setmeterial(formatData);
+                setmeterial(data);
                 setDataChange(false);
-                localStorage.setItem('meterial', JSON.stringify(formatData))
             } catch (err) {
                 setError(err.message);
             } finally {

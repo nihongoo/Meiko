@@ -21,14 +21,8 @@ function ManageCategory() {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        const formatData = data.map((item)=>({
-          id: item.idCategory,
-          name: item.name,
-          status: item.status,
-        }))
-        setCategory(formatData);
+        setCategory(data);
         setDataChange(false);
-        localStorage.setItem('category',JSON.stringify(formatData))
       } catch (err) {
         setError(err.message);
       } finally {

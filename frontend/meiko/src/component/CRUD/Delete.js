@@ -3,7 +3,7 @@ function Delete({ apiURL, id, onChangeData }) {
 
     const handleDelete = async () => {
         try {
-            const response = await fetch(`${apiURL}?ID=${id}`, {
+            const response = await fetch(`${apiURL}${id}`, {
                 method: 'DELETE'
             })
             if (response.ok) {
