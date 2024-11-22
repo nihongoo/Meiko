@@ -46,6 +46,7 @@ const apiURL = {
         forgot_password: 'https://localhost:7172/api/Account/forgot-password/',
         verify_otp: 'https://localhost:7172/api/Account/verify-otp/'
     },
+
     product:{
         base: 'https://localhost:7172/api/Product/',
         GetAll: 'https://localhost:7172/api/Product/Get-All',
@@ -64,3 +65,4 @@ const apiURL = {
 }
 
 export default apiURL
+

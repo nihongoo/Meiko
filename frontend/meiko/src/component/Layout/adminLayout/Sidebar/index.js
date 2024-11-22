@@ -1,23 +1,10 @@
 import { Sidebar as SbToggle, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import { Link } from 'react-router-dom';
-import logo, { icon } from '../../../../Asset/Export_Image';
-import { useState, useEffect } from 'react';
+import logo from '../../../../Asset/Export_Image'
 
 function SideBar({ collapsed }) {
-    const [showIcon, setShowIcon] = useState(false);
-
-    useEffect(() => {
-        if (collapsed) {
-            // Nếu sidebar đang thu gọn
-            setShowIcon(true);
-        } else {
-            // Nếu sidebar đang mở
-            setShowIcon(false);
-        }
-    }, [collapsed]);
-
     return (
-        <div className='border' style={{ height: '100vh', backgroundColor: '#f3f3f3' }}>
+        <div className='border-end ' style={{ height: '100%'}}>
             <SbToggle
                 collapsed={collapsed}
                 collapsedWidth='60px'
@@ -30,11 +17,7 @@ function SideBar({ collapsed }) {
                         }
                     >
                         <div>
-                            {showIcon ? (
-                                <img alt='Icon' style={{ width: '100%', height:'100%' }} src={icon}></img>
-                            ) : (
-                                <img alt='Logo' style={{ width: '100%' }} src={logo}></img>
-                            )}
+                            <img alt='Logo' style={{ width: '100%' }} src={logo}></img>
                         </div>
                     </MenuItem>
                     <MenuItem

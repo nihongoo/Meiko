@@ -1,3 +1,4 @@
+
 import Home from '../pages/home/home'
 import SoldOffline from '../pages/sold-offline/soldOffline'
 import ManageBill from '../pages/manage-bill/manageBill'
@@ -20,18 +21,17 @@ const privateRoutes = [
     { path: '/soldoffline', component: SoldOffline, layout: 'admin' },
     { path: '/managebill', component: ManageBill, layout: 'admin' },
     { path: '/manageproduct', component: ManageProduct, layout: 'admin' },
+    { path: '/manageproduct/add', component: CreateLG, layout: 'admin' },
     { path: '/managecategory', component: ManageCategory, layout: 'admin' },
     { path: '/managebrand', component: ManageBrand, layout: 'admin' },
     { path: '/managemeterial', component: ManageMeterial, layout: 'admin' },
     { path: '/managetarget', component: ManageTarget, layout: 'admin' },
-    { path: '/returnproduct', component: RetuenProduct, layout: 'admin' },
+    { path: '/returnproduct', component: ReturnProduct, layout: 'admin' },
     { path: '/managevoucher', component: ManageVoucher, layout: 'admin' },
     { path: '/managesale', component: ManageSale, layout: 'admin' },
     { path: '/account', component: Account, layout: 'admin' },
-    { path: '/managecustomer', component: ManageCustomer, layout: 'admin'},
-    {path:'/login',component:Login, layout:'login'}
+    { path: '/managecustomer', component: ManageCustomer, layout: 'admin' },
 ]
-
 const publicRoutes = [
     {path:'/login',component:Login, layout:'login'},
     {path: '/homeUser',component: HomeUser,layout: 'user'},
@@ -39,3 +39,5 @@ const publicRoutes = [
 ]
 
 export {privateRoutes, publicRoutes}
+
+
