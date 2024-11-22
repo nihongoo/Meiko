@@ -21,7 +21,6 @@ namespace DataProcessing.Models
         [JsonIgnore]
         public ProductDetails Productdetail { get; set; }
 
-        [JsonIgnore]
         public Sales sales { get; set; }
     }
 }

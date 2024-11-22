@@ -53,10 +53,10 @@ namespace DataProcessing.Models
         public virtual Brands? Brands { get; set; }
         public virtual Categories? Categories { get; set; }
         public virtual TargretCustomers? TargretCustomers { get; set; }
-        [JsonIgnore]
+        [JsonPropertyName("Product_detail")]
         public virtual ICollection<ProductDetails>? ProductDetails { get; set; }
 
-        [JsonIgnore]
+        [JsonPropertyName("Favorite_product")]
         public virtual ICollection<FavoriteProducts>? FavoriteProducts { get; set; }
     }
 }

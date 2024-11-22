@@ -17,18 +17,20 @@ namespace API.Services
         public async Task<IEnumerable<ProductDetails>> GetAllAsync()
         {
             return await _context.ProductDetails
-                .Include(pd => pd.Products)
                 .Include(pd => pd.Colors)
                 .Include(pd => pd.Sizes)
+                .Include(pd => pd.SaleProducts)
+                .Include(pd => pd.Images)
                 .ToListAsync();
         }
 
         public async Task<ProductDetails> GetByIdAsync(Guid id)
         {
             return await _context.ProductDetails
-                .Include(pd => pd.Products)
                 .Include(pd => pd.Colors)
                 .Include(pd => pd.Sizes)
+                .Include(pd => pd.SaleProducts)
+                .Include(pd => pd.Images)
                 .FirstOrDefaultAsync(pd => pd.Id == id);
         }
 

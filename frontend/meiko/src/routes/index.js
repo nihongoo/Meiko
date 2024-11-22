@@ -11,7 +11,8 @@ import ManageVoucher from '../pages/manage-voucher/manageVoucher'
 import ManageSale from '../pages/manage-sale/manageSale'
 import Account from '../pages/account/account'
 import ManageCustomer from '../pages/manage-customer/manageCustomer'
-
+import HomeUser from '../component/Layout/UserLayout/Pages/HomeUser'
+import Shop from '../component/Layout/UserLayout/Pages/Shop'
 import Login from '../component/Layout/loginLayout/login'
 
 const privateRoutes = [
@@ -33,7 +34,8 @@ const privateRoutes = [
 
 const publicRoutes = [
     {path:'/login',component:Login, layout:'login'},
-
+    {path: '/homeUser',component: HomeUser,layout: 'user'},
+    {path: '/shop',component: Shop, layout:'user'},
 ]
 
 export {privateRoutes, publicRoutes}

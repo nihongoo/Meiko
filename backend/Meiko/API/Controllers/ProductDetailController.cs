@@ -15,14 +15,14 @@ namespace API.Controllers
         {
             _productDetailService = productDetailService;
         }
-        [HttpGet]
+        [HttpGet("Get-All")]
         public async Task<ActionResult<IEnumerable<ProductDetails>>> GetProductDetails()
         {
             var productDetails = await _productDetailService.GetAllAsync();
             return Ok(productDetails);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("Get/{id}")]
         public async Task<ActionResult<ProductDetails>> GetProductDetail(Guid id)
         {
             var productDetail = await _productDetailService.GetByIdAsync(id);
@@ -30,7 +30,7 @@ namespace API.Controllers
             return Ok(productDetail);
         }
 
-        [HttpPost]
+        [HttpPost("Create")]
         public async Task<ActionResult> CreateProductDetail([FromBody] ProductDetailViewModel model)
         {
             if (!ModelState.IsValid)
@@ -42,7 +42,7 @@ namespace API.Controllers
             return Ok();
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("Update/{id}")]
         public async Task<ActionResult> UpdateProductDetail(Guid id, [FromBody] ProductDetailViewModel model)
         {
             if (!ModelState.IsValid)
@@ -54,7 +54,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<ActionResult> DeleteProductDetail(Guid id)
         {
             await _productDetailService.DeleteAsync(id);

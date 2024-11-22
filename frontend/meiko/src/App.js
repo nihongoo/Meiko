@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { privateRoutes, publicRoutes } from './routes/index'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { adminLayout, defaultLayout, loginLayout } from './component/Layout'
+import { adminLayout, loginLayout, UserLayout } from './component/Layout'
 
 function App() {
   return (
@@ -27,9 +27,9 @@ function App() {
           })}
           {publicRoutes.map((route, index) => {
             const Layout = route.layout === 'user'
-              ? defaultLayout
-              : loginLayout
-            const Page = route.component
+              ? UserLayout
+              : loginLayout;
+            const Page = route.component;
             return (
               <Route
                 key={index}
@@ -38,9 +38,9 @@ function App() {
                   <Layout>
                     <Page />
                   </Layout>
-                }>
-              </Route>
-            )
+                }
+              />
+            );
           })}
         </Routes>
       </div>
