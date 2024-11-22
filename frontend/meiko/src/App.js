@@ -1,7 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { publicProutes } from './Routes/Index'
+import { publicProutes } from './routes/index'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { AdminLayout, DefaultLayout, LoginLayout } from './component/Layout'
+import { adminLayout, defaultLayout, loginLayout } from './component/Layout'
+import AdminLayout from './component/Layout/adminLayout';
+import LoginLayout from './component/Layout/loginLayout';
+import DefaultLayout from './component/Layout/defaultLayout';
 
 function App() {
   return (
@@ -16,16 +19,33 @@ function App() {
             :DefaultLayout
             const Page = route.component
             return (
-              <Route 
-                key={index} 
-                path={route.path} 
+              <Route
+                key={index}
+                path={route.path}
                 element={
                   <Layout>
                     <Page />
                   </Layout>
-                }
-              />
-            );
+                }>
+              </Route>
+            )
+          })}
+          {publicProutes.map((route, index) => {
+            const Layout = route.layout === 'user'
+              ? defaultLayout
+              : loginLayout
+            const Page = route.component
+            return (
+              <Route
+                key={index}
+                path={route.path}
+                element={
+                  <Layout>
+                    <Page />
+                  </Layout>
+                }>
+              </Route>
+            )
           })}
         </Routes>
       </div>

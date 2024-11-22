@@ -21,7 +21,7 @@ namespace API.Controllers
             var brands = await _brandServices.GetAll();
             return Ok(brands);
         }
-        [HttpGet("Get/{id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Brands>> GetBrand(Guid id)
         {
             var brand = await _brandServices.GetById(id);
@@ -39,7 +39,7 @@ namespace API.Controllers
             await _brandServices.Create(model);
             return Ok(model);
         }
-        [HttpPut("Update/{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] BrandViewModel model)
         {
             if (!ModelState.IsValid)
@@ -50,7 +50,7 @@ namespace API.Controllers
             await _brandServices.Update(id, model);
             return NoContent();
         }
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _brandServices.Delete(id);

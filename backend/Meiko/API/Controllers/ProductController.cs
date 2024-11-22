@@ -15,22 +15,20 @@ namespace API.Controllers
         {
             _productServices = productServices;
         }
-        [HttpGet("Get-All")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<Products>>> GetProducts()
         {
             var products = await _productServices.GetAllAsync();
             return Ok(products);
         }
 
-        [HttpGet("Get/{id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Products>> GetProduct(Guid id)
         {
             var product = await _productServices.GetByIdAsync(id);
             if (product == null) return NotFound();
             return Ok(product);
         }
-
-
         [HttpPost("Create")]
         public async Task<ActionResult> CreateProduct([FromBody] ProductViewModel model)
         {
@@ -43,7 +41,7 @@ namespace API.Controllers
             return Ok();
         }
 
-        [HttpPut("Update/{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult> UpdateProduct(Guid id, [FromBody] ProductViewModel model)
         {
             if (!ModelState.IsValid)
@@ -55,7 +53,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteProduct(Guid id)
         {
             await _productServices.DeleteAsync(id);

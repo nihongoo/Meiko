@@ -21,7 +21,7 @@ namespace API.Controllers
             var colors = await _colorServices.GetAll();
             return Ok(colors);
         }
-        [HttpGet("Get/{id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<Colors>> GetBrand(Guid id)
         {
             var color = await _colorServices.GetById(id);
@@ -39,7 +39,7 @@ namespace API.Controllers
             await _colorServices.Create(model);
             return Ok(model);
         }
-        [HttpPut("Update/{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] ColorViewModel model)
         {
             if (!ModelState.IsValid)
@@ -50,7 +50,7 @@ namespace API.Controllers
             await _colorServices.Update(id, model);
             return NoContent();
         }
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _colorServices.Delete(id);

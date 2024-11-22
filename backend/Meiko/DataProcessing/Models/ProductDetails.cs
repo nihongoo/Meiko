@@ -49,20 +49,21 @@ namespace DataProcessing.Models
 
         [Required(ErrorMessage = "Id kích thước không được để trống.")]
         public Guid SizeId { get; set; }
+
         [JsonIgnore]
         public virtual Products? Products { get; set; }
         public virtual Colors? Colors { get; set; }
-        public virtual Sizes? Sizes { get; set; }
-        [JsonPropertyName("sale_products")]
+        [JsonIgnore]
         public virtual ICollection<SaleProducts> SaleProducts { get; set; }
+        public virtual Sizes? Sizes { get; set; }
 
         [JsonIgnore]
-        public virtual ICollection<CartDetails> CartDetails { get; set; }
+        public virtual ICollection<CartDetails>? CartDetails { get; set; }
 
         [JsonIgnore]
-        public virtual ICollection<BillDetails> BillDetails { get; set; }
+        public virtual ICollection<BillDetails>? BillDetails { get; set; }
 
-        [JsonPropertyName("images")]
-        public virtual ICollection<Images> Images { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<Images>? Images { get; set; }
     }
 }

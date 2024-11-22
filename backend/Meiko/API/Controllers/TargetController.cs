@@ -21,7 +21,7 @@ namespace API.Controllers
             var targretCustomers = await _targetServices.GetAll();
             return Ok(targretCustomers);
         }
-        [HttpGet("Get/{id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<TargretCustomers>> GetBrand(Guid id)
         {
             var targret = await _targetServices.GetById(id);
@@ -39,7 +39,7 @@ namespace API.Controllers
             await _targetServices.Create(model);
             return Ok(model);
         }
-        [HttpPut("Update/{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] TargretCustomerViewModel model)
         {
             if (!ModelState.IsValid)
@@ -50,7 +50,7 @@ namespace API.Controllers
             await _targetServices.Update(id, model);
             return NoContent();
         }
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _targetServices.Delete(id);

@@ -18,14 +18,14 @@ namespace API.Controllers
             _productDetailService = productDetailServices;
         }
 
-        [HttpGet("Get-All")]
+        [HttpGet]
         public async Task<IActionResult> GetAllSales()
         {
             var sales = await _salesService.GetAllSalesAsync();
             return Ok(sales);
         }
 
-        [HttpGet("Get/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetSalesById(Guid id)
         {
             var sale = await _salesService.GetSalesByIdAsync(id);
@@ -36,7 +36,7 @@ namespace API.Controllers
             return Ok(sale);
         }
 
-        [HttpPost("Create")]
+        [HttpPost]
         public async Task<IActionResult> AddSales([FromBody] SaleDto saleDto)
         {
             if (!ModelState.IsValid)
@@ -111,7 +111,7 @@ namespace API.Controllers
             return CreatedAtAction(nameof(GetSalesById), new { id = sales.Id }, sales);
         }
 
-        [HttpPut("Update/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateSales(Guid id, [FromBody] SaleDto saleDto)
         {
             if (id != saleDto.Id || !ModelState.IsValid)
@@ -175,7 +175,7 @@ namespace API.Controllers
             await _salesService.UpdateSalesAsync(existingSale);
             return NoContent();
         }
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSales(Guid id)
         {
             var existingSale = await _salesService.GetSalesByIdAsync(id);
