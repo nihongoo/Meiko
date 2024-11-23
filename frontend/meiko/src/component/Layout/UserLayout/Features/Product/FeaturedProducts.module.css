@@ -178,3 +178,15 @@
     transform: scale(1.2);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   }
+  .sort-dropdown-wrapper {
+    display: flex;
+    justify-content: flex-end; 
+    padding-right: 25px;
+    width: 100%; 
+  }
+  
+  .sort-dropdown-wrapper select {
+    width: 200px;
+    max-width: 100%; 
+    font-size: 14px;
+  }

@@ -6,8 +6,14 @@ import Filter from "../Features/Navbar/Filter";
 import ListProducts from "../Features/Product/ListProduct";
 
 function Shop() {
-  const [selectedFilters, setSelectedFilters] = useState([]);
-
+  const [selectedFilters, setSelectedFilters] = useState({
+    priceRanges: [],
+    materials: [],
+    categories: [],
+    brands: [],
+    colors: [],
+    sizes: [],
+  });
   // Hàm xử lý thay đổi bộ lọc
   const handleFilterChange = (filters) => {
     setSelectedFilters(filters); // Cập nhật state với các bộ lọc mới

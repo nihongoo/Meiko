@@ -8,6 +8,29 @@ const ListProducts = ({ selectedFilters }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedColors, setSelectedColors] = useState({});
+  const [sortBy, setSortBy] = useState('name-asc'); 
+  const [currentPage, setCurrentPage] = useState(1); 
+  const itemsPerPage = 15;
+
+  // Gọi API để lấy dữ liệu sản phẩm
+  useEffect(() => {
+    fetch('https://localhost:7172/api/Product/Get-All')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Lỗi từ server: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Có lỗi xảy ra khi gọi API:', error);
+        setError(`Có lỗi xảy ra: ${error.message}`);
+        setLoading(false);
+      });
+  }, []);
 
   // Kiểm tra sản phẩm có mới không
   const isNewProduct = (createdAt) => {
@@ -42,69 +65,139 @@ const ListProducts = ({ selectedFilters }) => {
     }
   }, []);
 
-  // Gọi API để lấy dữ liệu sản phẩm
-  useEffect(() => {
-    fetch('https://localhost:7172/api/Product/Get-All')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Lỗi từ server: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setProducts(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Có lỗi xảy ra khi gọi API:', error);
-        setError(`Có lỗi xảy ra: ${error.message}`);
-        setLoading(false);
-      });
-  }, []);
-
   // Lọc sản phẩm theo bộ lọc
   const filteredProducts = products.filter((product) => {
     let isFiltered = true;
   
-    // Kiểm tra lọc theo materials
+    // Lọc theo giá
+    if (selectedFilters.priceRanges && selectedFilters.priceRanges.length > 0) {
+      // Kiểm tra giá trị của product.Product_detail để xác định liệu có giá hay không
+      const price = product.Product_detail?.[0]?.price || 0;
+
+      // In ra giá trị giá sản phẩm
+      console.log("Giá sản phẩm: ", price);
+    
+      // Định nghĩa phạm vi giá
+      const priceRanges = {
+        "under-20k": { min: 0, max: 20000 },
+        "20k-100k": { min: 20000, max: 100000 },
+        "100k-200k": { min: 100000, max: 200000 },
+        "200k-500k": { min: 200000, max: 500000 },
+        "500k-above": { min: 500000, max: Infinity },
+      };
+    
+      // Kiểm tra xem giá sản phẩm có nằm trong phạm vi giá đã chọn không
+      const isPriceInSelectedRange = selectedFilters.priceRanges.some((range) => {
+        const { min, max } = priceRanges[range] || {};
+        console.log("Kiểm tra phạm vi: ", range, min, max, price);
+        return price >= min && price <= max;
+      });
+    
+      if (!isPriceInSelectedRange) {
+        isFiltered = false;
+      }
+    } else {
+      console.log("Không có phạm vi giá đã chọn trong selectedFilters.");
+    }
+    // Các điều kiện lọc khác (material, category, color, size)
     if (selectedFilters.materials && selectedFilters.materials.length > 0) {
-      const productMaterials = product.Product_detail?.map(detail => detail.material) || [];
-      if (!productMaterials.some(material => selectedFilters.materials.includes(material))) {
+      const productMaterialIds = product.Product_detail?.map(detail => detail.materialId) || [];
+      if (!productMaterialIds.some(id => selectedFilters.materials.includes(id))) {
         isFiltered = false;
       }
     }
   
-    // Kiểm tra lọc theo category
     if (selectedFilters.categories && selectedFilters.categories.length > 0) {
-      if (!selectedFilters.categories.includes(product.category)) {
+      if (!selectedFilters.categories.includes(product.categoryId)) {
         isFiltered = false;
       }
     }
   
-    // Kiểm tra lọc theo brand
     if (selectedFilters.brands && selectedFilters.brands.length > 0) {
-      if (!selectedFilters.brands.includes(product.brand)) {
+      if (!selectedFilters.brands.includes(product.brandId)) {
         isFiltered = false;
       }
     }
   
-    // Kiểm tra lọc theo color
     if (selectedFilters.colors && selectedFilters.colors.length > 0) {
-      const selectedColorHex = selectedColors[product.id]?.colorHex;
-      if (!selectedColorHex || !selectedFilters.colors.includes(selectedColorHex)) {
+      const hasMatchingColor = product.Product_detail?.some(detail =>
+        selectedFilters.colors.some(colorFilter => {
+          return detail.colors?.hex === colorFilter;
+        })
+      );
+      if (!hasMatchingColor) {
         isFiltered = false;
       }
     }
   
-    // Kiểm tra lọc theo size
     if (selectedFilters.sizes && selectedFilters.sizes.length > 0) {
-      if (!selectedFilters.sizes.includes(product.size)) {
+      const hasMatchingSize = product.Product_detail?.some(detail =>
+        selectedFilters.sizes.includes(detail.sizeId)
+      );
+      if (!hasMatchingSize) {
         isFiltered = false;
       }
     }
   
     return isFiltered;
   });
+  
+  
+
+  // Hàm xử lý sắp xếp
+  const handleSortChange = (event) => {
+    setSortBy(event.target.value);
+  };
+
+  // Sắp xếp danh sách sản phẩm theo tiêu chí chọn
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      case 'price-asc':
+        return (a.Product_detail?.[0]?.price || 0) - (b.Product_detail?.[0]?.price || 0);
+      case 'price-desc':
+        return (b.Product_detail?.[0]?.price || 0) - (a.Product_detail?.[0]?.price || 0);
+      case 'newest':
+        return new Date(b.createTime) - new Date(a.createTime);
+      default:
+        return 0;
+    }
+  });
+
+  const indexOfLastProduct = currentPage * itemsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
+  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Tính toán số lượng trang
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(sortedProducts.length / itemsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  const pageRange = (currentPage) => {
+    const totalPages = pageNumbers.length;
+    let startPage = Math.max(1, currentPage - 2); // Bắt đầu từ trang hiện tại - 2
+    let endPage = Math.min(totalPages, currentPage + 2); // Kết thúc từ trang hiện tại + 2
+
+    // Nếu đang ở trang đầu, hiển thị ít nhất 5 trang
+    if (currentPage === 1) {
+      endPage = Math.min(2, totalPages);
+    }
+
+    // Nếu đang ở trang cuối, hiển thị trang cuối cộng với 4 trang trước đó
+    if (currentPage === totalPages) {
+      startPage = Math.max(totalPages - 2, 1);
+    }
+
+    return pageNumbers.slice(startPage - 1, endPage);
+  };
+
+  const pageItems = pageRange(currentPage);
 
   // Hiển thị giá sản phẩm
   const renderPrice = (product) => {
@@ -197,21 +290,84 @@ const ListProducts = ({ selectedFilters }) => {
   return (
     <div className={styles.featuredProducts} style={{ marginTop: '70px' }}>
       <div className="container">
-        <div className="row g-4" style={{ marginTop: '50px' }}>
-          {filteredProducts.map((product) => (
-            <div key={product.id} className="col-md-4 col-sm-6 col-12">
-              <div className={styles.productCard}>
-                {renderImage(product)}
-                <p className={styles.warranty} style={{ textAlign: 'center' }}>
-                  {product.brands.name}
-                </p>
-                {renderColors(product)}
-                <h3 className={styles.productName}>{product.name}</h3>
-                {renderPrice(product)}
-              </div>
+        <div className="row" style={{ marginTop: '50px' }}>
+          <div className="col-12">
+            <div className={styles['sort-dropdown-wrapper']}>
+              <select
+                className="form-select"
+                value={sortBy}
+                onChange={handleSortChange}
+              >
+                <option value="name-asc">Sắp xếp theo tên A-Z</option>
+                <option value="name-desc">Sắp xếp theo tên Z-A</option>
+                <option value="price-asc">Sắp xếp theo giá tăng dần</option>
+                <option value="price-desc">Sắp xếp theo giá giảm dần</option>
+                <option value="newest">Sắp xếp theo ngày ra</option>
+              </select>
             </div>
-          ))}
+          </div>
+
+          <div className="row g-4">
+            {currentProducts.map((product) => (
+              <div key={product.id} className="col-md-4 col-sm-6 col-12">
+                <div className={styles.productCard}>
+                  {renderImage(product)}
+                  <p className={styles.warranty} style={{ textAlign: 'center' }}>
+                    {product.brands.name}
+                  </p>
+                  {renderColors(product)}
+                  <h3 className={styles.productName}>{product.name}</h3>
+                  {renderPrice(product)}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
+      <div className="d-flex justify-content-center mt-4">
+        <button
+          className="btn btn-secondary me-2"
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <i className="fa fa-angle-left"></i>
+        </button>
+
+        {currentPage > 3 && (
+          <>
+            <button className="btn btn-secondary me-2" onClick={() => paginate(1)}>
+              1
+            </button>
+            <span className="btn btn-secondary me-2">...</span>
+          </>
+        )}
+
+        {pageItems.map((number) => (
+          <button
+            key={number}
+            className={`btn btn-secondary me-2 ${currentPage === number ? 'active' : ''}`}
+            onClick={() => paginate(number)}
+          >
+            {number}
+          </button>
+        ))}
+
+        {currentPage < pageNumbers.length - 2 && (
+          <>
+            <span className="btn btn-secondary me-2">...</span>
+            <button className="btn btn-secondary me-2" onClick={() => paginate(pageNumbers.length)}>
+              {pageNumbers.length}
+            </button>
+          </>
+        )}
+
+        <button
+          className="btn btn-secondary ms-2"
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentPage === pageNumbers.length}
+        >
+          <i className="fa fa-angle-right"></i>
+        </button>
       </div>
     </div>
   );
