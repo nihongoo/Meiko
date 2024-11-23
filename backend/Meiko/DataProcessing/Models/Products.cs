@@ -24,7 +24,6 @@ namespace DataProcessing.Models
         [StringLength(20, ErrorMessage = "Mô tả sản phẩm không được vượt quá 20 ký tự.")]
         public string ProductCode { get; set; }
 
-        [Url(ErrorMessage = "Đường dẫn hình ảnh không hợp lệ.")]
         public string ImageUrl { get; set; }
 
         [StringLength(50, ErrorMessage = "Thời gian bảo hành không được vượt quá 50 ký tự.")]
@@ -57,6 +56,7 @@ namespace DataProcessing.Models
         public virtual ICollection<ProductDetails>? ProductDetails { get; set; }
 
         [JsonPropertyName("Favorite_product")]
+
         public virtual ICollection<FavoriteProducts>? FavoriteProducts { get; set; }
     }
 }

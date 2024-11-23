@@ -1,17 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { privateRoutes, publicRoutes } from './routes/index'
+import { publicProutes } from './routes/index'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { adminLayout, loginLayout, UserLayout } from './component/Layout'
+
+import { AdminLayout, DefaultLayout, LoginLayout, UserLayout } from './component/Layout'
 
 function App() {
   return (
     <Router>
       <div className='m-0 p-0'>
         <Routes>
-          {privateRoutes.map((route, index) => {
+          {publicProutes.map((route, index) => {
             const Layout = route.layout === 'admin'
-              ? adminLayout
-              : loginLayout
+            ? AdminLayout
+            :route.layout === 'login'
+            ? LoginLayout
+            :DefaultLayout
             const Page = route.component
             return (
               <Route
@@ -25,10 +28,10 @@ function App() {
               </Route>
             )
           })}
-          {publicRoutes.map((route, index) => {
+          {publicProutes.map((route, index) => {
             const Layout = route.layout === 'user'
               ? UserLayout
-              : loginLayout;
+              : LoginLayout;
             const Page = route.component;
             return (
               <Route
@@ -49,3 +52,28 @@ function App() {
 }
 
 export default App;
+
+// const tabs = ['Content','GetImg','Subrice']
+// const [type, setType] = useState('GetImg')
+// const component = {
+//   Content: <Content/>,
+//   GetImg: <GetImg/>,
+//   Subrice: <Subrice/>
+// }
+// <h1>React App</h1>
+// {tabs.map(tab =>(
+//   <button 
+//     className='btn border'
+//     key={tab}
+//     style={type === tab ? {
+//       color: '#fff',
+//       backgroundColor: '#333'
+//     }: {}}
+//     onClick={()=>setType(tab)}
+//   >
+//     {tab}
+//   </button>
+// ))}
+// <div style={{marginTop:20}}>
+//   {component[type]}
+// </div>

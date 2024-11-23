@@ -1,6 +1,7 @@
 const apiURL = {
     category: {
         base: 'https://localhost:7172/api/Category/',
+
         GetAll: 'https://localhost:7172/api/Category/get-all',
         GetById: 'https://localhost:7172/api/Category/get/{id}',
         Create: 'https://localhost:7172/api/Category/create',
@@ -64,3 +65,5 @@ const apiURL = {
 }
 
 export default apiURL
+    
+

@@ -38,7 +38,7 @@ namespace API.Controllers
                 return BadRequest(ModelState);
             }
 
-            await _productServices.CreateAsync(model);
+            await _productServices.CreateAsync(model.Product, model.ProductDetails);
             return Ok();
         }
 
