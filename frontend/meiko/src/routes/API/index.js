@@ -64,6 +64,7 @@ const apiURL = {
     staff: {
         create: 'https://localhost:7265/Create-New-Staff/',
         all: 'https://localhost:7172/api/Staff/Get-All',
+        edit: 'https://localhost:7172/api/Staff/Update/',
         search: 'https://localhost:7265/Staff/Search/',
         delete: 'https://localhost:7265/Staff/Delete-Staff/',
     },

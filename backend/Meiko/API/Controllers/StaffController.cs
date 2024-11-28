@@ -1,5 +1,6 @@
 ﻿using API.IServices;
 using API.Services;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,7 +33,7 @@ namespace API.Controllers
         }
 
         [HttpPut("Update/{id}")]
-        public async Task<IActionResult> UpdateStaff(Guid id, [FromBody] Staffs staff)
+        public async Task<IActionResult> UpdateStaff(Guid id, [FromBody] StaffViewModel staff)
         {
             if (id != staff.Id)
             {

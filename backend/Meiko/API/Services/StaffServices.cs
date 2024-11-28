@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,18 +22,17 @@ namespace API.Services
             return await _context.Staffs.FindAsync(staffId);
         }
 
-        public async Task<bool> UpdateStaffAsync(Staffs staff)
+        public async Task<bool> UpdateStaffAsync(StaffViewModel staff)
         {
             var existingStaff = await _context.Staffs.FindAsync(staff.Id);
             if (existingStaff == null)
                 return false;
 
-            existingStaff.StaffCode = existingStaff.StaffCode;
             existingStaff.StaffName = staff.StaffName;
             existingStaff.Email = staff.Email;
             existingStaff.PhoneNumber = staff.PhoneNumber;
             existingStaff.Address = staff.Address;
-            existingStaff.Status = existingStaff.Status;
+            existingStaff.Status = staff.Status;
 
             _context.Staffs.Update(existingStaff);
             return await _context.SaveChangesAsync() > 0;

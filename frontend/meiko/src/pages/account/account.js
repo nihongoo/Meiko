@@ -1,49 +1,75 @@
 import apiURL from '../../Routes/API';
 import SearchInput from '../../component/Search';
 import useFetchData from '../../customHook/useFetchData';
-import { useState, useEffect } from 'react';
+import { useState} from 'react';
 import moment from 'moment';
 import { DataGrid } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
-import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
+import { Radio, Button, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
+import UpdateStaffDialog from './UpdateStaffDialog';
+import { toast } from 'react-toastify';
 
 function Account() {
-    const { data: initialData } = useFetchData(apiURL.staff.all, (rawData) =>
+    const { data: initialData, refetch } = useFetchData(apiURL.staff.all, (rawData) =>
         rawData.map((item) => ({
             ...item,
             dateJoin: moment(item.dateJoin).format('DD-MM-YYYY'),
-            status: item.status === 1 
-                ? 'Đang hoạt động' 
-                : 'Không hoạt động',
+            status: item.status
         }))
     );
 
-    const [Staff, setStaff] = useState([]);
-
-    useEffect(() => {
-        setStaff(initialData);
-    }, [initialData]);
-
+    const [open, setOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
     const [searchType, setSearchType] = useState('isStaffCode=true');
 
     const handleSearchTypeChange = (event) => {
         setSearchType(event.target.value);
     };
 
-    const handleSearch = (data) => {        
-        const formattedData = data.map((item) => ({
-            id: item.idStaff,
-            staffName: item.staffName,
-            staffCode: item.staffCode,
-            dateJoin: moment(item.dateJoin).format('DD-MM-YYYY'),
-            phoneNumber: item.phoneNumber,
-            email: item.email,
-            address: item.address,
-            status: item.status === 0 
-                ? 'Đang hoạt động' 
-                : 'Không hoạt động',
-        }));
-        setStaff(formattedData); 
+    const handleClickOpen = (user) => {
+        const formatUser = {
+            id: user.id,
+            staffName: user.staffName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            address: user.address,
+            dateJoin: user.dateJoin,
+            status: user.status
+        }
+        setSelectedUser(formatUser);
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setSelectedUser(null);
+    };
+
+    const handleUpdate = async () => {
+        const updatedUser = {
+            ...selectedUser,
+            dateJoin: moment(selectedUser.dateJoin, 'DD-MM-YYYY').format('YYYY-MM-DD'),
+        };
+        try {
+            const response = await fetch(`${apiURL.staff.edit}${updatedUser.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedUser),
+            });
+            if (response.ok) {
+                toast.success('Sửa thành công');
+                refetch()
+            } else {
+                toast.error('Sửa thất bại');
+                throw new Error("Lỗi");
+            }
+        } catch (error) {
+            toast.error('Sửa thất bại');
+            console.log(error);
+        }
+        handleClose();
     };
     return (
         <div className="border bg-light rounded-3">
@@ -51,12 +77,11 @@ function Account() {
                 <h2>Danh sách nhân viên</h2>
             </div>
             <div className='p-3'>
-            <div className='d-flex mb-2 justify-content-between'>
+                <div className='d-flex mb-2 justify-content-between'>
                     <div className="d-flex align-items-center">
-                        <SearchInput 
-                            ApiURL={apiURL.staff.search} 
+                        <SearchInput
+                            ApiURL={apiURL.staff.search}
                             optional={searchType}
-                            onSearch={handleSearch} 
                         />
                     </div>
                     <FormControl component="fieldset">
@@ -72,14 +97,25 @@ function Account() {
                     </FormControl>
                 </div>
                 <div>
-                <TableStaff rows={Staff}/>
+                    <TableStaff rows={initialData} onEdit={handleClickOpen} />
                 </div>
+                <UpdateStaffDialog 
+                open={open} 
+                onClose={handleClose} 
+                selectedUser={selectedUser} 
+                setSelectedUser={setSelectedUser} 
+                onUpdate={handleUpdate} 
+            />
             </div>
         </div>
     );
 }
 
-function TableStaff({ rows }) {
+function TableStaff({ rows, onEdit }) {
+    const formattedRows = rows.map((item) => ({
+        ...item,
+        tt: item.status === 1 ? 'Đang hoạt động' : 'Không hoạt động',
+    }));
     const columns = [
         { field: 'staffName', headerName: 'Tên nhân viên', width: 130 },
         { field: 'staffCode', headerName: 'Mã nhân viên', width: 130 },
@@ -87,7 +123,23 @@ function TableStaff({ rows }) {
         { field: 'address', headerName: 'Địa chỉ', width: 130 },
         { field: 'phoneNumber', headerName: 'Số điện thoại', width: 130 },
         { field: 'email', headerName: 'Email', width: 130 },
-        { field: 'status', headerName: 'Trạng thái', width: 130 },
+        { field: 'tt', headerName: 'Trạng thái', width: 130 },
+        {
+            field: 'action',
+            headerName: 'Thao tác',
+            width: 150,
+            renderCell: (params) => (
+                <div>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => onEdit(params.row)}
+                    >
+                        <i className="fa-solid fa-pen"></i>
+                    </Button>
+                </div>
+            )
+        }
     ];
     const paginationModel = { page: 0, pageSize: 5 };
 
@@ -97,7 +149,7 @@ function TableStaff({ rows }) {
                 <Paper sx={{ minWidth: '705px', width: 'auto', maxWidth: '1558px' }}>
                     <DataGrid
                         columns={columns}
-                        rows={rows}
+                        rows={formattedRows}
                         initialState={{ pagination: { paginationModel } }}
                         pageSizeOptions={[5, 10]}
                         disableRowSelectionOnClick
