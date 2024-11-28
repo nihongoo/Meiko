@@ -76,9 +76,6 @@ function ManageProduct() {
         { Header: 'Status', accessor: 'status' },
     ];
 
-    console.log(product);
-    
-
     return (
         <div className="border bg-light rounded-3">
             <div className="d-flex justify-content-center m-2">

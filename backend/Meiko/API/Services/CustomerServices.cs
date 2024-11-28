@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,7 +22,7 @@ namespace API.Services
             return await _appDbContext.Customers.FindAsync(customerId);
         }
 
-        public async Task<bool> UpdateCustomerAsync(Customers customer)
+        public async Task<bool> UpdateCustomerAsync(CustomerViewModel customer)
         {
             var existingCustomer = await _appDbContext.Customers.FindAsync(customer.Id);
             if (existingCustomer == null)
@@ -32,7 +33,7 @@ namespace API.Services
             existingCustomer.BirthDay = customer.BirthDay;
             existingCustomer.PhoneNumber = customer.PhoneNumber;
             existingCustomer.Email = customer.Email;
-            existingCustomer.Status = existingCustomer.Status;
+            existingCustomer.Status = customer.Status;
 
             _appDbContext.Customers.Update(existingCustomer);
             return await _appDbContext.SaveChangesAsync() >0;

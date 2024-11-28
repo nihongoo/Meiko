@@ -1,5 +1,6 @@
 ﻿using API.IServices;
 using API.Services;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,7 +33,7 @@ namespace API.Controllers
         }
 
         [HttpPut("Update/{id}")]
-        public async Task<IActionResult> UpdateCustomer(Guid id, [FromBody] Customers customers)
+        public async Task<IActionResult> UpdateCustomer(Guid id, [FromBody] CustomerViewModel customers)
         {
             // Kiểm tra xem staff có ID khớp với ID trong URL không
             if (id != customers.Id)

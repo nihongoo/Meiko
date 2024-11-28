@@ -57,12 +57,13 @@ const apiURL = {
     user: {
         login: 'https://localhost:7265/login/',
         signup: 'https://localhost:7265/signup/',
-        all: 'https://localhost:7265/Account/All-User/',
-        search: 'https://localhost:7265/Account/Search/',
+        all: 'https://localhost:7172/api/Customer/Get-All',
+        edit: 'https://localhost:7172/api/Customer/Update/',
+        search: 'https://localhost:7265/Account/Search/',//old
     },
     staff: {
         create: 'https://localhost:7265/Create-New-Staff/',
-        all: 'https://localhost:7265/Staff/Get-All-Staff/',
+        all: 'https://localhost:7172/api/Staff/Get-All',
         search: 'https://localhost:7265/Staff/Search/',
         delete: 'https://localhost:7265/Staff/Delete-Staff/',
     },

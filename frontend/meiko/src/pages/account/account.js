@@ -10,13 +10,8 @@ import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mu
 function Account() {
     const { data: initialData } = useFetchData(apiURL.staff.all, (rawData) =>
         rawData.map((item) => ({
-            id: item.idStaff,
-            staffName: item.staffName,
-            staffCode: item.staffCode,
+            ...item,
             dateJoin: moment(item.dateJoin).format('DD-MM-YYYY'),
-            phoneNumber: item.phoneNumber,
-            email: item.email,
-            address: item.address,
             status: item.status === 1 
                 ? 'Đang hoạt động' 
                 : 'Không hoạt động',
@@ -44,7 +39,7 @@ function Account() {
             phoneNumber: item.phoneNumber,
             email: item.email,
             address: item.address,
-            status: item.status === 1 
+            status: item.status === 0 
                 ? 'Đang hoạt động' 
                 : 'Không hoạt động',
         }));

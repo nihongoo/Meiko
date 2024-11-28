@@ -4,6 +4,7 @@ const useFetchData = (apiURL, transformData) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [rfsKey, setRfsKey] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -22,10 +23,13 @@ const useFetchData = (apiURL, transformData) => {
             }
         };
         fetchData();
-        // eslint-disable-next-line
-    }, [apiURL]);
 
-    return { data, loading, error };
+        // eslint-disable-next-line
+    }, [apiURL,rfsKey]);
+    const refetch = () => {
+        setRfsKey((pre) => pre + 1)
+    }
+    return { data, loading, error, refetch };
 };
 
 export default useFetchData;

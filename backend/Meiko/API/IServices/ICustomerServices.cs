@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using API.ViewModel;
+using DataProcessing.Models;
 
 namespace API.IServices
 {
@@ -6,6 +7,6 @@ namespace API.IServices
     {
         public Task<IEnumerable<Customers>> GetAllCustomersAsync();
         public Task<Customers> GetCustomerByIdAsync(Guid customerId);
-        public Task<bool> UpdateCustomerAsync(Customers customer);
+        public Task<bool> UpdateCustomerAsync(CustomerViewModel customer);
     }
 }

@@ -106,7 +106,7 @@ function CreateLG() {
             )
         }));
     };
-    
+
     return (
         <div>
             {/* Thông tin sản phẩm */}
