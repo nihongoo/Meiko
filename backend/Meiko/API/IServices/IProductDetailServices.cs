@@ -1,4 +1,5 @@
-﻿using API.ViewModel;
+﻿using API.DTO;
+using API.ViewModel;
 using DataProcessing.Models;
 
 namespace API.IServices
@@ -7,8 +8,9 @@ namespace API.IServices
     {
         public Task<IEnumerable<ProductDetails>> GetAllAsync();
         public Task<ProductDetails> GetByIdAsync(Guid id);
+        public Task<List<ProductDetails>> GetDetailsAsync(Guid id);
         public Task CreateAsync(ProductDetailViewModel model);
-        public Task UpdateAsync(Guid id, ProductDetailViewModel model);
+        public Task UpdateAsync(ProductDetailDto model);
         public Task DeleteAsync(Guid id);
     }
 }

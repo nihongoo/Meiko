@@ -1,4 +1,5 @@
-﻿using API.IServices;
+﻿using API.DTO;
+using API.IServices;
 using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,13 @@ namespace API.Controllers
             return Ok(productDetails);
         }
 
+        [HttpGet("Product/{id}")]
+        public async Task<IActionResult> GetDetails(Guid id)
+        {
+            var result = await _productDetailService.GetDetailsAsync(id);
+            if (result == null) { return NotFound(); }
+            return Ok(result);
+        }
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDetails>> GetProductDetail(Guid id)
         {
@@ -42,15 +50,15 @@ namespace API.Controllers
             return Ok();
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProductDetail(Guid id, [FromBody] ProductDetailViewModel model)
+        [HttpPut]
+        public async Task<ActionResult> UpdateProductDetail([FromBody] ProductDetailDto model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _productDetailService.UpdateAsync(id, model);
+            await _productDetailService.UpdateAsync( model);
             return NoContent();
         }
 

@@ -1,4 +1,6 @@
 ﻿using API.IServices;
+using API.ViewModel;
+using CloudinaryDotNet;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,34 +9,43 @@ namespace API.Services
 	public class ImageServices : IImageServices
 	{
 		private readonly AppDbContext _dbContext;
-		public ImageServices(AppDbContext dbContext)
+		private readonly Cloudinary _cloudinary;
+		public ImageServices(AppDbContext dbContext, Cloudinary cloudinary)
 		{
 			_dbContext = dbContext;
+			_cloudinary = cloudinary;
 		}
 
-		public async Task<string> AddImageToProductDetail(string ImgUrl, Guid ProductdDetailId)
+		public async Task<string> GetAnImage(string publicId)
 		{
-			using (var dbTrans = await _dbContext.Database.BeginTransactionAsync())
-			{
-				try
-				{
-					await _dbContext.Images.AddAsync(new Images()
-					{
-						Id = Guid.NewGuid(),
-						ImgUrl = ImgUrl,
-						ProductDetailId = ProductdDetailId
-					});
+			string defaultUrl = "https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png";
+			var res = _cloudinary.GetResource(publicId);
+			if (res.Url != null) return res.Url;
+			else return defaultUrl;
+		}
 
-					await _dbContext.SaveChangesAsync();
-					await dbTrans.CommitAsync();
-					return "Thêm ảnh thành công!";
-				}
-				catch (Exception ex)
+		public async Task<string> AddImageToProductDetail(ImageViewModel image)
+		{
+			try
+			{
+				var imgUrl = await GetAnImage(image.PublicId);
+				var item = new Images()
 				{
-					await dbTrans.RollbackAsync();
-					return "Có lỗi xảy ra khi thêm ảnh, Lỗi : " + ex.Message;
-				}
+					Id = Guid.NewGuid(),
+					ImgUrl = imgUrl,
+					PublicId = image.PublicId,
+					ProductDetailId = image.ProductDetailId,
+				};
+				await _dbContext.AddAsync(item);
+				await _dbContext.SaveChangesAsync();
+
+				return "Thêm ảnh thành công";
 			}
+			catch (Exception ex)
+			{
+				return ex.Message;
+			}
+
 		}
 
 		public async Task<IEnumerable<Images>> GetImagesAsync()
@@ -73,6 +84,25 @@ namespace API.Services
 					return "Có lỗi xảy ra khi xoá ảnh! Lỗi : " + ex.Message;
 				}
 			}
+		}
+
+		public async Task<(bool k, string msg)> UpdateImage(ImageViewModel image)
+		{
+			try
+			{
+				var item = await _dbContext.Images.FirstOrDefaultAsync(k=>k.ProductDetailId == image.ProductDetailId);
+				var newUrl = await GetAnImage(image.PublicId);
+				item.PublicId = image.PublicId;
+				item.ImgUrl = newUrl;
+
+				await _dbContext.SaveChangesAsync();
+				return (true,"Thay ảnh thành công");
+			}
+			catch (Exception ex)
+			{
+				return (false,ex.Message);
+			}
+
 		}
 	}
 }

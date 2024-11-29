@@ -54,6 +54,13 @@ const apiURL = {
         delete: 'https://localhost:7172/api/Product/',
         search: 'https://localhost:7265/Product/Search/',
     },
+    productDetail: {
+        all: 'https://localhost:7172/api/ProductDetail/Product/',
+        edit: 'https://localhost:7172/api/ProductDetail',
+    },
+    image: {
+        base: 'https://localhost:7172/api/Images', 
+    },
     user: {
         login: 'https://localhost:7265/login/',
         signup: 'https://localhost:7265/signup/',
@@ -62,7 +69,7 @@ const apiURL = {
         search: 'https://localhost:7265/Account/Search/',//old
     },
     staff: {
-        create: 'https://localhost:7265/Create-New-Staff/',
+        create: 'https://localhost:7172/api/Account/register-staff',
         all: 'https://localhost:7172/api/Staff/Get-All',
         edit: 'https://localhost:7172/api/Staff/Update/',
         search: 'https://localhost:7265/Staff/Search/',

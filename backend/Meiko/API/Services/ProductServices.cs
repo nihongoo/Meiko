@@ -110,7 +110,7 @@ namespace API.Services
 
 		public async Task<string> GetAnImage(string publicId)
 		{
-			string defaultUrl = "https://res.cloudinary.com/dtlxhfejw/image/upload/v1728380665/notfound_lgqmju.png";
+			string defaultUrl = "https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png";
 			var res = _cloudinary.GetResource(publicId);
 			if (res.Url != null) return res.Url;
 			else return defaultUrl;

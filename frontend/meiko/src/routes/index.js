@@ -12,6 +12,7 @@ import ManageSale from '../Pages/Manage_Sale/ManageSale'
 import Account from '../Pages/Account/Account'
 import ManageCustomer from '../Pages/Manage_Customer/ManageCustomer'
 import CreateLG from '../Pages/Manage_Product/CreateLG'
+import ListProductDetail from '../Pages/Product_Detail/ListProductDetail'
 
 const publicProutes = [
     { path: '/', component: Home , layout: 'admin'},
@@ -28,6 +29,7 @@ const publicProutes = [
     { path: '/managesale', component: ManageSale, layout: 'admin' },
     { path: '/account', component: Account, layout: 'admin' },
     { path: '/managecustomer', component: ManageCustomer, layout: 'admin' },
+    { path: '/listproductdetail/:id', component: ListProductDetail, layout: 'admin' },
 ]
 
 const privateRoutes = []

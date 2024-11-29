@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,10 +32,18 @@ namespace API.Controllers
 
 		// POST api/<ImagesController>
 		[HttpPost]
-		public async Task<string> AddImageToProductDetail(string imgurl, Guid productdetailid)
+		public async Task<string> AddImageToProductDetail(ImageViewModel image)
 		{
-			var response = await _imageServices.AddImageToProductDetail(imgurl, productdetailid);
+			var response = await _imageServices.AddImageToProductDetail(image);
 			return response.ToString();
+		}
+
+		[HttpPut]
+		public async Task<IActionResult> UpdateImg(ImageViewModel image)
+		{
+			var result = await _imageServices.UpdateImage(image);
+			if(result.k) return Ok(result.msg);
+			else return BadRequest(result.msg);
 		}
 
 		// DELETE api/<ImagesController>/5

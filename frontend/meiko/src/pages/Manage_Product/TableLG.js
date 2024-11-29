@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import { Link } from 'react-router-dom';
 import apiURL from '../../Routes/API';
 import Delete from '../../component/CRUD/Delete'
 
@@ -31,12 +32,11 @@ function TableLG({ columns, data }) {
                                 ))}
                                 <td>
                                     <div className='d-flex'>
-                                        <button
-                                            className='btn me-1 btn-outline-warning'
-                                        >
-                                            Detail
-                                        </button>
-                                        <Delete apiURL={apiURL.product.delete} id={item.id} onChangeData={() => {}} />
+                                        <Link 
+                                        to={`/listproductdetail/${item.id}`}
+                                        className='btn btn-outline-warning me-1'
+                                        >Detail</Link>
+                                        <Delete apiURL={apiURL.product.delete} id={item.id} onChangeData={() => { }} />
                                     </div>
                                 </td>
                             </tr>

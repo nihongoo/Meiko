@@ -17,6 +17,8 @@ namespace API.ViewModel
 
         public string ImageUrl { get; set; }
 
+        public string PublicId { get; set; }
+
         [StringLength(50, ErrorMessage = "Thời gian bảo hành không được vượt quá 50 ký tự.")]
         public string? WarrantyPeriod { get; set; }
 

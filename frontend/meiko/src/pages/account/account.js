@@ -1,12 +1,14 @@
 import apiURL from '../../Routes/API';
 import SearchInput from '../../component/Search';
 import useFetchData from '../../customHook/useFetchData';
-import { useState} from 'react';
+import { useState } from 'react';
 import moment from 'moment';
 import { DataGrid } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 import { Radio, Button, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
 import UpdateStaffDialog from './UpdateStaffDialog';
+import CreateStaffDialog from './CreateStaffDialog'
+import generateSerialCode from '../../customHook/useRandom'
 import { toast } from 'react-toastify';
 
 function Account() {
@@ -19,8 +21,18 @@ function Account() {
     );
 
     const [open, setOpen] = useState(false);
+    const [create, setCreate] = useState(false)
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchType, setSearchType] = useState('isStaffCode=true');
+    const [newStaff, setNewStaff] = useState({
+        username: '',
+        password: '',
+        email: '',
+        staffName: '',
+        phoneNumber: '',
+        dateJoin: new Date().toISOString(),
+        address: ''
+    })
 
     const handleSearchTypeChange = (event) => {
         setSearchType(event.target.value);
@@ -71,10 +83,48 @@ function Account() {
         }
         handleClose();
     };
+
+    const handleCreateStaff = async () =>{
+        const random = generateSerialCode()
+        const postStaff = {
+            ...newStaff,
+            staffCode: `NV${random}`,
+        }
+        console.log(postStaff);
+        
+        try {
+            const res = await fetch(apiURL.staff.create, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(postStaff)
+            })
+            if (res.ok) {
+                toast.success('Tạo thành công');
+                refetch()
+                setCreate(false)
+            } else {
+                const msg = await res.json()
+                toast.error(msg[0].description)
+            }
+        } catch (error) {
+            toast.error('Tạo thất bại');
+            console.log(error);
+        }
+    }
     return (
         <div className="border bg-light rounded-3">
             <div className='d-flex justify-content-center m-2'>
                 <h2>Danh sách nhân viên</h2>
+            </div>
+            <div className='d-flex justify-content-end me-4'>
+                <button
+                    className='btn btn-outline-success'
+                    onClick={() => { setCreate(true) }}
+                >
+                    Thêm mới +
+                </button>
             </div>
             <div className='p-3'>
                 <div className='d-flex mb-2 justify-content-between'>
@@ -99,13 +149,20 @@ function Account() {
                 <div>
                     <TableStaff rows={initialData} onEdit={handleClickOpen} />
                 </div>
-                <UpdateStaffDialog 
-                open={open} 
-                onClose={handleClose} 
-                selectedUser={selectedUser} 
-                setSelectedUser={setSelectedUser} 
-                onUpdate={handleUpdate} 
-            />
+                <UpdateStaffDialog
+                    open={open}
+                    onClose={handleClose}
+                    selectedUser={selectedUser}
+                    setSelectedUser={setSelectedUser}
+                    onUpdate={handleUpdate}
+                />
+                <CreateStaffDialog
+                    open={create}
+                    onClose={() => { setCreate(false) }}
+                    newStaff={newStaff}
+                    setSelectedUser={setNewStaff}
+                    onCreate={handleCreateStaff}
+                />
             </div>
         </div>
     );

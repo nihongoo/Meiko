@@ -7,6 +7,7 @@ function Create({moreField, onClose, pageName, apiURL, onChangeData }) {
         ...moreField,
         name
     }
+ console.log(obj);
  
     const handleAdd = async () => {
         try {

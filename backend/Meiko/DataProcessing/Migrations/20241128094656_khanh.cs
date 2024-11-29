@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataProcessing.Migrations
 {
-    public partial class _1st : Migration
+    public partial class khanh : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -100,7 +100,7 @@ namespace DataProcessing.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Hex = table.Column<string>(type: "nvarchar(7)", maxLength: 7, nullable: false, comment: "Mã màu không được để trống."),
                     Status = table.Column<int>(type: "int", nullable: false, comment: "Trạng thái không được để trống.")
                 },
@@ -120,6 +120,22 @@ namespace DataProcessing.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Materials", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "otps",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpirationTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_otps", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -145,7 +161,7 @@ namespace DataProcessing.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -173,10 +189,12 @@ namespace DataProcessing.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     VoucherCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false, comment: "Mã voucher không được để trống."),
                     Value = table.Column<double>(type: "float", nullable: false, comment: "Giá trị không được để trống."),
+                    MinimumOrderAmount = table.Column<double>(type: "float", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false, comment: "Số lượng không được để trống."),
                     StartDay = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày bắt đầu không được để trống."),
                     EndDay = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày kết thúc không được để trống."),
-                    Status = table.Column<int>(type: "int", nullable: false, comment: "Trạng thái không được để trống.")
+                    Status = table.Column<int>(type: "int", nullable: false, comment: "Trạng thái không được để trống."),
+                    IsPublic = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -536,15 +554,14 @@ namespace DataProcessing.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ProductDetailCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Quantity = table.Column<double>(type: "float", nullable: false),
-                    Weight = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Weight = table.Column<double>(type: "float", nullable: false),
                     ImportPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CreatTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ColorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SaleId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     SizeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -560,12 +577,6 @@ namespace DataProcessing.Migrations
                         name: "FK_ProductDetails_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProductDetails_Sales_SaleId",
-                        column: x => x.SaleId,
-                        principalTable: "Sales",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -649,6 +660,33 @@ namespace DataProcessing.Migrations
                         principalTable: "ProductDetails",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SaleProducts",
+                columns: table => new
+                {
+                    ProductDetailId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SaleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EffectiveDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DiscountedPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SaleProducts", x => new { x.ProductDetailId, x.SaleId });
+                    table.ForeignKey(
+                        name: "FK_SaleProducts_ProductDetails_ProductDetailId",
+                        column: x => x.ProductDetailId,
+                        principalTable: "ProductDetails",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SaleProducts_Sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "Sales",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -764,11 +802,6 @@ namespace DataProcessing.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductDetails_SaleId",
-                table: "ProductDetails",
-                column: "SaleId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ProductDetails_SizeId",
                 table: "ProductDetails",
                 column: "SizeId");
@@ -792,6 +825,11 @@ namespace DataProcessing.Migrations
                 name: "IX_Products_TargretCustomerId",
                 table: "Products",
                 column: "TargretCustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SaleProducts_SaleId",
+                table: "SaleProducts",
+                column: "SaleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Staffs_ApplicationUserId",
@@ -847,6 +885,12 @@ namespace DataProcessing.Migrations
                 name: "Images");
 
             migrationBuilder.DropTable(
+                name: "otps");
+
+            migrationBuilder.DropTable(
+                name: "SaleProducts");
+
+            migrationBuilder.DropTable(
                 name: "VoucherDetails");
 
             migrationBuilder.DropTable(
@@ -862,6 +906,9 @@ namespace DataProcessing.Migrations
                 name: "ProductDetails");
 
             migrationBuilder.DropTable(
+                name: "Sales");
+
+            migrationBuilder.DropTable(
                 name: "Staffs");
 
             migrationBuilder.DropTable(
@@ -875,9 +922,6 @@ namespace DataProcessing.Migrations
 
             migrationBuilder.DropTable(
                 name: "Products");
-
-            migrationBuilder.DropTable(
-                name: "Sales");
 
             migrationBuilder.DropTable(
                 name: "Sizes");

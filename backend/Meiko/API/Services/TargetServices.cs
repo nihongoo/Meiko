@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = targretCustomers.Name,
-                Status = targretCustomers.Status
+                Status = 1
             };
 
             _dbcontext.TargretCustomers.Add(targetcustomer);
@@ -48,7 +48,7 @@ namespace API.Services
             if (targetCustimer == null) throw new Exception("Brand not found");
 
             targetCustimer.Name = targretCustomers.Name;
-            targetCustimer.Status = targretCustomers.Status;
+            targetCustimer.Status = 1;
 
             await _dbcontext.SaveChangesAsync();
         }
