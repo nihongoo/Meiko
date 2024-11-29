@@ -22,74 +22,50 @@ namespace DataProcessing.Configurations
                 .IsRequired(false)  // Có thể để null
                 .HasComment("Mã hóa đơn, không quá 50 ký tự");
 
+            builder.Property(b => b.IsShipping)
+                .IsRequired()
+                .HasComment("Có giao hàng hay không?");
+
             builder.Property(b => b.Total)
                 .IsRequired()
                 .HasDefaultValue(0)
                 .HasPrecision(18, 2)
                 .HasComment("Tổng số tiền của hóa đơn");
 
-            builder.Property(b => b.CreateDate)
+            builder.Property(b => b.CreatedDate)
                 .IsRequired()
                 .HasComment("Ngày tạo hóa đơn");
 
-            builder.Property(b => b.NgayGiaoHang)
-                .IsRequired()
+            builder.Property(b => b.DeliveryDate)
+                .IsRequired(false)
                 .HasComment("Ngày giao hàng dự kiến");
 
-            builder.Property(b => b.NgayNhanHang)
-                .IsRequired()
+            builder.Property(b => b.DateOfRecept)
+                .IsRequired(false)
                 .HasComment("Ngày nhận hàng thực tế");
 
-            builder.Property(b => b.NgayThanhToan)
-                .IsRequired()
-                .HasComment("Ngày thanh toán hóa đơn");
+            builder.Property(b => b.PaymentDate)
+				.IsRequired(false)
+				.HasComment("Ngày thanh toán hóa đơn");
 
             builder.Property(b => b.Status)
                 .IsRequired()
-                .HasDefaultValue(1)
-                .HasComment("Trạng thái hóa đơn, từ 0 đến 5");
+                .HasDefaultValue(StatusType.TaoHoaDon)
+                .HasComment("Trạng thái hóa đơn, từ 0 đến 10");
 
-            builder.Property(b => b.TenNguoiNhan)
-                .HasMaxLength(100)
-                .HasComment("Tên người nhận không được vượt quá 100 ký tự");
-
-            builder.Property(b => b.EmailNguoiNhan)
-                .HasMaxLength(100)
-                .HasComment("Email người nhận, tuân theo chuẩn Email");
-
-            builder.Property(b => b.SDTNguoiNhan)
-                .HasMaxLength(15)
-                .HasComment("Số điện thoại người nhận, tối đa 15 ký tự");
-
-            builder.Property(b => b.DiaChiNguoiNhan)
-                .HasMaxLength(200)
-                .HasComment("Địa chỉ người nhận không vượt quá 200 ký tự");
-
-            builder.Property(b => b.GiamGia)
-                .HasDefaultValue(0)
-                .HasComment("Giá trị giảm giá của hóa đơn");
-
-            builder.Property(b => b.KhachThanhToan)
+            builder.Property(b => b.PaymentAmount)
                 .HasDefaultValue(0)
                 .HasPrecision(18, 2)
                 .HasComment("Số tiền khách thanh toán");
 
-            builder.Property(b => b.PhiVanChuyen)
+            builder.Property(b => b.ShippingFee)
                 .HasDefaultValue(0)
                 .HasPrecision(18, 2)
                 .HasComment("Phí vận chuyển của hóa đơn");
 
-            builder.Property(b => b.LyDoKhachHuy)
+            builder.Property(b => b.ReasonForCancellation)
                 .HasMaxLength(500)
                 .HasComment("Lý do khách hàng hủy hóa đơn, không quá 500 ký tự");
-
-            builder.Property(b => b.LoaiHoaDon)
-                .HasMaxLength(50)
-                .HasComment("Loại hóa đơn, không quá 50 ký tự");
-
-            builder.Property(b => b.PhuongThucThanhToan)
-                .HasMaxLength(50)
-                .HasComment("Phương thức thanh toán, không quá 50 ký tự");
 
             // Cấu hình quan hệ với Customers
             builder.HasOne(b => b.Customers)
@@ -114,6 +90,24 @@ namespace DataProcessing.Configurations
                 .WithOne(bd => bd.Bills)
                 .HasForeignKey(bd => bd.BillId)
                 .OnDelete(DeleteBehavior.Cascade);
-        }
+
+            // Cấu hình quan hệ với ShippingAddresses
+			builder.HasMany(b => b.ShippingAddresses)
+				.WithOne(sa => sa.Bill)
+				.HasForeignKey(b => b.BillId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			// Cấu hình quan hệ với StatusHistories
+			builder.HasMany(b => b.StatusHistories)
+				.WithOne(sh => sh.Bill)
+				.HasForeignKey(b => b.BillId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			// Cấu hình quan hệ với PaymentHistories
+			builder.HasMany(b => b.PaymentHistories)
+				.WithOne(ph => ph.Bill)
+				.HasForeignKey(b => b.BillId)
+				.OnDelete(DeleteBehavior.Cascade);
+		}
     }
 }

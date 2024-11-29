@@ -1,0 +1,47 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DataProcessing.Models
+{
+	public class PaymentHistory
+	{
+		[Key]
+		[Required(ErrorMessage = "Id trống rồi.")]
+		public Guid Id { get; set; }
+		[Required(ErrorMessage = "Ngày tạo không được để trống.")]
+		public DateTime CreatedDate { get; set; }
+		
+		[Required(ErrorMessage = "Số tiền không được để trống.")]
+		public decimal Amount { get; set; }
+
+		[Required(ErrorMessage = "Phương thức thanh toán không được để trống.")]
+		public PaymentMethods PaymentMethod { get; set; }
+
+		[Required(ErrorMessage = "Trạng thái của hoá đơn không được để trống.")]
+		public StatusForPayment Status { get; set; }
+
+		[Required(ErrorMessage = "Không có hoá đơn sao có trạng thái hoá đơn.")]
+		public Guid BillId { get; set; }
+		public virtual Bills? Bill { get; set; }
+	}
+
+	public enum PaymentMethods
+	{
+		[Display(Name = "Tiền mặt")]
+		TienMat = 0,
+		[Display(Name = "Thanh toán qua ngân hàng")]
+		NganHang = 1
+	}
+
+	public enum StatusForPayment
+	{
+		[Display(Name = "Ổn định")]
+		OnDinh = 0,
+		[Display(Name = "Đã hoàn trả")]
+		DaHoanTra = 1,
+	}
+}

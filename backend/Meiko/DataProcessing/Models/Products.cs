@@ -24,7 +24,7 @@ namespace DataProcessing.Models
         [StringLength(20, ErrorMessage = "Mô tả sản phẩm không được vượt quá 20 ký tự.")]
         public string ProductCode { get; set; }
 
-        [Url(ErrorMessage = "Đường dẫn hình ảnh không hợp lệ.")]
+        //[Url(ErrorMessage = "Đường dẫn hình ảnh không hợp lệ.")] Chỉ dùng khi lưu đường dẫn của 1 trang web
         public string ImageUrl { get; set; }
 
         [StringLength(50, ErrorMessage = "Thời gian bảo hành không được vượt quá 50 ký tự.")]

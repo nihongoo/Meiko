@@ -53,6 +53,9 @@ namespace API.Services
 					}
 
 					await _appDbContext.SaveChangesAsync();
+
+					await UpdateTotal(CartId);
+
 					await dbTrans.CommitAsync();
 					return response;
 
@@ -120,6 +123,8 @@ namespace API.Services
 					_appDbContext.CartDetails.RemoveRange(cartDetails);
 					await _appDbContext.SaveChangesAsync();
 
+					await UpdateTotal(CartId);
+
 					await dbTrans.CommitAsync();
 					return true;
 				}
@@ -170,6 +175,8 @@ namespace API.Services
 					_appDbContext.CartDetails.Remove(cartDetail);
 					await _appDbContext.SaveChangesAsync();
 
+					await UpdateTotal(cartDetail.CartId);
+
 					await dbTrans.CommitAsync();
 					return true;
 				}
@@ -179,6 +186,17 @@ namespace API.Services
 					return false;
 				}
 			}
+		}
+
+		private async Task UpdateTotal(Guid cartId)
+		{
+			var cart = await _appDbContext.Carts.FindAsync(cartId);
+
+			cart.Total = cart.CartDetails == null ? 0 : cart.CartDetails.Sum(cd => cd.Price);
+
+			_appDbContext.Carts.Update(cart);
+
+			await _appDbContext.SaveChangesAsync();
 		}
 	}
 }
