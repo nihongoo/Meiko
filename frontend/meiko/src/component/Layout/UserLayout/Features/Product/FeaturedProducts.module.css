@@ -35,6 +35,9 @@
     height: 200px; 
     overflow: hidden;
   }
+  .productImgWrapper:hover {
+    opacity: 0.7;
+  }
   
   .productImg {
     width: 100%;

@@ -1,23 +1,29 @@
-
-import Home from '../Pages/Home/Index'
-import SoldOfline from '../Pages/Sold_Offline/SoldOfline'
-import ManageBill from '../Pages/Manage_Bill/ManageBill'
-import ManageProduct from '../Pages/Manage_Product/ManageProduct'
-import ManageCategory from '../Pages/Manage_Category/ManageCategory'
-import ManageBrand from '../Pages/Manage_Brand/ManageBrand'
-import ManageMeterial from '../Pages/Manage_Meterial/ManageMeterial'
-import ManageTarget from '../Pages/Manage_Target/ManageTarget'
-import ReturnProduct from '../Pages/Return_Product/ReturnProduct'
-import ManageVoucher from '../Pages/Manage_Voucher/ManageVoucher'
-import ManageSale from '../Pages/Manage_Sale/ManageSale'
-import Account from '../Pages/Account/Account'
-import ManageCustomer from '../Pages/Manage_Customer/ManageCustomer'
-import CreateLG from '../Pages/Manage_Product/CreateLG'
+import Home from '../pages/Home/Index'
+import SoldOfline from '../pages/Sold_Offline/SoldOfline'
+import ManageBill from '../pages/Manage_Bill/ManageBill'
+import ManageProduct from '../pages/Manage_Product/ManageProduct'
+import ManageCategory from '../pages/Manage_Category/ManageCategory'
+import ManageBrand from '../pages/Manage_Brand/ManageBrand'
+import ManageMeterial from '../pages/Manage_Meterial/ManageMeterial'
+import ManageTarget from '../pages/Manage_Target/ManageTarget'
+import ReturnProduct from '../pages/Return_Product/ReturnProduct'
+import ManageVoucher from '../pages/Manage_Voucher/ManageVoucher'
+import ManageSale from '../pages/Manage_Sale/ManageSale'
+import Account from '../pages/account/account'
+import ManageCustomer from '../pages/Manage_Customer/ManageCustomer'
+import CreateLG from '../pages/Manage_Product/CreateLG'
 import HomeUser from '../component/Layout/UserLayout/Pages/HomeUser'
 import Shop from '../component/Layout/UserLayout/Pages/Shop'
 import ProductDetail from '../component/Layout/UserLayout/Pages/ProductDetail'
+import SignIn from '../component/Layout/loginLayout/Account/Login/Index'
+import SignUp from '../component/Layout/loginLayout/Account/Register/index'
+import ForgotPassword from '../component/Layout/loginLayout/Account/forgotPassword/index'
+import ShopCart from '../component/Layout/UserLayout/Pages/ShopCart'
 
-const publicProutes = [
+const publicRoutes = [
+    { path: '/SignIn', component: SignIn, layout: 'login'},
+    { path: '/SignUp', component: SignUp, layout: 'login'},
+    { path: '/forgot-password', component: ForgotPassword, layout: 'login'},
     { path: '/', component: Home , layout: 'admin'},
     { path: '/soldoffline', component: SoldOfline, layout: 'admin' },
     { path: '/managebill', component: ManageBill, layout: 'admin' },
@@ -32,13 +38,14 @@ const publicProutes = [
     { path: '/managesale', component: ManageSale, layout: 'admin' },
     { path: '/account', component: Account, layout: 'admin' },
     { path: '/managecustomer', component: ManageCustomer, layout: 'admin' },
+    { path: '/homeUser', component: HomeUser, layout: 'user'},
+    { path: '/shop', component: Shop, layout: 'user'},
+    { path: '/productdetail/:productId', component: ProductDetail, layout: 'user'},
+    { path: '/ShopCart', component: ShopCart, layout: 'user'},
 ]
-const publicRoutes = [
+const privateRoutes = [
     {path: '/', component: Home, layout: 'admin'},
-    {path: '/homeUser', component: HomeUser, layout: 'user'},
-    {path: '/shop', component: Shop, layout: 'user'},
-    {path: '/productdetail', component: ProductDetail, layout: 'user'},
 ]
 
-export {privateRoutes, publicRoutes }
+export {privateRoutes, publicRoutes}
 

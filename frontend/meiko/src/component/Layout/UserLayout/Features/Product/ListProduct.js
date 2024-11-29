@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import 'font-awesome/css/font-awesome.min.css';
 import styles from './FeaturedProducts.module.css';
+import { Link } from 'react-router-dom';
 
 const ListProducts = ({ selectedFilters }) => {
-  console.log("Selected Filters:", selectedFilters);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -71,12 +71,7 @@ const ListProducts = ({ selectedFilters }) => {
   
     // Lọc theo giá
     if (selectedFilters.priceRanges && selectedFilters.priceRanges.length > 0) {
-      // Kiểm tra giá trị của product.Product_detail để xác định liệu có giá hay không
       const price = product.Product_detail?.[0]?.price || 0;
-
-      // In ra giá trị giá sản phẩm
-      console.log("Giá sản phẩm: ", price);
-    
       // Định nghĩa phạm vi giá
       const priceRanges = {
         "under-20k": { min: 0, max: 20000 },
@@ -86,18 +81,14 @@ const ListProducts = ({ selectedFilters }) => {
         "500k-above": { min: 500000, max: Infinity },
       };
     
-      // Kiểm tra xem giá sản phẩm có nằm trong phạm vi giá đã chọn không
       const isPriceInSelectedRange = selectedFilters.priceRanges.some((range) => {
         const { min, max } = priceRanges[range] || {};
-        console.log("Kiểm tra phạm vi: ", range, min, max, price);
         return price >= min && price <= max;
       });
     
       if (!isPriceInSelectedRange) {
         isFiltered = false;
       }
-    } else {
-      console.log("Không có phạm vi giá đã chọn trong selectedFilters.");
     }
     // Các điều kiện lọc khác (material, category, color, size)
     if (selectedFilters.materials && selectedFilters.materials.length > 0) {
@@ -256,10 +247,9 @@ const ListProducts = ({ selectedFilters }) => {
 
   // Hiển thị phần ảnh
   const renderImage = (product) => {
-    const imageUrlBase = '../../../../../Asset/Logo/';
-    const imageFileName = product.Product_detail?.[0]?.images?.[0]?.imgUrl || 'default.jpg';
-    const imageUrl = `${imageUrlBase}${imageFileName}`;
-
+    // const imageUrlBase = '../../../../../Asset/Logo/';
+    const imageFileName = product.imageUrl;
+    const imageUrl = `${imageFileName}`;
     return (
       <div className={styles.productImgWrapper}>
         {getDiscountedPrice(product.Product_detail[0]?.sale_products) && (
@@ -280,6 +270,12 @@ const ListProducts = ({ selectedFilters }) => {
           alt={product.name}
           className={styles.productImg}
         />
+        <div className={styles.iconWrapper}>
+          <i className="fa fa-heart" title="Yêu thích"></i> 
+          <Link to={`/productdetail/${product.id}`}>
+            <i className="fa fa-eye" title="Chi tiết"></i>
+          </Link>
+        </div>
       </div>
     );
   };
@@ -312,7 +308,7 @@ const ListProducts = ({ selectedFilters }) => {
               <div key={product.id} className="col-md-4 col-sm-6 col-12">
                 <div className={styles.productCard}>
                   {renderImage(product)}
-                  <p className={styles.warranty} style={{ textAlign: 'center' }}>
+                  <p className={styles.warranty} style={{ textAlign: 'center', paddingTop:'15px' }}>
                     {product.brands.name}
                   </p>
                   {renderColors(product)}

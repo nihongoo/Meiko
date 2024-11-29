@@ -7,7 +7,7 @@ import Footer from '../Footer/index';
 
 function HomeUser() {
     return (
-        <div>
+        <div >
             <Slider />
             {/* Thêm phần thông tin giữa Slider và Banner */}
             <div style={{ marginTop: '150px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

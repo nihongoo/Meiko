@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { publicProutes } from './routes/index'
+import { publicRoutes } from './routes/index'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-import { AdminLayout, DefaultLayout, LoginLayout, UserLayout } from './component/Layout'
+import { AdminLayout, LoginLayout, UserLayout } from './component/Layout'
 
 function App() {
   return (
     <Router>
       <div className='m-0 p-0'>
         <Routes>
-          {publicProutes.map((route, index) => {
+          {publicRoutes.map((route, index) => {
             const Layout = route.layout === 'admin'
             ? AdminLayout
             :route.layout === 'login'
             ? LoginLayout
-            :DefaultLayout
+            :UserLayout
             const Page = route.component
             return (
               <Route
@@ -27,23 +27,6 @@ function App() {
                 }>
               </Route>
             )
-          })}
-          {publicProutes.map((route, index) => {
-            const Layout = route.layout === 'user'
-              ? UserLayout
-              : LoginLayout;
-            const Page = route.component;
-            return (
-              <Route
-                key={index}
-                path={route.path}
-                element={
-                  <Layout>
-                    <Page />
-                  </Layout>
-                }
-              />
-            );
           })}
         </Routes>
       </div>

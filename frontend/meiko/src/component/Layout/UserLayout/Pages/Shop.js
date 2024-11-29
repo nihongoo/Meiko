@@ -20,7 +20,7 @@ function Shop() {
   };
 
   return (
-    <div>
+    <div >
       <Header />
       <Navbar />
       <div className="container mt-4">

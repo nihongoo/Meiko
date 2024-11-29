@@ -21,6 +21,7 @@ namespace Meiko
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddExtentionsService(builder.Configuration);
+
             //Configure
             builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
             //Service

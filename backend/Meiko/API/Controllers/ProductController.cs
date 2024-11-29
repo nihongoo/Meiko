@@ -31,7 +31,7 @@ namespace API.Controllers
         }
 
         [HttpPost("Create")]
-        public async Task<ActionResult> CreateProduct([FromBody] ProductViewModel model)
+        public async Task<ActionResult> CreateProduct([FromBody] ProductDTO model)
         {
             if (!ModelState.IsValid)
             {

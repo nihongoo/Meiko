@@ -1,43 +1,77 @@
 const apiURL = {
     category: {
         base: 'https://localhost:7172/api/Category/',
-
-        GetAll: 'https://localhost:7172/api/Category/get-all',
-        GetById: 'https://localhost:7172/api/Category/get/{id}',
-        Create: 'https://localhost:7172/api/Category/create',
-        Update: 'https://localhost:7172/api/Category/update/{id}',
+        all: 'https://localhost:7172/api/Category/get-all',
+        getbyid :'https://localhost:7172/api/Category/Get/{id}',
+        create: 'https://localhost:7172/api/Category/add-category',
+        edit: 'https://localhost:7172/api/Category/Update/{id}',
+        delete: 'https://localhost:7172/api/Category/Delete/{id}',
+        search: 'https://localhost:7265/Category/Search'
     },
-    brand:{
+    brand: {
         base: 'https://localhost:7172/api/Brand/',
-        GetAll: 'https://localhost:7172/api/Brand/get-all',
-        GetById: 'https://localhost:7172/api/Brand/get/{id}',
-        Create: 'https://localhost:7172/api/Brand/create',
-        Update: 'https://localhost:7172/api/Brand/update/{id}',
-        Delete: 'https://localhost:7172/api/Brand/delete/{id}'
+        all: 'https://localhost:7172/api/Brand/get-all',
+        getbyid :'https://localhost:7172/api/Brand/Get/{id}',
+        create: 'https://localhost:7172/api/Brand/add-brand',
+        edit: 'https://localhost:7172/api/Brand/Update/{id}',
+        delete: 'https://localhost:7172/api/Brand/Delete/{id}',
+        search: 'https://localhost:7265/Brand/Search'
     },
-    color:{
-        base: 'https://localhost:7172/api/Color/',
-        GetAll: 'https://localhost:7172/api/Color/get-all',
-        GetById: 'https://localhost:7172/api/Color/get/{id}',
-        Create: 'https://localhost:7172/api/Color/create',
-        Update: 'https://localhost:7172/api/Color/update/{id}',
-        Delete: 'https://localhost:7172/api/Color/delete/{id}'
+    target: {
+        base: 'https://localhost:7172/api/Target/',
+        all: 'https://localhost:7172/api/Target/get-all',
+        getbyid :'https://localhost:7172/api/Target/Get/{id}',
+        create: 'https://localhost:7172/api/Target/add-target',
+        edit: 'https://localhost:7172/api/Target/Update/{id}',
+        delete: 'https://localhost:7172/api/Target/Delete/{id}',
+        search: 'https://localhost:7265/TagetCustomers/Search'
     },
-    material:{
+    meterial: {
         base: 'https://localhost:7172/api/Material/',
-        GetAll: 'https://localhost:7172/api/Material/get-all',
-        GetById: 'https://localhost:7172/api/Material/get/{id}',
-        Create: 'https://localhost:7172/api/Material/create',
-        Update: 'https://localhost:7172/api/Material/update/{id}',
-        Delete: 'https://localhost:7172/api/Material/delete/{id}'
+        all: 'https://localhost:7172/api/Material/get-all',
+        getbyid :'https://localhost:7172/api/Material/Get/{id}',
+        create: 'https://localhost:7172/api/Material/add-material',
+        edit: 'https://localhost:7172/api/Material/Update/{id}',
+        delete: 'https://localhost:7172/api/Material/Delete/{id}',
+        search: 'https://localhost:7265/Meterial/Search'
     },
-    size:{
+    color: {
+        base: 'https://localhost:7172/api/Color/',
+        all: 'https://localhost:7172/api/Color/get-all',
+        getbyid :'https://localhost:7172/api/Color/Get/{id}',
+        create: 'https://localhost:7172/api/Color/add-color',
+        edit: 'https://localhost:7172/api/Color/Update/{id}',
+        delete: 'https://localhost:7172/api/Color/Delete/{id}',
+        search: 'https://localhost:7265/Color/Search'
+    },
+    size: {
         base: 'https://localhost:7172/api/Size/',
-        GetAll: 'https://localhost:7172/api/Size/get-all',
-        GetById: 'https://localhost:7172/api/Size/get/{id}',
-        Create: 'https://localhost:7172/api/Size/create',
-        Update: 'https://localhost:7172/api/Size/update/{id}',
-        Delete: 'https://localhost:7172/api/Size/delete/{id}'
+        all: 'https://localhost:7172/api/Size/get-all',
+        getbyid :'https://localhost:7172/api/Size/Get/{id}',
+        create: 'https://localhost:7172/api/Size/add-size',
+        edit: 'https://localhost:7172/api/Size/Update/{id}',
+        delete: 'https://localhost:7172/api/Size/Delete/{id}',
+        search: 'https://localhost:7265/Size/Search'
+    },
+    product: {
+        all: 'https://localhost:7172/api/Product/Get-All',
+        getbyid :'https://localhost:7172/api/Product/Get/{id}',
+        create: 'https://localhost:7172/api/Product/Create',
+        edit: 'https://localhost:7172/api/Product/Update/{id}',
+        delete: 'https://localhost:7172/api/Product/Delete/{id}',
+        search: 'https://localhost:7265/Product/Search/',
+    },
+    user: {
+        login: 'https://localhost:7265/login/',
+        signup: 'https://localhost:7265/signup/',
+        all: 'https://localhost:7265/Account/All-User/',
+        search: 'https://localhost:7265/Account/Search/',
+    },
+    staff: {
+        create: 'https://localhost:7265/Create-New-Staff/',
+        all: 'https://localhost:7265/Staff/Get-All-Staff/',
+        search: 'https://localhost:7265/Staff/Search/',
+        delete: 'https://localhost:7265/Staff/Delete-Staff/',
     },
     account:{
         base: 'https://localhost:7172/api/Account/Account/',
@@ -47,23 +81,17 @@ const apiURL = {
         forgot_password: 'https://localhost:7172/api/Account/forgot-password/',
         verify_otp: 'https://localhost:7172/api/Account/verify-otp/'
     },
-    product:{
-        base: 'https://localhost:7172/api/Product/',
-        GetAll: 'https://localhost:7172/api/Product/Get-All',
-        GetById: 'https://localhost:7172/api/Product/Get/{id}',
-        Create: 'https://localhost:7172/api/Product/Create',
-        Update: 'https://localhost:7172/api/Product/Update/{id}',
+    cartDetails:{
+        base: 'https://localhost:7172/api/CartDetails/',
+        getall: 'https://localhost:7172/CartDetails/get-all-cartdetail-by/{cartid}',
+        create: 'https://localhost:7172/api/CartDetails/add-to-cart',
+        update: 'https://localhost:7172/api/CartDetails/change-stock-only/{cartdetailid}',
+        delete: 'https://localhost:7172/api/CartDetails/remove-from-cart/{cartdetailid}',
+        deleteAll: 'https://localhost:7172/api/CartDetails/clear-cart/{cartid}'
     },
-    productDetails:{
-        base: 'https://localhost:7172/api/ProductDetail',
-        GetAll: 'https://localhost:7172/api/ProductDetail/Get-All',
-        GetById: 'https://localhost:7172/api/ProductDetail/Get/{id}',
-        Create: 'https://localhost:7172/api/ProductDetail/Create',
-        Update: 'https://localhost:7172/api/ProductDetail/Update/{id}',
-        Delete: 'https://localhost:7172/api/ProductDetail/Delete/{id}'
+    cart:{
+        getId:'https://localhost:7172/api/Carts/{customerid}'
     }
-}
-
-export default apiURL
     
-
+};
+export default apiURL;

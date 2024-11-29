@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import apiURL from '../../Routes/API';
+import apiURL from '../../routes/API/index.js';
 import Delete from '../../component/CRUD/Delete'
 
 function TableLG({ columns, data }) {

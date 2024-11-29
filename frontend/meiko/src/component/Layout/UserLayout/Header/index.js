@@ -1,9 +1,103 @@
-import '../../../../Asset/boostrap/bootstrap.min.css';
-import 'font-awesome/css/font-awesome.min.css'
-import styles from '../main_styles.module.css';  // CSS module
-// import responsiveStyles from '../responsive.module.css';  
-import { Link } from 'react-router-dom';
-const Header = () => {
+import React, { useState, useEffect } from "react";
+import 'font-awesome/css/font-awesome.min.css';
+import { useNavigate } from 'react-router-dom';
+import styles from '../main_styles.module.css';
+
+function Header () {
+  const [cartItemCount, setCartItemCount] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const navigate = useNavigate();
+
+  // Hàm lấy số lượng sản phẩm trong giỏ hàng từ API
+  const fetchCartItemCount = async () => {
+    const token = localStorage.getItem("jwtToken");
+    const customerId = localStorage.getItem("customerId");
+  
+    if (!token || !customerId) {
+      console.log("Không có token hoặc customerId, giỏ hàng không hợp lệ");
+      setCartItemCount(0); 
+      return;
+    }
+  
+    try {
+      // Lấy cartId từ API Carts dựa trên customerId
+      const cartResponse = await fetch(`https://localhost:7172/api/Carts/${customerId}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      if (!cartResponse.ok) {
+        throw new Error("Không thể lấy giỏ hàng");
+      }
+  
+      const cartData = await cartResponse.json();
+      const cartId = cartData?.id;
+  
+      if (!cartId) {
+        console.log("Không tìm thấy cartId.");
+        setCartItemCount(0);
+        return;
+      }
+  
+      // Gọi API lấy danh sách CartDetails dựa vào cartId
+      const cartDetailsResponse = await fetch(`https://localhost:7172/api/CartDetails/get-all-cartdetail-by/${cartId}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      if (!cartDetailsResponse.ok) {
+        throw new Error("Không thể lấy chi tiết giỏ hàng");
+      }
+  
+      const cartDetails = await cartDetailsResponse.json();
+  
+      // Đếm số lượng sản phẩm trong giỏ hàng
+      const cartDetailCount = Array.isArray(cartDetails) ? cartDetails.length : 0;
+      console.log("Số lượng cartDetails trong giỏ hàng:", cartDetailCount);
+  
+      setCartItemCount(cartDetailCount);
+    } catch (error) {
+      console.error("Error fetching cart or cart details:", error);
+      setCartItemCount(0);
+    }
+  };
+  
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    console.log("Stored Username: ", storedUsername);
+    if (storedUsername) {
+      setUsername(storedUsername);
+      setIsLoggedIn(true);
+    }
+    fetchCartItemCount();
+
+    window.addEventListener('cartUpdated', fetchCartItemCount);
+
+    return () => {
+      window.removeEventListener('cartUpdated', fetchCartItemCount);
+    };
+  }, []);
+
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    localStorage.removeItem("username");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("customerId");
+    localStorage.removeItem("jwtToken");
+    setIsLoggedIn(false);
+    setUsername("");
+    setCartItemCount(0);
+    fetchCartItemCount();
+  };
+
+  const truncatedUsername = username.length > 7 ? username.slice(0, 7) : username;
+
   return (
     <header className={`${styles.header} ${styles.trans300}`}>
       {/* Top Navigation */}
@@ -47,12 +141,27 @@ const Header = () => {
                   {/* Account */}
                   <li className={styles.account}>
                     <a href="#">
-                      Tài khoản
-                      <i className="fa fa-angle-down"></i>
+                      {isLoggedIn ? (
+                        <>
+                          <i className="fa fa-user" aria-hidden="true"></i> {truncatedUsername}
+                          <i className="fa fa-angle-down"></i>
+                        </>
+                      ) : (
+                        "Tài khoản"
+                      )}
                     </a>
                     <ul className={styles.accountSelection}>
-                      <li><a href="#"><i className="fa fa-sign-in" aria-hidden="true"></i> Đăng nhập</a></li>
-                      <li><a href="#"><i className="fa fa-user-plus" aria-hidden="true"></i> Đăng ký</a></li>
+                      {isLoggedIn ? (
+                        <>
+                          <li><a href="#"><i className="fa fa-user" aria-hidden="true"></i> Thông tin</a></li>
+                          <li><a href="/homeUser" onClick={handleLogout}><i className="fa fa-sign-out" aria-hidden="true"></i> Đăng xuất</a></li>
+                        </>
+                      ) : (
+                        <>
+                          <li><a href="/SignIn"><i className="fa fa-sign-in" aria-hidden="true"></i> Đăng nhập</a></li>
+                          <li><a href="#"><i className="fa fa-user-plus" aria-hidden="true"></i> Đăng ký</a></li>
+                        </>
+                      )}
                     </ul>
                   </li>
                 </ul>
@@ -83,9 +192,9 @@ const Header = () => {
                   <li><a href="#" className="nav-link"><i className="fa fa-search" aria-hidden="true"></i></a></li>
                   <li><a href="#" className="nav-link"><i className="fa fa-user" aria-hidden="true"></i></a></li>
                   <li className={styles.checkout}>
-                    <a href="#" className="nav-link">
+                    <a href="/ShopCart" className="nav-link">
                       <i className="fa fa-shopping-cart" aria-hidden="true"></i>
-                      <span id="checkout_items" className={styles.checkoutItems}>2</span>
+                      <span id="checkout_items" className={styles.checkoutItems}>{cartItemCount}</span>
                     </a>
                   </li>
                 </ul>

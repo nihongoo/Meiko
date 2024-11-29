@@ -1,5 +1,4 @@
 import React from 'react';
-import '../../../../Asset/boostrap/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 
 const Footer = () => {
