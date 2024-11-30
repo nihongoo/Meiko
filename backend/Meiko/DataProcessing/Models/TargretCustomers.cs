@@ -12,7 +12,7 @@ namespace DataProcessing.Models
     {
         [Key]
         public Guid Id { get; set; }
-        [Required(ErrorMessage = "Tên không được bỏ trống")]e
+        [Required(ErrorMessage = "Tên không được bỏ trống")]
         public string Name { get; set; }
         [Required(ErrorMessage = "Trạng thái là bắt buộc.")]
         [Range(0, 5, ErrorMessage = "Trạng thái phải nằm trong khoảng từ 0 đến 5.")]

@@ -60,7 +60,7 @@ function ProductCart() {
         ? item.productDetails.sale_products[0].salePrice
         : item.productDetails.price;
       total += item.quantity * price;
-      discount += item.productDetails.discount || 0;  // Giả sử có giảm giá
+      discount += item.productDetails.discount || 0; 
     });
 
     return { total, discount };

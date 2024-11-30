@@ -1,4 +1,3 @@
-
 import Home from '../pages/Home/Index'
 import SoldOfline from '../pages/Sold_Offline/SoldOfline'
 import ManageBill from '../pages/Manage_Bill/ManageBill'
@@ -20,13 +19,14 @@ import SignIn from '../component/Layout/loginLayout/Account/Login/Index'
 import SignUp from '../component/Layout/loginLayout/Account/Register/index'
 import ForgotPassword from '../component/Layout/loginLayout/Account/forgotPassword/index'
 import ShopCart from '../component/Layout/UserLayout/Pages/ShopCart'
+import ListProductDetail from '../Pages/Product_Detail/ListProductDetail'
 
 
-const publicRoutes = [
-    { path: '/SignIn', component: SignIn, layout: 'login'},
-    { path: '/SignUp', component: SignUp, layout: 'login'},
-    { path: '/forgot-password', component: ForgotPassword, layout: 'login'},
+const publicProutes = [
     { path: '/', component: Home , layout: 'admin'},
+    { path: '/login', component: SignIn, layout: 'login'},
+    { path: '/signup', component: SignUp, layout: 'login'},
+    { path: '/forgotpassword', component: ForgotPassword, layout: 'login'},
     { path: '/soldoffline', component: SoldOfline, layout: 'admin' },
     { path: '/managebill', component: ManageBill, layout: 'admin' },
     { path: '/manageproduct', component: ManageProduct, layout: 'admin' },
@@ -47,7 +47,7 @@ const publicRoutes = [
 ]
 const privateRoutes = [
     {path: '/', component: Home, layout: 'admin'},
+    { path: '/listproductdetail/:id', component: ListProductDetail, layout: 'admin' },
 ]
 
-export {privateRoutes, publicRoutes}
-
+export { publicProutes, privateRoutes }
