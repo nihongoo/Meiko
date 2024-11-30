@@ -1,6 +1,6 @@
 import DataTable from '../../component/Table/Table.js';
 import SearchInput from '../../component/Search/index.js';
-import apiURL from '../../Routes/API/index.js';
+import apiURL from '../../routes/API/index.js';
 import { useState, useEffect } from 'react';
 import Create from '../../component/CRUD/CreateSM.js';
 
@@ -11,7 +11,7 @@ function ManageMeterial() {
     const [create, setCreate] = useState(false);
     const [dataChange, setDataChange] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5); // Số lượng item trên mỗi trang
+    const [itemsPerPage, setItemsPerPage] = useState(5); 
 
     useEffect(() => {
         const fetchCategories = async () => {

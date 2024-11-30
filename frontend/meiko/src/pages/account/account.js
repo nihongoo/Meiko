@@ -1,4 +1,4 @@
-import apiURL from '../../Routes/API';
+import apiURL from '../../routes/API/index.js';
 import SearchInput from '../../component/Search';
 import useFetchData from '../../customHook/useFetchData';
 import { useState } from 'react';

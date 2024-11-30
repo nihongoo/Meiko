@@ -1,6 +1,6 @@
 import TableLG from './TableLG.js';
 import SearchInput from '../../component/Search/index.js';
-import apiURL from '../../Routes/API/index.js';
+import apiURL from '../../routes/API/index.js';
 import { useState, useEffect, useCallback } from 'react';
 import moment from 'moment';
 import { Link } from 'react-router-dom';

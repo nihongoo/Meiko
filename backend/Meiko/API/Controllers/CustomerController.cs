@@ -3,6 +3,7 @@ using API.Services;
 using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -11,9 +12,11 @@ namespace API.Controllers
     public class CustomerController : Controller
     {
         private readonly ICustomerServices _services;
-        public CustomerController(ICustomerServices customerServices)
+        private readonly AppDbContext _dbContext;
+        public CustomerController(ICustomerServices customerServices, AppDbContext dbContext)
         {
             _services = customerServices;
+            _dbContext = dbContext;
         }
         [HttpGet("Get-All")]
         public async Task<IActionResult> GetAllCustomers()
@@ -30,6 +33,22 @@ namespace API.Controllers
                 return NotFound("Khách hàng không tồn tại.");
 
             return Ok(customer);
+        }
+        [HttpGet("{accountId}")]
+        public async Task<ActionResult<Customers>> GetCustomerByAccountId(string accountId)
+        {
+            // Tìm khách hàng dựa trên AccountId
+            var customer = await _dbContext.Customers
+                                          .FirstOrDefaultAsync(c => c.ApplicationUserId == accountId);
+
+            // Kiểm tra xem có tìm thấy khách hàng không
+            if (customer == null)
+            {
+                return NotFound(new { message = "Khách hàng không tồn tại cho tài khoản này." });
+            }
+
+            // Trả về khách hàng tìm được
+            return Ok(new { customerId = customer.Id, name = customer.Name, email = customer.Email });
         }
 
         [HttpPut("Update/{id}")]

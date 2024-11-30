@@ -21,7 +21,7 @@ namespace API.Controllers
             var materials = await _materialServices.GetAll();
             return Ok(materials);
         }
-        [HttpGet("{id}")]
+        [HttpGet("Get/{id}")]
         public async Task<ActionResult<Materials>> GetBrand(Guid id)
         {
             var material = await _materialServices.GetById(id);
@@ -39,7 +39,7 @@ namespace API.Controllers
             await _materialServices.Create(model);
             return Ok(model);
         }
-        [HttpPut("{id}")]
+        [HttpPut("Update/{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] MaterialViewModel model)
         {
             if (!ModelState.IsValid)
@@ -50,7 +50,7 @@ namespace API.Controllers
             await _materialServices.Update(id, model);
             return NoContent();
         }
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _materialServices.Delete(id);
