@@ -21,7 +21,7 @@ namespace API.Controllers
             var sizes = await _sizeServices.GetAll();
             return Ok(sizes);
         }
-        [HttpGet("{id}")]
+        [HttpGet("Get/{id}")]
         public async Task<ActionResult<Sizes>> GetBrand(Guid id)
         {
             var size = await _sizeServices.GetById(id);
@@ -39,7 +39,7 @@ namespace API.Controllers
             await _sizeServices.Create(model);
             return Ok(model);
         }
-        [HttpPut("{id}")]
+        [HttpPut("Update/{id}")]
         public async Task<ActionResult> UpdateBrand(Guid id, [FromBody] SizeViewModel model)
         {
             if (!ModelState.IsValid)
@@ -50,7 +50,7 @@ namespace API.Controllers
             await _sizeServices.Update(id, model);
             return NoContent();
         }
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<ActionResult> DeleteBrand(Guid id)
         {
             await _sizeServices.Delete(id);

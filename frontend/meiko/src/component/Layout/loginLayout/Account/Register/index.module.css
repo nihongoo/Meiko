@@ -1,0 +1,261 @@
+* {
+  border: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100vh;
+}
+
+.login {
+  display: flex;
+  margin: auto;
+  width: 65%;
+  height: 60%;
+  color: hsl(223, 10%, 10%);
+  font: 1em/1.5 "DM Sans", sans-serif;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2), 
+              0px 6px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 0.75em;
+  background-color: white;
+}
+
+.column {
+  width: 50%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 1.5em;
+  position: relative;
+}
+
+.header {
+  width: 100%;
+  padding: 1.5em 0;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  line-height: 1;
+  margin: auto;
+  width: 9rem;
+  margin-top: 30px;
+}
+
+.form {
+  width: 22em;
+  flex-shrink: 0;
+  margin: 3em 0;
+  height: min-content;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0 0 1.5em;
+  text-align: center;
+}
+
+.segmented {
+  position: relative;
+  background-color: hsl(233, 10%, 90%);
+  border-radius: 0.75em;
+  display: flex;
+  margin-bottom: 1.5em;
+  min-height: 3em;
+}
+
+.segmentedBtn {
+  border-radius: 0.875em;
+  box-shadow: 0 0 0 0.1875em var(--focus-t) inset;
+  color: hsl(223, 10%, 40%);
+  cursor: pointer;
+  outline: transparent;
+  padding: 0.75em;
+  width: 100%;
+  background-color: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+.segmentedBtn[aria-selected="true"] {
+  color: hsl(223, 10%, 10%);
+}
+
+.segmentedFocus {
+  background-color: white;
+  border-radius: 0.625em;
+  pointer-events: none;
+  position: absolute;
+  top: 0.25em;
+  bottom: 0.25em;
+  right: 0.25em;
+  width: calc(50% - 0.5em); 
+  transition: right 0.3s ease, width 0.3s ease;
+}
+
+.field {
+  position: relative;
+  margin-bottom: 1.5em;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+}
+.eyeIcon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+  color: black;
+}
+.inputTextBox {
+  width: 100%;
+  background-color: transparent;
+  border-radius: 0.75em;
+  box-shadow: 0 0 0 0.125em hsl(233,10%,80%) inset;
+  outline: transparent;
+  padding: 1em 0.5em;
+  padding-inline-end: 3.5em;
+  appearance: none;
+}
+
+.label {
+  color: hsl(var(--hue), 10%, 30%);
+  cursor: text;
+  display: flex;
+  position: absolute;
+  bottom: 0.4em;
+  left: 1em;
+  pointer-events: none;
+}
+
+.btn {
+  width: 100%;
+  background-color: hsl(223, 90%, 50%);
+  border-radius: 0.75em;
+  box-shadow: 0 0 0 0.1em hsl(223deg 10% 90%),
+  0 0 0 0.3em hsl(223deg 90% 50%);
+  color: white;
+  margin-bottom: 1.5em;
+  padding: 1em;
+  cursor: pointer;
+  display: block;
+  outline: transparent;
+}
+
+.btn:hover {
+  background-color: hsl(223, 90%, 60%);
+  box-shadow: 0 0 0 0.1em hsl(223deg 10% 90%),
+              0 0 0 0.4em hsl(223deg 90% 60%);
+}
+
+.btn:active {
+  background-color: hsl(223, 90%, 40%);
+  box-shadow: 0 0 0 0.05em hsl(223deg 10% 80%),
+              0 0 0 0.2em hsl(223deg 90% 40%);
+}
+
+.or {
+  color: hsl(223, 10%, 40%);
+  display: flex;
+  align-items: center;
+  font-size: 0.75em;
+  line-height: 2;
+  margin-bottom: 1.5em;
+  text-align: center;
+}
+
+.or::before,
+.or::after {
+  background-color: hsl(223, 10%, 70%);
+  content: "";
+  display: block;
+  flex: 1;
+  height: 1px;
+}
+
+.or::before {
+  margin-inline-end: 0.75em;
+}
+
+.or::after {
+  margin-inline-start: 0.75em;
+}
+
+.social {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.socialBtn {
+  width: 3.4em;
+  height: 3.4em;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.2em hsl(223deg 90% 50% / 0%);
+  cursor: pointer;
+  outline: transparent;
+}
+
+.columnBg {
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+.bgImg {
+  display: block;
+  object-fit: cover;
+  width: 80%;
+  height: 80%;
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+}
+
+@media (max-width: 768px) {
+  .column {
+    width: 100%;
+  }
+  
+  .columnBg {
+    display: none;
+  }
+}
+/* Style for the select box */
+.field select {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  font-size: 1em;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10'%3E%3Cpath fill='%23ccc' d='M7 10L0 0h14z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px;
+}
+
+/* Style for the options */
+.field select option {
+  background-color: #fff;
+  color: #333;
+  padding: 10px;
+  font-size: 1em;
+  border: none;
+}
+
+

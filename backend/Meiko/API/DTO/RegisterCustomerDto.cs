@@ -21,9 +21,6 @@ namespace API.DTO
         [Required(ErrorMessage = "Giới tính không được để trống.")]
         public bool Sex { get; set; }
 
-        [Required(ErrorMessage = "Ngày sinh không được để trống.")]
-        public DateTime BirthDay { get; set; }
-
         [Required(ErrorMessage = "Số điện thoại không được để trống.")]
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ.")]
         public string PhoneNumber { get; set; }

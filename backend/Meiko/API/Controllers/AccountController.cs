@@ -83,7 +83,7 @@ namespace API.Controllers
 
             if (user == null)
             {
-                return NotFound("Email không tồn tại trong hệ thống.");
+                return NotFound("Email không tồn tại.");
             }
             if (!ModelState.IsValid)
             {
@@ -128,28 +128,6 @@ namespace API.Controllers
             }
 
             return Ok("Mật khẩu của bạn đã được cập nhật thành công.");
-        }
-
-
-        [Authorize(Roles = "Admin")]
-        [HttpGet("admin-only")]
-        public IActionResult AdminOnly()
-        {
-            return Ok("Chỉ admin có thể truy cập!");
-        }
-
-        [Authorize(Roles = "Staff")]
-        [HttpGet("staff-only")]
-        public IActionResult StaffOnly()
-        {
-            return Ok("Chỉ nhân viên có thể truy cập!");
-        }
-
-        [Authorize(Roles = "Customer")]
-        [HttpGet("customer-only")]
-        public IActionResult CustomerOnly()
-        {
-            return Ok("Chỉ khách hàng có thể truy cập!");
         }
     }
 }

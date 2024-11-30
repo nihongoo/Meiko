@@ -15,6 +15,7 @@ namespace DataProcessing.Models
         public Guid Id { get; set; }
 
         [Required(ErrorMessage = "Tên màu sắc không được để trống.")]
+
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Mã màu không được để trống.")]

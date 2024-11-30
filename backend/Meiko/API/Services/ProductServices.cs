@@ -20,7 +20,16 @@ namespace API.Services
 
         public async Task<IEnumerable<Products>> GetAllAsync()
         {
-            return await _context.Products.ToListAsync();
+            return await _context.Products
+                                 .Include(p => p.Materials)
+                                 .Include(p => p.Brands)
+                                 .Include(p => p.Categories)
+                                 .Include(p => p.TargretCustomers)
+                                 .Include(p => p.ProductDetails).ThenInclude(p => p.Colors)
+                                 .Include(p => p.ProductDetails).ThenInclude(p => p.SaleProducts).ThenInclude(p => p.sales)
+                                 .Include(p => p.ProductDetails).ThenInclude(p => p.Images)
+                                 .Include(p => p.FavoriteProducts)
+                                 .ToListAsync();
         }
 
         public async Task<Products> GetByIdAsync(Guid id)
@@ -29,6 +38,11 @@ namespace API.Services
                                           .Include(p => p.Brands)
                                           .Include(p => p.Categories)
                                           .Include(p => p.TargretCustomers)
+                                          .Include(p => p.ProductDetails).ThenInclude(p => p.Colors)
+                                          .Include(p => p.ProductDetails).ThenInclude(p => p.Sizes)
+                                          .Include(p => p.ProductDetails).ThenInclude(p => p.SaleProducts).ThenInclude(p => p.sales)
+                                          .Include(p => p.ProductDetails).ThenInclude(p => p.Images)
+                                          .Include(p => p.FavoriteProducts)
                                           .FirstOrDefaultAsync(p => p.Id == id);
         }
 

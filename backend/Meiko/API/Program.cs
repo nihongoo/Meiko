@@ -22,7 +22,6 @@ namespace Meiko
                 options.UseSqlServer(connectionString));
 
             builder.Services.AddExtentionsService(builder.Configuration);
-
 			//CORS
 			builder.Services.AddCors(options =>
 			{
@@ -35,6 +34,7 @@ namespace Meiko
 			});
 			//Configure
 			builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+
             //Service
             builder.Services.AddScoped<IAccountServices, AccountService>();
             builder.Services.AddScoped<IAddressServices, AddressServices>();
@@ -84,16 +84,27 @@ namespace Meiko
             });
             // Add services to the container.
 
+            // Cấu hình CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowLocalhost3000", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 			var app = builder.Build();
 
-			app.UseCors("AllowSpecificOrigins");
+            app.UseCors("AllowLocalhost3000");
 
-			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment())
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
 			{
 				app.UseSwagger();
 				app.UseSwaggerUI();

@@ -24,14 +24,14 @@ namespace API.Controllers
 		}
 
 		// GET api/<ImagesController>/5
-		[HttpGet("{productdetailid}")]
+		[HttpGet("Get/{productdetailid}")]
 		public async Task<IEnumerable<Images>> GetImagesByPDId(Guid productdetailid)
 		{
 			return await _imageServices.GetImagesByPDId(productdetailid);
 		}
 
 		// POST api/<ImagesController>
-		[HttpPost]
+		[HttpPost("Create")]
 		public async Task<string> AddImageToProductDetail(ImageViewModel image)
 		{
 			var response = await _imageServices.AddImageToProductDetail(image);
@@ -47,7 +47,7 @@ namespace API.Controllers
 		}
 
 		// DELETE api/<ImagesController>/5
-		[HttpDelete("{id}")]
+		[HttpDelete("Delete/{id}")]
 		public async Task<string> RemoveImage(Guid id)
 		{
 			return await _imageServices.RemoveImage(id);

@@ -21,7 +21,6 @@ namespace DataProcessing.Models
         [Required(ErrorMessage = "Giới tính không được để trống.")]
         public bool Sex { get; set; }
 
-        [Required(ErrorMessage = "Ngày sinh không được để trống.")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime BirthDay { get; set; }
