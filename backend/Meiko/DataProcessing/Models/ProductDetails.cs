@@ -49,7 +49,6 @@ namespace DataProcessing.Models
 
         [Required(ErrorMessage = "Id kích thước không được để trống.")]
         public Guid SizeId { get; set; }
-
         [JsonIgnore]
         public virtual Products? Products { get; set; }
         public virtual Colors? Colors { get; set; }

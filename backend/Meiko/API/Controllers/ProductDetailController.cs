@@ -52,7 +52,6 @@ namespace API.Controllers
 
         [HttpPut("Update/{id}")]
         public async Task<ActionResult> UpdateProductDetail([FromBody] ProductDetailDto model)
-
         {
             if (!ModelState.IsValid)
             {

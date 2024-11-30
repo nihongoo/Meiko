@@ -34,7 +34,6 @@ namespace Meiko
 			});
 			//Configure
 			builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
-
             //Service
             builder.Services.AddScoped<IAccountServices, AccountService>();
             builder.Services.AddScoped<IAddressServices, AddressServices>();
