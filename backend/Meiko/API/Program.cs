@@ -20,9 +20,21 @@ namespace Meiko
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
+
             builder.Services.AddExtentionsService(builder.Configuration);
-            //Configure
-            builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+
+			//CORS
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy("AllowAll", policy =>
+				{
+					policy.AllowAnyOrigin()
+						  .AllowAnyHeader()
+						  .AllowAnyMethod();
+				});
+			});
+			//Configure
+			builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
             //Service
             builder.Services.AddScoped<IAccountServices, AccountService>();
             builder.Services.AddScoped<IAddressServices, AddressServices>();
@@ -45,6 +57,7 @@ namespace Meiko
             builder.Services.AddScoped<IVoucherServices, VoucherServices>();
 
             builder.Services.AddScoped<IImageServices, ImageServices>();
+            builder.Services.AddScoped<IBillServices, BillServices>();
 
             // Thêm Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -92,6 +105,7 @@ namespace Meiko
 
             app.UseAuthorization();
 
+			//app.UseCors("AllowAll");
 
 			app.MapControllers();
 

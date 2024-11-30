@@ -36,20 +36,42 @@ namespace DataProcessing.Models
         public DbSet<Sales> Sales { get; set; }
         public DbSet<Sizes> Sizes { get; set; }
         public DbSet<Staffs> Staffs { get; set; }
+        public DbSet<ShippingAddress> ShippingAddresses { get; set; }
+        public DbSet<StatusHistory> StatusHistories { get; set; }
+        public DbSet<PaymentHistory> PaymentHistories { get; set; }
         public DbSet<TargretCustomers> TargretCustomers { get; set; }
         public DbSet<VoucherDetails> VoucherDetails { get; set; }
         public DbSet<Vouchers> Vouchers { get; set; }
         public DbSet<Banners> Banners { get; set; }
         public DbSet<Otp> otps { get; set; }
         public DbSet<SaleProducts> SaleProducts { get; set; }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
 			optionsBuilder.UseSqlServer("Server=NIHONGGOO\\SQLEXPRESS;Database=DATN;Trusted_Connection=True;TrustServerCertificate=True");
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Bills>()
+                .Property(o => o.Status)
+                .HasConversion<int>();
+
+			modelBuilder.Entity<StatusHistory>()
+				.Property(o => o.StatusType)
+				.HasConversion<int>();
+
+            modelBuilder.Entity<PaymentHistory>()
+                .Property(ph => ph.PaymentMethod)
+                .HasConversion<int>();
+
+			modelBuilder.Entity<PaymentHistory>()
+				.Property(ph => ph.Status)
+				.HasConversion<int>();
+
+
+			base.OnModelCreating(modelBuilder);
+
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
     }

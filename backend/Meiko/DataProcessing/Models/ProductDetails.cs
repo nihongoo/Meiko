@@ -53,7 +53,7 @@ namespace DataProcessing.Models
         public virtual Products? Products { get; set; }
         public virtual Colors? Colors { get; set; }
         [JsonIgnore]
-        public virtual ICollection<SaleProducts> SaleProducts { get; set; }
+        public virtual ICollection<SaleProducts>? SaleProducts { get; set; }
         public virtual Sizes? Sizes { get; set; }
         
         [JsonIgnore]
