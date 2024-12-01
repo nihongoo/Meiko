@@ -12,5 +12,6 @@ namespace API.IServices
         public Task CreateAsync(ProductDetailViewModel model);
         public Task UpdateAsync(ProductDetailDto model);
         public Task DeleteAsync(Guid id);
+        public Task<List<ProductDetails>> Search(string query);
     }
 }

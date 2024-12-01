@@ -96,5 +96,28 @@ namespace API.Services
 				throw new Exception("Đã có lỗi: " + ex.Message);
 			}
 		}
+
+		public async Task<List<ProductDetails>> Search(string query)
+		{
+			try
+			{
+				if (string.IsNullOrWhiteSpace(query))
+				{
+					return await _context.ProductDetails
+						.Include(k => k.Products)
+						.ToListAsync();
+				}
+				var result = await _context.ProductDetails
+					.Include(k => k.Products)
+					.Where(k => k.ProductDetailCode.Contains(query) ||
+					k.Products.ProductCode.Contains(query))
+					.ToListAsync();
+				return result;
+			}
+			catch (Exception ex)
+			{
+				throw new Exception("Đã có lỗi: " + ex.Message);
+			}
+		}
 	}
 }

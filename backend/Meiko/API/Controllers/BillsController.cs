@@ -1,4 +1,5 @@
 ﻿using API.DTO;
+using API.Extention;
 using API.IServices;
 using API.Models;
 using DataProcessing.Models;
@@ -14,9 +15,11 @@ namespace API.Controllers
 	public class BillsController : ControllerBase
 	{
 		private readonly IBillServices _IBillServices;
-        public BillsController(IBillServices billServices)
+		private readonly ToolDB<Bills> _tool;
+        public BillsController(IBillServices billServices, ToolDB<Bills> tool)
         {
             _IBillServices = billServices;
+			_tool = tool;
         }
 
 		// Cung cấp dữ liệu
@@ -182,6 +185,12 @@ namespace API.Controllers
 
 			return Ok(collection);
 
+		}
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query)
+		{
+			var result = await _tool.Search(query, "BillCode");
+			return Ok(result);
 		}
 	}
 }

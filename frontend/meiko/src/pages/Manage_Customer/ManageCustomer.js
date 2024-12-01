@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import moment from 'moment';
 import SearchInput from "../../component/Search";
-import apiURL from '../../routes/API/index';
+import apiURL from '../../Routes/API/index';
 import useFetchData from "../../customHook/useFetchData";
 import { DataGrid } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';

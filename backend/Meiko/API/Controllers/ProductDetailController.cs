@@ -1,4 +1,5 @@
 ﻿using API.DTO;
+using API.Extention;
 using API.IServices;
 using API.ViewModel;
 using DataProcessing.Models;
@@ -11,7 +12,6 @@ namespace API.Controllers
     public class ProductDetailController : ControllerBase
     {
         private readonly IProductDetailServices _productDetailService;
-
         public ProductDetailController(IProductDetailServices productDetailService)
         {
             _productDetailService = productDetailService;
@@ -69,5 +69,11 @@ namespace API.Controllers
             await _productDetailService.DeleteAsync(id);
             return NoContent();
         }
-    }
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query)
+		{
+			var result = await _productDetailService.Search(query);
+			return Ok(result);
+		}
+	}
 }

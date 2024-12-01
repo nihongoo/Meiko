@@ -1,4 +1,5 @@
-﻿using API.IServices;
+﻿using API.Extention;
+using API.IServices;
 using API.Services;
 using API.ViewModel;
 using DataProcessing.Models;
@@ -11,9 +12,11 @@ namespace API.Controllers
     public class BrandController : ControllerBase
     {
         private readonly IBrandServices _brandServices;
-        public BrandController(IBrandServices brandServices)
+        private readonly ToolDB<Brands> _tool;
+        public BrandController(IBrandServices brandServices, ToolDB<Brands> tool)
         {
             _brandServices = brandServices;
+            _tool = tool;
         }
         [HttpGet("get-all")]
         public async Task<ActionResult<IEnumerable<Brands>>> GetAll()
@@ -55,6 +58,13 @@ namespace API.Controllers
         {
             await _brandServices.Delete(id);
             return NoContent();
+        }
+
+        [HttpGet("Search")]
+        public async Task<IActionResult> Search(string query)
+        {
+            var result = await _tool.Search(query, "Name");
+            return Ok(result);
         }
     }
 }

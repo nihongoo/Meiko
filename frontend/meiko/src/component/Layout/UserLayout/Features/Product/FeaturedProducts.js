@@ -139,7 +139,6 @@ const FeaturedProducts = () => {
     // Tạo URL đầy đủ cho ảnh
     const imageUrl = `${imageUrlBase}${imageFileName}`;
   
-    console.log('Image URL:', imageUrl);
     return (
       <div className={styles.productImgWrapper}>
         {/* Hiển thị tag giảm giá nếu có */}
@@ -156,7 +155,7 @@ const FeaturedProducts = () => {
   
         {/* Hiển thị ảnh sản phẩm */}
         <img
-          src={imageUrl}  // Dùng URL ảnh đầy đủ
+          src={product.imageUrl}  // Dùng URL ảnh đầy đủ
           alt={product.name}
           className={styles.productImg}
         />

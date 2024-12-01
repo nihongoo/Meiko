@@ -13,6 +13,7 @@ const ProductDetail = () => {
   const [selectedPrice, setSelectedPrice] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [availableQuantity, setAvailableQuantity] = useState(0);
+console.log(productId);
 
   // Lấy dữ liệu sản phẩm từ API
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { publicRoutes } from './routes/index'
+import { publicProutes } from './Routes/Index'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 import { AdminLayout, LoginLayout, UserLayout } from './component/Layout'
@@ -9,7 +9,7 @@ function App() {
     <Router>
       <div className='m-0 p-0'>
         <Routes>
-          {publicRoutes.map((route, index) => {
+          {publicProutes.map((route, index) => {
             const Layout = route.layout === 'admin'
             ? AdminLayout
             :route.layout === 'login'

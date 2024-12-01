@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import useFetchData from '../../customHook/useFetchData.js';
-import apiURL from '../../routes/API/index.js';
+import apiURL from '../../Routes/API/index.js';
 import Color from './Color.js';
 import Size from './Size.js';
 import SubmitButton from './SubmitButton.js'
