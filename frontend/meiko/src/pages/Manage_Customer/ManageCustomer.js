@@ -17,7 +17,7 @@ function ManageCustomer() {
             status: item.status
         }))
     );
-    
+
     const [open, setOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchType, setSearchType] = useState('isSearchEmail=true');
@@ -120,7 +120,6 @@ function TableUser({ rows, onEdit }) {
     const columns = [
         { field: 'name', headerName: 'Tên', width: 130 },
         { field: 'gt', headerName: 'Giới tính', width: 130 },
-        { field: 'birthDay', headerName: 'Ngày sinh', width: 130 },
         { field: 'phoneNumber', headerName: 'Số điện thoại', width: 130 },
         { field: 'email', headerName: 'Email', width: 130 },
         { field: 'tt', headerName: 'Trạng thái', width: 130 },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import SearchInput from "../../component/Search";
 import apiURL from "../../Routes/API";
@@ -19,7 +19,18 @@ function ListProductDetail() {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [apiImg, setApiImg] = useState('POST')
-
+    const [product, setProduct] = useState({})
+    const handleFetchProduct = async () => {
+        const res = await fetch(`${apiURL.product.getbyid}${id}`)
+        const rawData = await res.json()
+        setProduct(rawData)
+    }
+    useEffect(()=>{
+        if(id){
+            handleFetchProduct()
+        }
+    },[id])
+    
     const handleClickOpen = (item) => {
         const formatUser = {
             id: item.id,
@@ -106,7 +117,7 @@ function ListProductDetail() {
                         </RadioGroup>
                     </FormControl>
                 </div>
-                <TableUser rows={initialData} onEdit={handleClickOpen} />
+                <TableUser rows={initialData} onEdit={handleClickOpen} name={product.name} />
             </div>
             <UpdateDetailDialog
                 open={open}
@@ -122,10 +133,10 @@ function ListProductDetail() {
     );
 }
 
-function TableUser({ rows, onEdit }) {
+function TableUser({ rows, onEdit, name }) {  
     const formattedRows = rows.map((item) => ({
         id: item.id,
-        name: item.products.name,
+        name: name,
         code: item.productDetailCode,
         color: item.colors.name,
         size: item.sizes.name,

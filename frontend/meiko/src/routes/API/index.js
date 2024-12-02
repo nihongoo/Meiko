@@ -55,7 +55,7 @@ const apiURL = {
     },
     product: {
         all: 'https://localhost:7172/api/Product/Get-All',
-        getbyid :'https://localhost:7172/api/Product/Get/{id}',
+        getbyid :'https://localhost:7172/api/Product/Get/',
         create: 'https://localhost:7172/api/Product/Create',
         edit: 'https://localhost:7172/api/Product/Update/{id}',
         delete: 'https://localhost:7172/api/Product/Delete/{id}',
