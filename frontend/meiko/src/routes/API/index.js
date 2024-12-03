@@ -64,6 +64,7 @@ const apiURL = {
     productDetail: {
         all: 'https://localhost:7172/api/ProductDetail/Product/',
         edit: 'https://localhost:7172/api/ProductDetail',
+        base: 'https://localhost:7172/api/ProductDetail/Get-All'
     },
     image: {
         base: 'https://localhost:7172/api/Images', 

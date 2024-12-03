@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import 'font-awesome/css/font-awesome.min.css';
-import { useNavigate } from 'react-router-dom';
 import styles from '../main_styles.module.css';
 
 function Header () {
   const [cartItemCount, setCartItemCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
-  const navigate = useNavigate();
 
   // Hàm lấy số lượng sản phẩm trong giỏ hàng từ API
   const fetchCartItemCount = async () => {
@@ -186,7 +184,7 @@ function Header () {
                   <li className="nav-item"><a href="/homeUser" className="nav-link">Trang chủ</a></li>
                   <li className="nav-item"><a href="/shop" className="nav-link">Cửa hàng</a></li>
                   <li className="nav-item"><a href="#" className="nav-link">Khuyến mãi</a></li>
-                  <li className="nav-item"><a href="contact.html" className="nav-link">Liên hệ</a></li>
+                  <li className="nav-item"><a href="#" className="nav-link">Liên hệ</a></li>
                 </ul>
                 <ul className={`${styles.navbarUser} d-flex`}>
                   <li><a href="#" className="nav-link"><i className="fa fa-search" aria-hidden="true"></i></a></li>

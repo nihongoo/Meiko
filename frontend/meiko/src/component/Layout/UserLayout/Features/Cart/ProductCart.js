@@ -22,6 +22,7 @@ function ProductCart() {
           console.error('Error fetching cart:', error);
         });
     }
+    // eslint-disable-next-line
   }, [customerId]);
 
   // Lấy chi tiết giỏ hàng từ API

@@ -29,6 +29,7 @@ function ListProductDetail() {
         if(id){
             handleFetchProduct()
         }
+        // eslint-disable-next-line
     },[id])
     
     const handleClickOpen = (item) => {

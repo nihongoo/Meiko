@@ -114,6 +114,7 @@ function RegisterForm() {
             <div className={`${styles.formPage}`}>
               <div className={styles.segmented}>
                 <button
+                // eslint-disable-next-line
                   onClick={handleLoginClick}
                   className={styles.segmentedBtn}
                   aria-selected="false"

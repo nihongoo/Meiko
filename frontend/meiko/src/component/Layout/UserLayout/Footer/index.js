@@ -37,10 +37,10 @@ const Footer = () => {
               {/* Grid column: Useful links */}
               <div className="col-md-3 col-lg-2 col-xl-2 mx-auto mt-3">
                 <h6 className="text-uppercase mb-4 font-weight-bold">Useful links</h6>
-                <p><a className="text-white no-underline" href="#!">Your Account</a></p>
-                <p><a className="text-white no-underline" href="#!">Become an Affiliate</a></p>
-                <p><a className="text-white no-underline" href="#!">Shipping Rates</a></p>
-                <p><a className="text-white no-underline" href="#!">Help</a></p>
+                <p><a className="text-white no-underline" href="#">Your Account</a></p>
+                <p><a className="text-white no-underline" href="#">Become an Affiliate</a></p>
+                <p><a className="text-white no-underline" href="#">Shipping Rates</a></p>
+                <p><a className="text-white no-underline" href="#">Help</a></p>
               </div>
 
 
@@ -67,29 +67,29 @@ const Footer = () => {
               {/* Grid column: Copyright */}
               <div className="col-md-7 col-lg-8 text-center text-md-start">
                 <div className="p-3">
-                  <a className="text-white" href="https://mdbootstrap.com/"></a>
+                  <a className="text-white" ></a>
                 </div>
               </div>
 
               {/* Grid column: Social Media Icons */}
               <div className="col-md-5 col-lg-4 ml-lg-0 text-center text-md-end">
                 {/* Facebook */}
-                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#!">
+                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#">
                   <i className="fa fa-facebook-f"></i>
                 </a>
 
                 {/* Twitter */}
-                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#!">
+                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#">
                   <i className="fa fa-twitter"></i>
                 </a>
 
                 {/* Google */}
-                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#!">
+                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#">
                   <i className="fa fa-google"></i>
                 </a>
 
                 {/* Instagram */}
-                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#!">
+                <a className="btn btn-outline-light btn-floating m-1" role="button" href="#">
                   <i className="fa fa-instagram"></i>
                 </a>
               </div>

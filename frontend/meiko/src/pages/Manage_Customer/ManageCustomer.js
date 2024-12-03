@@ -4,13 +4,22 @@ import SearchInput from "../../component/Search";
 import apiURL from '../../Routes/API/index';
 import useFetchData from "../../customHook/useFetchData";
 import { DataGrid } from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
-import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button} from '@mui/material';
+import {
+    Paper,
+    Radio,
+    RadioGroup,
+    FormControlLabel,
+    FormControl,
+    FormLabel,
+    Button,
+    Box,
+    Typography,
+} from '@mui/material';
 import UpdateUserDialog from './UpdateUserDialog';
 import { toast } from 'react-toastify';
 
 function ManageCustomer() {
-    const { data: initialData, refetch } = useFetchData(apiURL.user.all, (rawData) => 
+    const { data: initialData, refetch } = useFetchData(apiURL.user.all, (rawData) =>
         rawData.map((item) => ({
             ...item,
             birthDay: moment(item.birthDay).format('DD-MM-YYYY'),
@@ -49,7 +58,7 @@ function ManageCustomer() {
         const updatedUser = {
             ...selectedUser,
             birthDay: moment(selectedUser.birthDay, 'DD-MM-YYYY').format('YYYY-MM-DD'),
-        };   
+        };
         try {
             const response = await fetch(`${apiURL.user.edit}${updatedUser.id}`, {
                 method: 'PUT',
@@ -73,94 +82,98 @@ function ManageCustomer() {
     };
 
     return (
-        <div className="border bg-light rounded-3">
-            <div className='d-flex justify-content-center m-2'>
-                <h2>Danh sách khách hàng</h2>
-            </div>
-            <div className='p-3'>
-                <div className='d-flex mb-2 justify-content-between'>
-                    <div className="d-flex align-items-center">
-                        <SearchInput
-                            ApiURL={apiURL.user.search}
-                            optional={searchType}
-                            
-                        />
-                    </div>
+        <Box sx={{ padding: 2, backgroundColor: 'background.paper', borderRadius: 2 }}>
+            <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
+                <Typography variant="h5" fontWeight="bold">
+                    Danh sách khách hàng
+                </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 2,
+                    }}
+                >
+                    <SearchInput ApiURL={apiURL.user.search} optional={searchType} />
                     <FormControl component="fieldset">
-                        <FormLabel component="legend" className="m-0">Tìm kiếm theo:</FormLabel>
+                        <FormLabel component="legend">Tìm kiếm theo:</FormLabel>
                         <RadioGroup
                             row
                             value={searchType}
                             onChange={handleSearchTypeChange}
                         >
-                            <FormControlLabel value="isSearchEmail=false" control={<Radio />} label="Số điện thoại" />
-                            <FormControlLabel value="isSearchEmail=true" control={<Radio />} label="Email" />
+                            <FormControlLabel
+                                value="isSearchEmail=false"
+                                control={<Radio />}
+                                label="Số điện thoại"
+                            />
+                            <FormControlLabel
+                                value="isSearchEmail=true"
+                                control={<Radio />}
+                                label="Email"
+                            />
                         </RadioGroup>
                     </FormControl>
-                </div>
+                </Box>
+
                 <TableUser rows={initialData} onEdit={handleClickOpen} />
-            </div>
-            <UpdateUserDialog 
-                open={open} 
-                onClose={handleClose} 
-                selectedUser={selectedUser} 
-                setSelectedUser={setSelectedUser} 
-                onUpdate={handleUpdate} 
+            </Box>
+
+            <UpdateUserDialog
+                open={open}
+                onClose={handleClose}
+                selectedUser={selectedUser}
+                setSelectedUser={setSelectedUser}
+                onUpdate={handleUpdate}
             />
-        </div>
+        </Box>
     );
 }
 
 function TableUser({ rows, onEdit }) {
     const formattedRows = rows.map((item) => ({
         ...item,
-        gt: item.sex ? 'Nam': 'Nữ',
+        gt: item.sex ? 'Nam' : 'Nữ',
         tt: item.status === 1 ? 'Đang hoạt động' : 'Không hoạt động',
     }));
+
     const columns = [
-        { field: 'name', headerName: 'Tên', width: 130 },
-        { field: 'gt', headerName: 'Giới tính', width: 130 },
-        { field: 'phoneNumber', headerName: 'Số điện thoại', width: 130 },
-        { field: 'email', headerName: 'Email', width: 130 },
-        { field: 'tt', headerName: 'Trạng thái', width: 130 },
+        { field: 'name', headerName: 'Tên', flex: 1 },
+        { field: 'gt', headerName: 'Giới tính', flex: 1 },
+        { field: 'phoneNumber', headerName: 'Số điện thoại', flex: 1 },
+        { field: 'email', headerName: 'Email', flex: 1 },
+        { field: 'tt', headerName: 'Trạng thái', flex: 1 },
         {
             field: 'action',
             headerName: 'Thao tác',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
-                <div>
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => onEdit(params.row)}
-                    >
-                       <i className="fa-solid fa-pen"></i>
-                    </Button>
-                    {/* <Button
-                        className='ms-1'
-                        variant="contained"
-                        color="secondary"
-                    >
-                        <i className="fa-solid fa-trash"></i>
-                    </Button> */}
-                </div>
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => onEdit(params.row)}
+                >
+                    <i className="fa-solid fa-pen"></i>
+                </Button>
             ),
         },
     ];
-    const paginationModel = { page: 0, pageSize: 5 };
 
     return (
-        <div>
-            <Paper sx={{ minWidth: '705px', width: 'auto', maxWidth: '1558px' }}>
-                <DataGrid
-                    columns={columns}
-                    rows={formattedRows}
-                    initialState={{ pagination: { paginationModel } }}
-                    pageSizeOptions={[5, 10]}
-                    disableRowSelectionOnClick
-                />
-            </Paper>
-        </div>
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <DataGrid
+                autoHeight
+                rows={formattedRows}
+                columns={columns}
+                pageSizeOptions={[5, 10]}
+                disableRowSelectionOnClick
+            />
+        </Paper>
     );
 }
 
