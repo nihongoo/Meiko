@@ -119,5 +119,58 @@ namespace API.Services
 				throw new Exception("Đã có lỗi: " + ex.Message);
 			}
 		}
+
+		public async Task<List<SoldOffViewModel>> GetForSoldOff()
+		{
+			try
+			{
+				var detail = await _context.ProductDetails
+					.Include(k => k.Sizes)
+					.Include(k => k.Colors)
+					.ToListAsync();
+
+				var products = await _context.Products
+					.Include(k => k.Categories)
+					.Include(k => k.Brands)
+					.Include(k => k.Materials)
+					.Include(k => k.TargretCustomers)
+					.ToListAsync();
+
+				var images = await _context.Images.ToListAsync();
+
+				var data = new List<SoldOffViewModel>();
+
+				foreach (var detailItem in detail)
+				{
+					var image = images.FirstOrDefault(k => k.ProductDetailId == detailItem.Id);
+					var product = products.FirstOrDefault(k => k.Id == detailItem.ProductId);
+
+					var viewModel = new SoldOffViewModel
+					{
+						Id = detailItem.Id,
+						ImgUrl = image?.ImgUrl ?? product?.ImageUrl,
+						Name = product?.Name,
+						Code = detailItem.ProductDetailCode,
+						Category = product?.Categories?.Name,
+						Brand = product?.Brands?.Name,
+						Material = product?.Materials?.Name,
+						Target = product?.TargretCustomers?.Name,
+						Size = detailItem.Sizes?.Name,
+						Color = detailItem.Colors?.Name,
+						Price = detailItem.Price,
+						Quantity = detailItem.Quantity
+					};
+
+					data.Add(viewModel);
+				}
+
+				return data;
+			}
+			catch (Exception ex)
+			{
+				throw new Exception("Đã có lỗi: " + ex.Message);
+			}
+		}
+
 	}
 }

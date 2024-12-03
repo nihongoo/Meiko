@@ -4,34 +4,84 @@ import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import NoContent from "./NoContent";
 import ListProduct from "./ListProduct";
+import generateSerialCode from '../../customHook/useRandom';
+import apiURL from "../../Routes/API";
+import BillInfo from "./BillInfo";
 
 function SoldOfline() {
     const [index, setIndex] = useState(0);
     const [tabs, setTabs] = useState([]);
+    const [bills, setBills] = useState([]);
 
     const handleChangeTab = (e, newValue) => {
         setIndex(newValue);
     };
-
-    const handleAddTab = () => {
+    
+    const handleAddTab = async () => {
         if (tabs.length >= 5) {
             toast.warning("Chỉ có thể thêm tối đa 5 hóa đơn");
             return;
         }
-        const newTabName = `Đơn hàng ${tabs.length + 1}`;
-        setTabs([...tabs, newTabName]);
-        setIndex(tabs.length);
+
+        const RandomCode = generateSerialCode();
+        const newBill = {
+            billCode: RandomCode.toString(),
+            isShipping: false,
+            total: 0,
+            status: 0,
+            paymentAmount: 0,
+            shippingFee: 0,
+        };
+
+        try {
+            const res = await fetch(apiURL.bill.create, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newBill)
+            });
+
+            if (!res.ok) {
+                throw new Error('Tạo hóa đơn thất bại');
+            }
+
+            const createdBill = await res.json();
+            setBills([...bills, createdBill]); // Lưu bill vào danh sách
+            setTabs([...tabs, `Hóa đơn ${newBill.billCode}`]); // Tạo tab mới
+            setIndex(tabs.length);
+            toast.success('Tạo hóa đơn thành công!');
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || 'Có lỗi xảy ra!');
+        }
     };
 
-    const handleCloseTab = (tabIndex) => {
-        const newTabs = tabs.filter((_, i) => i !== tabIndex);
-        setTabs(newTabs);
+    const handleCloseTab = async (tabIndex) => {
+        const billToDelete = bills[tabIndex];
+        if (!billToDelete) return;
+        try {
+            const res = await fetch(`${apiURL.bill.delete}${billToDelete.id}`, { method: 'DELETE' });
+            if (!res.ok) {
+                throw new Error('Xóa hóa đơn thất bại');
+            }
+            const newTabs = tabs.filter((_, i) => i !== tabIndex);
+            const newBills = bills.filter((_, i) => i !== tabIndex);
 
-        // Điều chỉnh index nếu tab hiện tại bị đóng
-        if (tabIndex === index) {
-            setIndex(tabIndex > 0 ? tabIndex - 1 : 0);
-        } else if (tabIndex < index) {
-            setIndex(index - 1);
+            setTabs(newTabs);
+            setBills(newBills);
+
+            // Điều chỉnh index nếu tab hiện tại bị đóng
+            if (tabIndex === index) {
+                setIndex(tabIndex > 0 ? tabIndex - 1 : 0);
+            } else if (tabIndex < index) {
+                setIndex(index - 1);
+            }
+
+            toast.success('Xóa hóa đơn thành công!');
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || 'Có lỗi xảy ra!');
         }
     };
 
@@ -89,8 +139,9 @@ function SoldOfline() {
                         <NoContent />
                     ) : (
                         <div className="mt-2">
-                            <h4>Nội dung của {tabs[index]}</h4>
-                            <ListProduct/>
+                            <h4>Thông tin của {tabs[index]}</h4>
+                            <ListProduct bill={bills[index]} /> {/* Truyền bill vào ListProduct */}
+                            <BillInfo />
                         </div>
                     )}
                 </div>

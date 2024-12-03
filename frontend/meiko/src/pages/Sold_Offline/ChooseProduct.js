@@ -20,31 +20,10 @@ import ChooseDetail from "./ChooseDetail";
 import useFetchData from '../../customHook/useFetchData'
 import apiURL from "../../Routes/API";
 
-function ChooseProduct({ open, onClose }) {
+function ChooseProduct({ open, onClose, reloadList,bill }) {
     const [detail, setDetail] = useState(false)
-    const { data: initData, refetch: reLoadData } = useFetchData(apiURL.productDetail.base)
-    const { data: image, refetch: reloadImg } = useFetchData(apiURL.image.base)
-    const { data: product, refetch: reloadProduct } = useFetchData(apiURL.product.all)
     const [item, setItem] = useState({})
-
-    const Data = initData.map(item => {
-        if(product.length === 0) reloadProduct()
-        if(image.length === 0) reloadImg()
-        const formatProduct = product.find(k => k.id === item.productId)
-        const formatImage = image.find(k => k.productDetailId === item.id)       
-        return {
-            ...formatProduct,
-            ...formatImage,
-            id: item.id,
-            code: item.productDetailCode,
-            size: item.sizes.name,
-            color: item.colors.name,
-            hex: item.colors.hex,
-            price: item.price,
-        }
-    })
-    console.log(Data);
-    
+    const {data: Data} = useFetchData(apiURL.productDetail.soldOff)
     
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
@@ -104,38 +83,38 @@ function ChooseProduct({ open, onClose }) {
                         </TableHead>
                         <TableBody>
                             {Data.map(item => (
-                            <TableRow key={item.id}>
-                                <TableCell>
-                                    <Box
-                                        component="img"
-                                        src={item.imgUrl ?item.imgUrl : item.imageUrl }
-                                        alt="product"
-                                        sx={{
-                                            width: 100,
-                                            height: 100,
-                                            borderRadius: 2,
-                                        }}
-                                    />
-                                </TableCell>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell>{item.code}</TableCell>
-                                <TableCell>{item.categories.name}</TableCell>
-                                <TableCell>{item.brands.name}</TableCell>
-                                <TableCell>{item.materials.name}</TableCell>
-                                <TableCell>{item.targretCustomers.name}</TableCell>
-                                <TableCell>{item.size}</TableCell>
-                                <TableCell>{item.color}</TableCell>
-                                <TableCell>{item.price}VND</TableCell>
-                                <TableCell>
-                                    <Button
-                                        variant="outlined"
-                                        color="info"
-                                        onClick={() => { setDetail(true); setItem(item) }}
-                                    >
-                                        Chọn
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
+                                <TableRow key={item.id}>
+                                    <TableCell>
+                                        <Box
+                                            component="img"
+                                            src={item.imgUrl ? item.imgUrl : item.imageUrl}
+                                            alt="product"
+                                            sx={{
+                                                width: 100,
+                                                height: 100,
+                                                borderRadius: 2,
+                                            }}
+                                        />
+                                    </TableCell>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell>{item.code}</TableCell>
+                                    <TableCell>{item.category}</TableCell>
+                                    <TableCell>{item.brand}</TableCell>
+                                    <TableCell>{item.material}</TableCell>
+                                    <TableCell>{item.target}</TableCell>
+                                    <TableCell>{item.size}</TableCell>
+                                    <TableCell>{item.color}</TableCell>
+                                    <TableCell>{item.price}VND</TableCell>
+                                    <TableCell>
+                                        <Button
+                                            variant="outlined"
+                                            color="info"
+                                            onClick={() => { setDetail(true); setItem(item) }}
+                                        >
+                                            Chọn
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
                             ))}
                         </TableBody>
                     </Table>
@@ -145,6 +124,8 @@ function ChooseProduct({ open, onClose }) {
                 open={detail}
                 onClose={() => { setDetail(false) }}
                 item={item}
+                reloadList={reloadList}
+                bill={bill}
             />
         </Dialog>
     );

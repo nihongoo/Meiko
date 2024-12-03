@@ -64,7 +64,8 @@ const apiURL = {
     productDetail: {
         all: 'https://localhost:7172/api/ProductDetail/Product/',
         edit: 'https://localhost:7172/api/ProductDetail',
-        base: 'https://localhost:7172/api/ProductDetail/Get-All'
+        base: 'https://localhost:7172/api/ProductDetail/Get-All',
+        soldOff: 'https://localhost:7172/api/ProductDetail/SoldOff'
     },
     image: {
         base: 'https://localhost:7172/api/Images', 
@@ -101,6 +102,13 @@ const apiURL = {
     },
     cart:{
         getId:'https://localhost:7172/api/Carts/{customerid}'
+    },
+    bill:{
+        create:'https://localhost:7172/api/Bills/create-bill',
+        delete:'https://localhost:7172/api/Bills/delete-bill/',
+        list: 'https://localhost:7172/api/Bills/List-Bill-Detail',
+        addToBill: 'https://localhost:7172/api/Bills/add-to-bill',
+        deleteDetail: 'https://localhost:7172/api/Bills/Delete-Bill-Detail?id=',
     }
     
 };

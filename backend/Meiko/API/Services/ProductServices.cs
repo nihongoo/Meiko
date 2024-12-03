@@ -59,6 +59,7 @@ namespace API.Services
                 Description = model.Description,
                 ProductCode = genCode,
                 ImageUrl = imgUrl,
+                PublicId = model.PublicId,
                 WarrantyPeriod = model.WarrantyPeriod,
                 CreateTime = DateTime.Now,
                 Status = 1,

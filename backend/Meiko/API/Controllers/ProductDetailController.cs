@@ -75,5 +75,15 @@ namespace API.Controllers
 			var result = await _productDetailService.Search(query);
 			return Ok(result);
 		}
+
+		[HttpGet("SoldOff")]
+		public async Task<IActionResult> SoldOff()
+		{
+			var result = await _productDetailService.GetForSoldOff();
+			if (result == null || result.Count == 0)
+				return BadRequest("Lỗi load dữ liệu");
+			return Ok(result);
+		}
+
 	}
 }

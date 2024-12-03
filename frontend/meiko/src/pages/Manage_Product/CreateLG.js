@@ -23,6 +23,7 @@ function CreateLG() {
             description: '',
             productCode: '111',
             imageUrl: '',
+            publicId: '',
             warrantyPeriod: '12 tháng',
             createTime: new Date().toISOString(),
             status: 0,
@@ -45,7 +46,8 @@ function CreateLG() {
             ...prev,
             product: {
                 ...prev.product,
-                imageUrl: fileName
+                imageUrl: fileName,
+                publicId: fileName,
             }
         }));
     };
