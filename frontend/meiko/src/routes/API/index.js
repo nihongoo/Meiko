@@ -63,10 +63,12 @@ const apiURL = {
     },
     productDetail: {
         all: 'https://localhost:7172/api/ProductDetail/Product/',
-        edit: 'https://localhost:7172/api/ProductDetail',
+        edit: 'https://localhost:7172/api/ProductDetail/Update/',
     },
     image: {
-        base: 'https://localhost:7172/api/Images', 
+        base: 'https://localhost:7172/api/Images',
+        getImg: 'https://localhost:7172/api/Images/Get/',
+        create: 'https://localhost:7172/api/Images/Create',
     },
     user: {
         login: 'https://localhost:7265/login/',

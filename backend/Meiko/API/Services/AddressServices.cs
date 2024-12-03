@@ -97,11 +97,12 @@ namespace API.Services
             {
                 RecipientName = viewModel.RecipientName,
                 PhoneNumber = viewModel.PhoneNumber,
+                Email = viewModel.Email,
                 AddressDetail = viewModel.AddressDetail,
                 City = viewModel.City,
                 District = viewModel.District,
                 Ward = viewModel.Ward,
-                Status = viewModel.Status
+                Status = viewModel.Status,
             };
         }
 
@@ -109,6 +110,7 @@ namespace API.Services
         {
             address.RecipientName = viewModel.RecipientName;
             address.PhoneNumber = viewModel.PhoneNumber;
+            address.Email = viewModel.Email;
             address.AddressDetail = viewModel.AddressDetail;
             address.City = viewModel.City;
             address.District = viewModel.District;

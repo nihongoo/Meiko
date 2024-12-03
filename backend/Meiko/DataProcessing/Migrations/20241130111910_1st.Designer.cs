@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataProcessing.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241129081739_Kh")]
-    partial class Kh
+    [Migration("20241130111910_1st")]
+    partial class _1st
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -232,74 +232,48 @@ namespace DataProcessing.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasComment("Mã hóa đơn, không quá 50 ký tự");
 
-                    b.Property<DateTime>("CreateDate")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasComment("Ngày tạo hóa đơn");
 
                     b.Property<Guid?>("CustomerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("DiaChiNguoiNhan")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
-                        .HasComment("Địa chỉ người nhận không vượt quá 200 ký tự");
+                    b.Property<DateTime?>("DateOfRecept")
+                        .HasColumnType("datetime2")
+                        .HasComment("Ngày nhận hàng thực tế");
 
-                    b.Property<string>("EmailNguoiNhan")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Email người nhận, tuân theo chuẩn Email");
+                    b.Property<DateTime?>("DeliveryDate")
+                        .HasColumnType("datetime2")
+                        .HasComment("Ngày giao hàng dự kiến");
 
-                    b.Property<double>("GiamGia")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("float")
-                        .HasDefaultValue(0.0)
-                        .HasComment("Giá trị giảm giá của hóa đơn");
+                    b.Property<bool?>("IsShipping")
+                        .IsRequired()
+                        .HasColumnType("bit")
+                        .HasComment("Có giao hàng hay không?");
 
-                    b.Property<decimal>("KhachThanhToan")
+                    b.Property<decimal>("PaymentAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m)
                         .HasComment("Số tiền khách thanh toán");
 
-                    b.Property<string>("LoaiHoaDon")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasComment("Loại hóa đơn, không quá 50 ký tự");
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasColumnType("datetime2")
+                        .HasComment("Ngày thanh toán hóa đơn");
 
-                    b.Property<string>("LyDoKhachHuy")
+                    b.Property<string>("ReasonForCancellation")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasComment("Lý do khách hàng hủy hóa đơn, không quá 500 ký tự");
 
-                    b.Property<DateTime>("NgayGiaoHang")
-                        .HasColumnType("datetime2")
-                        .HasComment("Ngày giao hàng dự kiến");
-
-                    b.Property<DateTime>("NgayNhanHang")
-                        .HasColumnType("datetime2")
-                        .HasComment("Ngày nhận hàng thực tế");
-
-                    b.Property<DateTime>("NgayThanhToan")
-                        .HasColumnType("datetime2")
-                        .HasComment("Ngày thanh toán hóa đơn");
-
-                    b.Property<decimal>("PhiVanChuyen")
+                    b.Property<decimal>("ShippingFee")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m)
                         .HasComment("Phí vận chuyển của hóa đơn");
-
-                    b.Property<string>("PhuongThucThanhToan")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasComment("Phương thức thanh toán, không quá 50 ký tự");
-
-                    b.Property<string>("SDTNguoiNhan")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)")
-                        .HasComment("Số điện thoại người nhận, tối đa 15 ký tự");
 
                     b.Property<Guid?>("StaffId")
                         .HasColumnType("uniqueidentifier");
@@ -307,19 +281,14 @@ namespace DataProcessing.Migrations
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(1)
-                        .HasComment("Trạng thái hóa đơn, từ 0 đến 5");
+                        .HasDefaultValue(0)
+                        .HasComment("Trạng thái hóa đơn, từ 0 đến 10");
 
-                    b.Property<string>("TenNguoiNhan")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasComment("Tên người nhận không được vượt quá 100 ký tự");
-
-                    b.Property<double>("Total")
+                    b.Property<decimal>("Total")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
-                        .HasColumnType("float(18)")
-                        .HasDefaultValue(0.0)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m)
                         .HasComment("Tổng số tiền của hóa đơn");
 
                     b.Property<Guid?>("VoucherId")
@@ -607,6 +576,42 @@ namespace DataProcessing.Migrations
                     b.ToTable("otps");
                 });
 
+            modelBuilder.Entity("DataProcessing.Models.PaymentHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasComment("Số tiền khách đã giao dịch");
+
+                    b.Property<Guid>("BillId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasComment("Ngày tạo ra trạng thái");
+
+                    b.Property<int>("PaymentMethod")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("Phương thức thanh toán được sử dụng khi giao dịch");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("Trạng thái của 1 lần thanh toán");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillId");
+
+                    b.ToTable("PaymentHistories");
+                });
+
             modelBuilder.Entity("DataProcessing.Models.ProductDetails", b =>
                 {
                     b.Property<Guid>("Id")
@@ -782,6 +787,58 @@ namespace DataProcessing.Migrations
                     b.ToTable("Sales");
                 });
 
+            modelBuilder.Entity("DataProcessing.Models.ShippingAddress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AddressDetail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid?>("BillId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<string>("RecipientName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Ward")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillId");
+
+                    b.ToTable("ShippingAddresses");
+                });
+
             modelBuilder.Entity("DataProcessing.Models.Sizes", b =>
                 {
                     b.Property<Guid>("Id")
@@ -845,6 +902,39 @@ namespace DataProcessing.Migrations
                         .HasFilter("[ApplicationUserId] IS NOT NULL");
 
                     b.ToTable("Staffs");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.StatusHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BillId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasComment("Ngày tạo ra trạng thái");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasComment("Ghi chú tối đa 256 kí tự");
+
+                    b.Property<int>("StatusType")
+                        .HasColumnType("int")
+                        .HasComment("Danh sách trạng thái mà hoá đơn đã trải qua");
+
+                    b.Property<Guid>("WhoCreatedThis")
+                        .HasColumnType("uniqueidentifier")
+                        .HasComment("Ai là người đổi trạng thái đơn hàng?");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillId");
+
+                    b.ToTable("StatusHistories");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.TargretCustomers", b =>
@@ -1195,6 +1285,17 @@ namespace DataProcessing.Migrations
                     b.Navigation("ProductDetails");
                 });
 
+            modelBuilder.Entity("DataProcessing.Models.PaymentHistory", b =>
+                {
+                    b.HasOne("DataProcessing.Models.Bills", "Bill")
+                        .WithMany("PaymentHistories")
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Bill");
+                });
+
             modelBuilder.Entity("DataProcessing.Models.ProductDetails", b =>
                 {
                     b.HasOne("DataProcessing.Models.Colors", "Colors")
@@ -1276,6 +1377,16 @@ namespace DataProcessing.Migrations
                     b.Navigation("sales");
                 });
 
+            modelBuilder.Entity("DataProcessing.Models.ShippingAddress", b =>
+                {
+                    b.HasOne("DataProcessing.Models.Bills", "Bill")
+                        .WithMany("ShippingAddresses")
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Bill");
+                });
+
             modelBuilder.Entity("DataProcessing.Models.Staffs", b =>
                 {
                     b.HasOne("DataProcessing.Models.ApplicationUser", "ApplicationUser")
@@ -1284,6 +1395,17 @@ namespace DataProcessing.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.StatusHistory", b =>
+                {
+                    b.HasOne("DataProcessing.Models.Bills", "Bill")
+                        .WithMany("StatusHistories")
+                        .HasForeignKey("BillId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Bill");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.VoucherDetails", b =>
@@ -1366,6 +1488,12 @@ namespace DataProcessing.Migrations
             modelBuilder.Entity("DataProcessing.Models.Bills", b =>
                 {
                     b.Navigation("BillDetails");
+
+                    b.Navigation("PaymentHistories");
+
+                    b.Navigation("ShippingAddresses");
+
+                    b.Navigation("StatusHistories");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Brands", b =>

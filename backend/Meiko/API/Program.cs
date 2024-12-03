@@ -54,6 +54,7 @@ namespace Meiko
             builder.Services.AddScoped<ISaleServices, SaleServices>();
             builder.Services.AddScoped<ISaleProductServices, SaleProductServices>();
             builder.Services.AddScoped<IVoucherServices, VoucherServices>();
+            builder.Services.AddScoped<IGHNService, GHNService>();
 
             builder.Services.AddScoped<IImageServices, ImageServices>();
             builder.Services.AddScoped<IBillServices, BillServices>();

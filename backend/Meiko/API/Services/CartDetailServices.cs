@@ -183,6 +183,7 @@ namespace API.Services
 				.Include(cd => cd.ProductDetails).ThenInclude(cd => cd.Colors)
                 .Include(cd => cd.ProductDetails).ThenInclude(cd => cd.Sizes)
                 .Include(cd => cd.ProductDetails).ThenInclude(cd => cd.SaleProducts)
+                .Include(cd => cd.ProductDetails).ThenInclude(cd => cd.Images)
                 .ToListAsync();
 		}
 

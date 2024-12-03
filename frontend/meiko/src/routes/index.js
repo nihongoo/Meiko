@@ -19,14 +19,14 @@ import SignIn from '../component/Layout/loginLayout/Account/Login/Index'
 import SignUp from '../component/Layout/loginLayout/Account/Register/index'
 import ForgotPassword from '../component/Layout/loginLayout/Account/forgotPassword/index'
 import ShopCart from '../component/Layout/UserLayout/Pages/ShopCart'
-import ListProductDetail from '../Pages/Product_Detail/ListProductDetail'
+import ListProductDetail from '../pages/Product_Detail/ListProductDetail'
+import Checkout from '../component/Layout/UserLayout/Pages/Checkout'
 
-
-const publicProutes = [
+const publicRoutes = [
     { path: '/', component: Home , layout: 'admin'},
-    { path: '/login', component: SignIn, layout: 'login'},
+    { path: '/SignIn', component: SignIn, layout: 'login'},
     { path: '/signup', component: SignUp, layout: 'login'},
-    { path: '/forgotpassword', component: ForgotPassword, layout: 'login'},
+    { path: '/forgot-password', component: ForgotPassword, layout: 'login'},
     { path: '/soldoffline', component: SoldOfline, layout: 'admin' },
     { path: '/managebill', component: ManageBill, layout: 'admin' },
     { path: '/manageproduct', component: ManageProduct, layout: 'admin' },
@@ -44,10 +44,11 @@ const publicProutes = [
     { path: '/shop', component: Shop, layout: 'user'},
     { path: '/productdetail/:productId', component: ProductDetail, layout: 'user'},
     { path: '/ShopCart', component: ShopCart, layout: 'user'},
+    { path: '/listproductdetail/:id', component: ListProductDetail, layout: 'admin' },
+    { path: '/checkout', component: Checkout, layout: 'user'},
 ]
 const privateRoutes = [
     {path: '/', component: Home, layout: 'admin'},
-    { path: '/listproductdetail/:id', component: ListProductDetail, layout: 'admin' },
 ]
 
-export { publicProutes, privateRoutes }
+export { publicRoutes, privateRoutes }

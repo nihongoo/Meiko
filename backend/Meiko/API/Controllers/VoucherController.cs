@@ -34,7 +34,7 @@ namespace API.Controllers
             }
             return Ok(voucher);
         }
-        [HttpGet("Create")]
+        [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllVoucher()
         {
             var vouchers = await _voucherServices.GetAllVouchersAsync();

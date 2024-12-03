@@ -22,7 +22,6 @@ namespace DataProcessing.Models
         [Range(0, 1, ErrorMessage = "Trạng thái phải là 0 (chưa dùng) hoặc 1 (đã dùng).")]
         public int Status { get; set; }
 
-        [JsonIgnore]
         public virtual Vouchers? Vouchers { get; set; }
 
         [JsonIgnore]

@@ -15,12 +15,16 @@ namespace API.Services
         }
         public async Task<IEnumerable<Customers>> GetAllCustomersAsync()
         {
-            return await _appDbContext.Customers.ToListAsync();
+            return await _appDbContext.Customers
+                .Include(cd => cd.VoucherDetails)
+                .ToListAsync();
         }
 
         public async Task<Customers> GetCustomerByIdAsync(Guid customerId)
         {
-            return await _appDbContext.Customers.FindAsync(customerId);
+            return await _appDbContext.Customers
+                .Include(cd => cd.VoucherDetails).ThenInclude(cd => cd.Vouchers)
+                .FirstOrDefaultAsync(cd => cd.Id == customerId);
         }
 
         public async Task<bool> UpdateCustomerAsync(CustomerViewModel customer)

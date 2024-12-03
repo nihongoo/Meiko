@@ -21,6 +21,10 @@ namespace DataProcessing.Models
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ.")]
         public string PhoneNumber { get; set; }
 
+        [Required(ErrorMessage = "Email không được để trống.")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        public string Email { get; set; }
+
         [Required(ErrorMessage = "Địa chỉ chi tiết không được để trống.")]
         [StringLength(200, ErrorMessage = "Địa chỉ chi tiết không được vượt quá 200 ký tự.")]
         public string AddressDetail { get; set; }

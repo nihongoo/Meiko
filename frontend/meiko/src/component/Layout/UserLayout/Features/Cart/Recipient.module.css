@@ -1,0 +1,168 @@
+.recipientContainer {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 24px;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.separator {
+    border: 0;
+    border-top: 2px solid #ddd;
+    margin: 10px 0 20px;
+}
+
+.formGroup {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.formRow {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    width: 48%; 
+}
+
+.formRow label {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.formRow input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.addressSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.addAddressButton {
+    background-color: #ffffff;
+    color: #007bff;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.scrollableAddresses {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-height: 200px;  
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+}
+
+.scrollableAddresses.active {
+    border-color: #0056b3; 
+}
+
+.addressGroup {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    border: 1px solid #e0e0e0;
+}
+
+.checkboxGroup {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox {
+    margin-right: 10px;
+}
+
+.addressDetail {
+    font-size: 14px;
+}
+
+.addressLine {
+    display: block;
+}
+
+.actionButtons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.updateButton, .deleteButton {
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.updateButton {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+}
+
+.deleteButton {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+}
+
+.emptyState {
+    text-align: center;
+    font-size: 16px;
+    color: #888;
+    padding: 20px;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+}
+.formRoww{
+    padding-top: 25px;
+}
+.inputTextarea {
+    margin-top: 15px;
+    width: 100%; 
+    padding: 10px; 
+    font-size: 14px; 
+    line-height: 1.5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    background-color: #f9f9f9;
+    color: #333; 
+}
+
+.inputTextarea:focus {
+    border-color: #007bff;
+    background-color: #fff; 
+}
+
+.inputTextarea::placeholder {
+    color: #aaa; 
+    font-style: italic;
+}
