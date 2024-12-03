@@ -5,7 +5,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import NoContent from "./NoContent";
 import ListProduct from "./ListProduct";
 import generateSerialCode from '../../customHook/useRandom';
-import apiURL from "../../Routes/API";
+import apiURL from "../../routes/API";
 import BillInfo from "./BillInfo";
 
 function SoldOfline() {

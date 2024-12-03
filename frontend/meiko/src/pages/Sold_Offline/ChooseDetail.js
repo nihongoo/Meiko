@@ -1,7 +1,7 @@
 import { Box, Button, Dialog, Typography, IconButton } from "@mui/material";
 import { useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import apiURL from "../../Routes/API";
+import apiURL from "../../routes/API/index";
 import { toast } from "react-toastify";
 
 function ChooseDetail({ open, onClose, item, reloadList, bill }) {

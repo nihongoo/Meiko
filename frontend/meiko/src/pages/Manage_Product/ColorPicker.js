@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChromePicker } from 'react-color';
-import apiURL from '../../Routes/API/index';
+import apiURL from '../../routes/API/index';
 import { toast } from 'react-toastify';
 
 function ColorPicker({ onClose }) {

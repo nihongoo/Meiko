@@ -1,6 +1,6 @@
 import DataTable from '../../component/Table/Table.js';
 import SearchInput from '../../component/Search/index.js';
-import apiURL from '../../Routes/API/index.js';
+import apiURL from '../../routes/API/index.js';
 import { useState, useEffect } from 'react';
 import Create from '../../component/CRUD/CreateSM.js';
 

@@ -14,7 +14,7 @@ import {
   IconButton 
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import apiURL from '../../Routes/API/index.js';
+import apiURL from '../../routes/API/index.js';
 import Delete from '../../component/CRUD/Delete';
 
 function TableLG({ columns, data }) {

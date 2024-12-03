@@ -13,7 +13,7 @@ import {
   Typography 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import apiURL from '../../Routes/API/index.js';
+import apiURL from '../../routes/API/index.js';
 import SearchInput from '../../component/Search';
 import useFetchData from '../../customHook/useFetchData';
 import UpdateStaffDialog from './UpdateStaffDialog';

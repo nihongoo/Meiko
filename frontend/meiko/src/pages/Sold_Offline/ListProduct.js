@@ -8,7 +8,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import ChooseProduct from "./ChooseProduct";
 import useFetchData from "../../customHook/useFetchData";
-import apiURL from "../../Routes/API";
+import apiURL from "../../routes/API";
 import { toast } from "react-toastify";
 
 function ListProduct({ bill }) {

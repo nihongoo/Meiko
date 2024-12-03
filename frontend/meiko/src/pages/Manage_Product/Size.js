@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import apiURL from "../../Routes/API/index.js";
+import apiURL from "../../routes/API/index.js";
 import useFetchData from "../../customHook/useFetchData";
 
 function Size({ onClose, onAddSize, SizeSelect }) {

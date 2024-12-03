@@ -18,7 +18,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import ChooseDetail from "./ChooseDetail";
 import useFetchData from '../../customHook/useFetchData'
-import apiURL from "../../Routes/API";
+import apiURL from "../../routes/API";
 
 function ChooseProduct({ open, onClose, reloadList,bill }) {
     const [detail, setDetail] = useState(false)

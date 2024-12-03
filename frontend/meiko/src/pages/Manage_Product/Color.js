@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import apiURL from "../../Routes/API/index";
+import apiURL from "../../routes/API/index";
 import useFetchData from "../../customHook/useFetchData";
 import ColorPicker from "./ColorPicker";
 
