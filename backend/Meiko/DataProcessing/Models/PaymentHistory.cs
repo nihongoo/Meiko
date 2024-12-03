@@ -33,7 +33,7 @@ namespace DataProcessing.Models
 	{
 		[Display(Name = "Tiền mặt")]
 		TienMat = 0,
-		[Display(Name = "Thanh toán qua ngân hàng")]
+		[Display(Name = "Chuyển khoản")]
 		NganHang = 1
 	}
 
