@@ -1,4 +1,5 @@
-﻿using API.IServices;
+﻿using API.Extention;
+using API.IServices;
 using API.Services;
 using API.ViewModel;
 using DataProcessing.Models;
@@ -11,9 +12,11 @@ namespace API.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryServices _categoryServices;
-        public CategoryController(ICategoryServices categoryServices)
+        private readonly ToolDB<Categories> _tool;
+        public CategoryController(ICategoryServices categoryServices, ToolDB<Categories> tool)
         {
             _categoryServices = categoryServices;
+            _tool = tool;
         }
         [HttpGet("get-all")]
         public async Task<ActionResult<IEnumerable<Categories>>> GetAll()
@@ -56,5 +59,12 @@ namespace API.Controllers
             await _categoryServices.Delete(id);
             return NoContent();
         }
-    }
+
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query)
+		{
+			var result = await _tool.Search(query, "Name");
+			return Ok(result);
+		}
+	}
 }

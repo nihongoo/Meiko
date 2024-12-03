@@ -1,5 +1,6 @@
 ﻿using API.DTO;
 using API.Models;
+using API.ViewModel;
 using DataProcessing.Models;
 
 namespace API.IServices
@@ -29,7 +30,7 @@ namespace API.IServices
 
 		// Xử lý
 		//Bill
-		Task<bool> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId); // Từ giỏ hàng lấy những sản phẩm trong giỏ hàng.
+		Task<(bool k, Guid id)> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId); // Từ giỏ hàng lấy những sản phẩm trong giỏ hàng.
 		Task<bool> Delete(Guid Id);
 		Task<bool> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis);
 
@@ -47,6 +48,8 @@ namespace API.IServices
 		Task<bool> AddToBill(BillDetailInfoModel model);
 		Task<bool> AddQuantity(Guid Id, int Quantity); // Thêm số lượng sản phẩm, vd: +1 hoặc -1
 		Task<bool> ChangeQuantityFor(Guid Id, int Quantity); // Đổi số lượng sản phẩm bằng với Quantity nhập vào
+		Task<List<ListBillDetailViewModel>> listBillDetails(Guid id);
+		Task<(bool k, string msg)> DeleteBillDetail(Guid Id);
 		
 		//MomoAPI
 		Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model);

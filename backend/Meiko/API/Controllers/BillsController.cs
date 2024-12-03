@@ -1,4 +1,5 @@
 ﻿using API.DTO;
+using API.Extention;
 using API.IServices;
 using API.Models;
 using DataProcessing.Models;
@@ -14,10 +15,12 @@ namespace API.Controllers
 	public class BillsController : ControllerBase
 	{
 		private readonly IBillServices _IBillServices;
-        public BillsController(IBillServices billServices)
-        {
-            _IBillServices = billServices;
-        }
+		private readonly ToolDB<Bills> _tool;
+		public BillsController(IBillServices billServices, ToolDB<Bills> tool)
+		{
+			_IBillServices = billServices;
+			_tool = tool;
+		}
 
 		// Cung cấp dữ liệu
 		[HttpGet("get-bills")]
@@ -114,10 +117,19 @@ namespace API.Controllers
 
 		//Bill
 		[HttpPost("create-bill")]
-		public async Task<bool> CreateBill(BillInfoModel model)
+		public async Task<ActionResult<object>> CreateBill(BillInfoModel model)
 		{
-			return await _IBillServices.Create(model.BillCode, model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId);
+			var result = await _IBillServices.Create(model.BillCode, model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId);
+			if (result.k)
+			{
+				return Ok(new { success = result.k, id = result.id });
+			}
+			else
+			{
+				return BadRequest(new { success = result.k, message = "Failed to create bill." });
+			}
 		}
+
 
 		[HttpDelete("delete-bill/{id}")]
 		public async Task<bool> DeleteBill(Guid id)
@@ -173,15 +185,42 @@ namespace API.Controllers
 		}
 
 		[HttpPost("Momo/Notify")]
-		public async Task<IActionResult> GetCallBack([FromBody]MomoExecuteResponseModel collection)
+		public async Task<IActionResult> GetCallBack([FromBody] MomoExecuteResponseModel collection)
 		{
-			if(collection.ErrorCode == 0)
+			if (collection.ErrorCode == 0)
 			{
 				await _IBillServices.Pay(decimal.Parse(collection.Amount), 0, 1, Guid.Parse(collection.OrderId));
 			}
 
 			return Ok(collection);
 
+		}
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query)
+		{
+			var result = await _tool.Search(query, "BillCode");
+			return Ok(result);
+		}
+
+		[HttpGet("List-Bill-Detail")]
+		public async Task<IActionResult> ListBillDetail(Guid id)
+		{
+			var result = await _IBillServices.listBillDetails(id);
+			return Ok(result);
+		}
+
+		[HttpDelete("Delete-Bill-Detail")]
+		public async Task<IActionResult> Delete(Guid id)
+		{
+			var result = await _IBillServices.DeleteBillDetail(id);
+			if (result.k)
+			{
+				return Ok(new { success = result.k, msg = result.msg });
+			}
+			else
+			{
+				return BadRequest(new { success = result.k, msg = result.msg });
+			}
 		}
 	}
 }

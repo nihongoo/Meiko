@@ -55,7 +55,7 @@ const apiURL = {
     },
     product: {
         all: 'https://localhost:7172/api/Product/Get-All',
-        getbyid :'https://localhost:7172/api/Product/Get/{id}',
+        getbyid :'https://localhost:7172/api/Product/Get/',
         create: 'https://localhost:7172/api/Product/Create',
         edit: 'https://localhost:7172/api/Product/Update/{id}',
         delete: 'https://localhost:7172/api/Product/Delete/{id}',
@@ -64,6 +64,9 @@ const apiURL = {
     productDetail: {
         all: 'https://localhost:7172/api/ProductDetail/Product/',
         edit: 'https://localhost:7172/api/ProductDetail/Update/',
+        base: 'https://localhost:7172/api/ProductDetail/Get-All',
+        soldOff: 'https://localhost:7172/api/ProductDetail/SoldOff'
+
     },
     image: {
         base: 'https://localhost:7172/api/Images',
@@ -102,6 +105,13 @@ const apiURL = {
     },
     cart:{
         getId:'https://localhost:7172/api/Carts/{customerid}'
+    },
+    bill:{
+        create:'https://localhost:7172/api/Bills/create-bill',
+        delete:'https://localhost:7172/api/Bills/delete-bill/',
+        list: 'https://localhost:7172/api/Bills/List-Bill-Detail',
+        addToBill: 'https://localhost:7172/api/Bills/add-to-bill',
+        deleteDetail: 'https://localhost:7172/api/Bills/Delete-Bill-Detail?id=',
     }
     
 };
