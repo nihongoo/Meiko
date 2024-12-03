@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = materialViewModel.Name,
-                Status = 1
+                Status = 1,
             };
 
             _dbcontext.Materials.Add(material);
@@ -48,7 +48,7 @@ namespace API.Services
             if (material == null) throw new Exception("Brand not found");
 
             material.Name = materialViewModel.Name;
-            material.Status = materialViewModel.Status;
+            material.Status = 1;
 
             await _dbcontext.SaveChangesAsync();
         }

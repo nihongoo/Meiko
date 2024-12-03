@@ -72,7 +72,9 @@ namespace API.Services
             return new JwtTokenDto
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Role = user.Role 
+                Role = user.Role,
+                Username = user.UserName,
+                id = user.Id
             };
         }
 
@@ -145,7 +147,6 @@ namespace API.Services
                 Id = Guid.NewGuid(),
                 Name = registerDto.Name,
                 Sex = registerDto.Sex,
-                BirthDay = registerDto.BirthDay,
                 PhoneNumber = registerDto.PhoneNumber,
                 Email = registerDto.Email,
                 ApplicationUserId = newAccount.Id

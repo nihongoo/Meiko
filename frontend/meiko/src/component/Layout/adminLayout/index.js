@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from './Header'
-import SideBar from './Sidebar'
+import SideBar from './Sidebar/index.js';
 
 function AdminLayout({ children }) {
 
@@ -8,13 +8,21 @@ function AdminLayout({ children }) {
 
     return (
         <div className='d-flex'>
-            <div>
+            <div className='bg-light'>
                 <SideBar collapsed={collapsed} />
             </div>
-            <div style={{width:'100vw'}}>
-                <Header setCollapsed={setCollapsed} collapsed={collapsed}/>
-                <div className='content'>
-                    {children}
+            <div style={{ width: '100vw' }}>
+                <Header setCollapsed={setCollapsed} collapsed={collapsed} />
+                <div
+                    style={{
+                        height: '100vh',
+                        overflowY: 'auto'
+                    }}
+                    className='m-0 bg-body-secondary p-0'
+                >
+                    <div className='content p-4'>
+                        {children}
+                    </div>
                 </div>
             </div>
         </div>

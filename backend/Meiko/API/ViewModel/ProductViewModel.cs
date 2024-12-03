@@ -15,8 +15,9 @@ namespace API.ViewModel
         [StringLength(20, ErrorMessage = "Mã sản phẩm không được vượt quá 20 ký tự.")]
         public string ProductCode { get; set; }
 
-        [Url(ErrorMessage = "Đường dẫn hình ảnh không hợp lệ.")]
         public string ImageUrl { get; set; }
+
+        public string PublicId { get; set; }
 
         [StringLength(50, ErrorMessage = "Thời gian bảo hành không được vượt quá 50 ký tự.")]
         public string? WarrantyPeriod { get; set; }

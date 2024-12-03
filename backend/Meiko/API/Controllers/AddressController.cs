@@ -1,5 +1,6 @@
 ﻿using API.IServices;
 using API.Services;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -31,20 +32,23 @@ namespace API.Controllers
             return Ok(address);
         }
         [HttpPost("create")]
-        public async Task<IActionResult> CreateAddress(Guid customerId, [FromBody] Address address)
+        public async Task<IActionResult> CreateAddress(Guid customerId, [FromBody] AddressViewModel addressViewModel)
         {
             try
             {
-                if (address == null)
+                if (addressViewModel == null)
                 {
                     return BadRequest("Địa chỉ không được để trống.");
                 }
-                var result = await _addressServices.CreateAddressAsync(customerId, address);
+
+                var result = await _addressServices.CreateAddressAsync(customerId, addressViewModel);
 
                 if (!result)
                     return BadRequest("Không thể tạo địa chỉ.");
 
-                return CreatedAtAction(nameof(GetAddress), new { addressId = address.Id }, address);
+                var createdAddress = await _addressServices.GetAddressesByCustomerIdAsync(customerId);
+
+                return Ok(createdAddress);
             }
             catch (ValidationException ex)
             {
@@ -59,15 +63,13 @@ namespace API.Controllers
                 return StatusCode(500, "Đã xảy ra lỗi: " + ex.Message);
             }
         }
+
         [HttpPut("update/{addressId}")]
-        public async Task<IActionResult> UpdateAddress(Guid addressId, [FromBody] Address address)
+        public async Task<IActionResult> UpdateAddress(Guid addressId, [FromBody] AddressViewModel addressViewModel)
         {
             try
             {
-                // Gán ID của địa chỉ từ tham số URL vào đối tượng địa chỉ để thực hiện cập nhật
-                address.Id = addressId;
-
-                var result = await _addressServices.UpdateAddressAsync(addressId, address);
+                var result = await _addressServices.UpdateAddressAsync(addressId, addressViewModel);
                 if (!result)
                     return BadRequest("Không thể cập nhật địa chỉ.");
 

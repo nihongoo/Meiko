@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,13 @@ namespace API.Services
     public class AddressServices : IAddressServices
     {
         private readonly AppDbContext _context;
+
         public AddressServices(AppDbContext appDbContext)
         {
             _context = appDbContext;
         }
-        public async Task<bool> CreateAddressAsync(Guid customerId, Address address)
+
+        public async Task<bool> CreateAddressAsync(Guid customerId, AddressViewModel addressViewModel)
         {
             var customerExists = await _context.Customers.AnyAsync(c => c.Id == customerId);
             if (!customerExists)
@@ -21,16 +24,17 @@ namespace API.Services
                 throw new KeyNotFoundException($"Khách hàng với ID {customerId} không tồn tại.");
             }
 
-            var validationResults = ValidateAddress(address);
+            var validationResults = ValidateAddressViewModel(addressViewModel);
             if (validationResults.Any())
             {
                 var errorMessages = string.Join(", ", validationResults.Select(vr => vr.ErrorMessage));
                 throw new ValidationException($"Xác thực địa chỉ không thành công: {errorMessages}");
             }
 
+            var address = MapToAddress(addressViewModel);
             address.CustomerId = customerId;
             address.Id = Guid.NewGuid();
-            await _context.Address.AddAsync(address); 
+            await _context.Address.AddAsync(address);
             return await _context.SaveChangesAsync() > 0;
         }
 
@@ -46,15 +50,20 @@ namespace API.Services
 
         public async Task<Address> GetAddressByIdAsync(Guid addressId)
         {
-            return await _context.Address.FindAsync(addressId);
+            return await _context.Address
+                                  .Include(a => a.Customers)
+                                  .FirstOrDefaultAsync(a => a.Id == addressId);
         }
 
         public async Task<IEnumerable<Address>> GetAddressesByCustomerIdAsync(Guid customerId)
         {
-            return await _context.Address.Where(a => a.CustomerId == customerId).ToListAsync();
+            return await _context.Address
+                                  .Where(a => a.CustomerId == customerId)
+                                  .Include(a => a.Customers)
+                                  .ToListAsync();
         }
 
-        public async Task<bool> UpdateAddressAsync(Guid addressId, Address address)
+        public async Task<bool> UpdateAddressAsync(Guid addressId, AddressViewModel addressViewModel)
         {
             var existingAddress = await _context.Address.FindAsync(addressId);
             if (existingAddress == null)
@@ -62,31 +71,50 @@ namespace API.Services
                 throw new KeyNotFoundException($"Địa chỉ với ID {addressId} không tồn tại.");
             }
 
-            var validationResults = ValidateAddress(address);
+            var validationResults = ValidateAddressViewModel(addressViewModel);
             if (validationResults.Any())
             {
                 var errorMessages = string.Join(", ", validationResults.Select(vr => vr.ErrorMessage));
                 throw new ValidationException($"Xác thực địa chỉ không thành công: {errorMessages}");
             }
 
-            existingAddress.RecipientName = address.RecipientName;
-            existingAddress.PhoneNumber = address.PhoneNumber;
-            existingAddress.AddressDetail = address.AddressDetail;
-            existingAddress.City = address.City;
-            existingAddress.District = address.District;
-            existingAddress.Ward = address.Ward;
-            existingAddress.Status = address.Status;
-
+            UpdateAddressFromViewModel(existingAddress, addressViewModel); 
             _context.Address.Update(existingAddress);
             return await _context.SaveChangesAsync() > 0;
         }
 
-        private List<ValidationResult> ValidateAddress(Address address)
+        private List<ValidationResult> ValidateAddressViewModel(AddressViewModel addressViewModel)
         {
             var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(address, serviceProvider: null, items: null);
-            Validator.TryValidateObject(address, validationContext, validationResults, validateAllProperties: true);
+            var validationContext = new ValidationContext(addressViewModel, serviceProvider: null, items: null);
+            Validator.TryValidateObject(addressViewModel, validationContext, validationResults, validateAllProperties: true);
             return validationResults;
         }
+
+        private Address MapToAddress(AddressViewModel viewModel)
+        {
+            return new Address
+            {
+                RecipientName = viewModel.RecipientName,
+                PhoneNumber = viewModel.PhoneNumber,
+                AddressDetail = viewModel.AddressDetail,
+                City = viewModel.City,
+                District = viewModel.District,
+                Ward = viewModel.Ward,
+                Status = viewModel.Status
+            };
+        }
+
+        private void UpdateAddressFromViewModel(Address address, AddressViewModel viewModel)
+        {
+            address.RecipientName = viewModel.RecipientName;
+            address.PhoneNumber = viewModel.PhoneNumber;
+            address.AddressDetail = viewModel.AddressDetail;
+            address.City = viewModel.City;
+            address.District = viewModel.District;
+            address.Ward = viewModel.Ward;
+            address.Status = viewModel.Status;
+        }
     }
+
 }

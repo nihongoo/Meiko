@@ -1,4 +1,5 @@
-﻿using API.IServices;
+﻿using API.DTO;
+using API.IServices;
 using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -15,14 +16,21 @@ namespace API.Controllers
         {
             _productDetailService = productDetailService;
         }
-        [HttpGet]
+        [HttpGet("Get-All")]
         public async Task<ActionResult<IEnumerable<ProductDetails>>> GetProductDetails()
         {
             var productDetails = await _productDetailService.GetAllAsync();
             return Ok(productDetails);
         }
+        [HttpGet("Product/{id}")]
+        public async Task<IActionResult> GetDetails(Guid id)
+        {
+            var result = await _productDetailService.GetDetailsAsync(id);
+            if (result == null) { return NotFound(); }
+            return Ok(result);
+        }
 
-        [HttpGet("{id}")]
+        [HttpGet("Get/{id}")]
         public async Task<ActionResult<ProductDetails>> GetProductDetail(Guid id)
         {
             var productDetail = await _productDetailService.GetByIdAsync(id);
@@ -30,7 +38,7 @@ namespace API.Controllers
             return Ok(productDetail);
         }
 
-        [HttpPost]
+        [HttpPost("Create")]
         public async Task<ActionResult> CreateProductDetail([FromBody] ProductDetailViewModel model)
         {
             if (!ModelState.IsValid)
@@ -42,19 +50,20 @@ namespace API.Controllers
             return Ok();
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProductDetail(Guid id, [FromBody] ProductDetailViewModel model)
+        [HttpPut("Update/{id}")]
+        public async Task<ActionResult> UpdateProductDetail([FromBody] ProductDetailDto model)
+
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _productDetailService.UpdateAsync(id, model);
+            await _productDetailService.UpdateAsync( model);
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<ActionResult> DeleteProductDetail(Guid id)
         {
             await _productDetailService.DeleteAsync(id);

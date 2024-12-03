@@ -19,7 +19,7 @@ namespace API.Services
                 Id = Guid.NewGuid(),
                 Name = model.Name,
                 BrandCode = model.BrandCode,
-                Status = 1 //Mặc định đang hoạt động
+                Status = 1,
         };
 
             _dbcontext.Brands.Add(brand);
@@ -54,7 +54,7 @@ namespace API.Services
 
             brand.Name = model.Name;
             brand.BrandCode = model.BrandCode;
-            brand.Status = model.Status;
+            brand.Status = 1;
 
             await _dbcontext.SaveChangesAsync();
         }

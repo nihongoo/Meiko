@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using API.ViewModel;
+using DataProcessing.Models;
 
 namespace API.IServices
 {
@@ -6,6 +7,6 @@ namespace API.IServices
     {
         public Task<IEnumerable<Staffs>> GetAllStaffsAsync();
         public Task<Staffs> GetStaffByIdAsync(Guid staffId);
-        public Task<bool> UpdateStaffAsync(Staffs staff);
+        public Task<bool> UpdateStaffAsync(StaffViewModel staff);
     }
 }

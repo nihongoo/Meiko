@@ -1,4 +1,5 @@
-﻿using API.IServices;
+﻿using API.DTO;
+using API.IServices;
 using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,18 +18,20 @@ namespace API.Services
         public async Task<IEnumerable<ProductDetails>> GetAllAsync()
         {
             return await _context.ProductDetails
-                .Include(pd => pd.Products)
                 .Include(pd => pd.Colors)
                 .Include(pd => pd.Sizes)
+                .Include(pd => pd.SaleProducts)
+                .Include(pd => pd.Images)
                 .ToListAsync();
         }
 
         public async Task<ProductDetails> GetByIdAsync(Guid id)
         {
             return await _context.ProductDetails
-                .Include(pd => pd.Products)
                 .Include(pd => pd.Colors)
                 .Include(pd => pd.Sizes)
+                .Include(pd => pd.SaleProducts)
+                .Include(pd => pd.Images)
                 .FirstOrDefaultAsync(pd => pd.Id == id);
         }
 
@@ -43,7 +46,7 @@ namespace API.Services
                 ImportPrice = model.ImportPrice,
                 Price = model.Price,
                 CreatTime = model.CreatTime,
-                Status = 1,
+                Status = model.Status,
                 ProductId = model.ProductId,
                 ColorId = model.ColorId,
                 SizeId = model.SizeId
@@ -53,21 +56,16 @@ namespace API.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Guid id, ProductDetailViewModel model)
+        public async Task UpdateAsync(ProductDetailDto model)
         {
-            var productDetail = await _context.ProductDetails.FindAsync(id);
+            var productDetail = await _context.ProductDetails.FindAsync(model.Id);
             if (productDetail == null) throw new Exception("ProductDetail not found");
 
-            productDetail.ProductDetailCode = model.ProductDetailCode;
             productDetail.Quantity = model.Quantity;
             productDetail.Weight = model.Weight;
             productDetail.ImportPrice = model.ImportPrice;
             productDetail.Price = model.Price;
-            productDetail.CreatTime = model.CreatTime;
             productDetail.Status = model.Status;
-            productDetail.ProductId = model.ProductId;
-            productDetail.ColorId = model.ColorId;
-            productDetail.SizeId = model.SizeId;
 
             await _context.SaveChangesAsync();
         }
@@ -80,5 +78,23 @@ namespace API.Services
             _context.ProductDetails.Remove(productDetail);
             await _context.SaveChangesAsync();
         }
-    }
+
+		public async Task<List<ProductDetails>> GetDetailsAsync(Guid id)
+		{
+            try
+            {
+                var result = await _context.ProductDetails
+                    .Where(k=>k.ProductId == id)
+                    .Include(k=>k.Products)
+                    .Include(k=>k.Colors)
+                    .Include(k=>k.Sizes)
+                    .ToListAsync();
+                return result;
+            }
+			catch (Exception ex)
+			{
+				throw new Exception("Đã có lỗi: " + ex.Message);
+			}
+		}
+	}
 }

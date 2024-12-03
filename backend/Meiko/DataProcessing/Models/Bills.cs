@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -57,6 +58,8 @@ namespace DataProcessing.Models
         public virtual Customers? Customers { get; set; }
         public virtual Vouchers? Vouchers { get; set; }
         public virtual Staffs? Staffs { get; set; }
+
+        [JsonIgnore]
         public virtual ICollection<BillDetails>? BillDetails { get; set; }
         public virtual ICollection<ShippingAddress>? ShippingAddresses { get; set; }
         public virtual ICollection<StatusHistory>? StatusHistories { get; set; }

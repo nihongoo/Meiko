@@ -15,14 +15,14 @@ namespace API.Controllers
         {
             _productServices = productServices;
         }
-        [HttpGet]
+        [HttpGet("Get-All")]
         public async Task<ActionResult<IEnumerable<Products>>> GetProducts()
         {
             var products = await _productServices.GetAllAsync();
             return Ok(products);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("Get/{id}")]
         public async Task<ActionResult<Products>> GetProduct(Guid id)
         {
             var product = await _productServices.GetByIdAsync(id);
@@ -30,19 +30,19 @@ namespace API.Controllers
             return Ok(product);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> CreateProduct([FromBody] ProductViewModel model)
+        [HttpPost("Create")]
+        public async Task<ActionResult> CreateProduct([FromBody] ProductDTO model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _productServices.CreateAsync(model);
+            await _productServices.CreateAsync(model.Product, model.ProductDetails);
             return Ok();
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("Update/{id}")]
         public async Task<ActionResult> UpdateProduct(Guid id, [FromBody] ProductViewModel model)
         {
             if (!ModelState.IsValid)
@@ -54,7 +54,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<ActionResult> DeleteProduct(Guid id)
         {
             await _productServices.DeleteAsync(id);

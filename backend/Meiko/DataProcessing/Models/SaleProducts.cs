@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Models
@@ -17,6 +18,7 @@ namespace DataProcessing.Models
         public DateTime? ExpiryDate { get; set; }
         public decimal? DiscountedPrice { get; set; }
 
+        [JsonIgnore]
         public ProductDetails Productdetail { get; set; }
         public Sales sales { get; set; }
     }

@@ -67,51 +67,71 @@ namespace API.Services
 			}
 		}
 
-		public async Task<string> ChangeStockOnly(Guid CartDetailId, Guid ProductDetailId, int Quantity)
-		{
-			using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
-			{
-				try
-				{
-					
-					var cartDetail = await _appDbContext.CartDetails.Where(cd => cd.Id == CartDetailId)
-						.Include(cd => cd.ProductDetails)
-						.Include(cd => cd.Carts)
-						.FirstOrDefaultAsync();
-					var productDetail = await _appDbContext.ProductDetails.Where(pd => pd.Id == ProductDetailId)
-						.Include(pd => pd.Products)
-						.FirstOrDefaultAsync();
+        public async Task<string> ChangeStockOnly(Guid CartDetailId, Guid ProductDetailId, int Quantity)
+        {
+            using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Kiểm tra cartDetail và productDetail có null không
+                    var cartDetail = await _appDbContext.CartDetails
+                        .Where(cd => cd.Id == CartDetailId)
+                        .Include(cd => cd.ProductDetails)
+                        .Include(cd => cd.Carts)
+                        .FirstOrDefaultAsync();
 
-					var response = $"Đã thêm {Quantity} {productDetail.Products.Name} vào giỏ hàng!";
+                    if (cartDetail == null)
+                    {
+                        return "Sản phẩm này không tồn tại trong giỏ hàng";
+                    }
 
-					if (cartDetail == null) response = "Sản phẩm này không tồn tại trong giỏ hàng";
-					else
-					{
-						cartDetail.Quantity += Quantity;
-						if (cartDetail.Quantity > cartDetail.ProductDetails.Quantity)
-						{
-							cartDetail.Quantity = cartDetail.ProductDetails.Quantity;
-							response = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
-						}
-						cartDetail.Price = cartDetail.Quantity * productDetail.Price;
+                    var productDetail = await _appDbContext.ProductDetails
+                        .Where(pd => pd.Id == ProductDetailId)
+                        .Include(pd => pd.Products)
+                        .FirstOrDefaultAsync();
 
-						_appDbContext.CartDetails.Update(cartDetail);
-					}
+                    if (productDetail == null)
+                    {
+                        return "Sản phẩm chi tiết không tồn tại";
+                    }
 
-					await _appDbContext.SaveChangesAsync();
-					await dbTrans.CommitAsync();
+                    // Kiểm tra số lượng hợp lệ
+                    if (Quantity <= 0)
+                    {
+                        return "Số lượng không hợp lệ";
+                    }
 
-					return response;
-				}
-				catch (Exception ex)
-				{
-					await dbTrans.RollbackAsync();
-					return ex.Message;
-				}
-			}
-		}
+                    var response = $"Đã thêm {Quantity} vào giỏ hàng!";
 
-		public async Task<bool> ClearCart(Guid CartId)
+                    // Kiểm tra nếu số lượng giỏ hàng vượt quá số lượng trong kho
+                    cartDetail.Quantity = Quantity;
+                    if (cartDetail.Quantity > cartDetail.ProductDetails.Quantity)
+                    {
+                        cartDetail.Quantity = cartDetail.ProductDetails.Quantity;
+                        response = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
+                    }
+
+                    // Cập nhật giá trị của sản phẩm trong giỏ hàng
+                    cartDetail.Price = cartDetail.Quantity * productDetail.Price;
+
+                    // Cập nhật giỏ hàng
+                    _appDbContext.CartDetails.Update(cartDetail);
+
+                    // Lưu thay đổi và commit transaction
+                    await _appDbContext.SaveChangesAsync();
+                    await dbTrans.CommitAsync();
+
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    await dbTrans.RollbackAsync();
+                    return $"Lỗi: {ex.Message}";
+                }
+            }
+        }
+
+        public async Task<bool> ClearCart(Guid CartId)
 		{
 			using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
 			{
@@ -159,8 +179,11 @@ namespace API.Services
 				.Where(cd => cd.CartId == CartId)
 				.Include(cd => cd.Carts)
 				.Include(cd => cd.ProductDetails)
-					.ThenInclude(pd => pd.Products)
-				.ToListAsync();
+					.ThenInclude(cd => cd.Products)
+				.Include(cd => cd.ProductDetails).ThenInclude(cd => cd.Colors)
+                .Include(cd => cd.ProductDetails).ThenInclude(cd => cd.Sizes)
+                .Include(cd => cd.ProductDetails).ThenInclude(cd => cd.SaleProducts)
+                .ToListAsync();
 		}
 
 		public async Task<bool> RemoveFromCart(Guid CartDetailId)

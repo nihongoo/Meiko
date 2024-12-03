@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using API.ViewModel;
+using DataProcessing.Models;
 
 namespace API.IServices
 {
@@ -6,7 +7,8 @@ namespace API.IServices
 	{
 		public Task<IEnumerable<Images>> GetImagesAsync();
 		public Task<IEnumerable<Images>> GetImagesByPDId(Guid ProductDetailId);
-		public Task<string> AddImageToProductDetail(string ImgUrl, Guid ProductdDetailId);
+		public Task<string> AddImageToProductDetail(ImageViewModel image);
+		public Task<(bool k, string msg)> UpdateImage(ImageViewModel image);
 		public Task<string> RemoveImage(Guid id);
 	}
 }

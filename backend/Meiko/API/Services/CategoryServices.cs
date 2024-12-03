@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = categoryViewModel.Name,
-                Status = 1 //Mặc định đang hoạt động
+                Status = 1,
         };
 
             _dbcontext.Categories.Add(category);
@@ -48,7 +48,7 @@ namespace API.Services
             if (category == null) throw new Exception("Brand not found");
 
             category.Name = categoryViewModel.Name;
-            category.Status = categoryViewModel.Status;
+            category.Status = 1;
 
             await _dbcontext.SaveChangesAsync();
         }

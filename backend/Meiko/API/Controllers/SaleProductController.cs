@@ -12,7 +12,7 @@ namespace API.Controllers
         {
             _services = saleProductServices;
         }
-        [HttpGet]
+        [HttpGet("Get-All")]
         public async Task<IActionResult> GetAllSalesProducts()
         {
             var saleProducts = await _services.GetAllSalesProductsAsync();

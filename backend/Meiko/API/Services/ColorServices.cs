@@ -19,7 +19,7 @@ namespace API.Services
                 Id = Guid.NewGuid(),
                 Name = colorViewModel.Name,
                 Hex = colorViewModel.Hex,
-                Status = 1
+                Status = colorViewModel.Status,
             };
 
             _dbcontext.Colors.Add(color);

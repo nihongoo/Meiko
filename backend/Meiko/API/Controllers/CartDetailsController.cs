@@ -41,18 +41,21 @@ namespace API.Controllers
 			return response;
 		}
 
-		// PUT api/<CartDetailsController>/5
-		[HttpPut("change-stock-only/{cartdetailid}")]
-		public async Task<string> ChangeStockOnly(Guid cartdetailid, Guid ProductDetailId, int Quantity)
-		{
-			var response = await _cartDetailServices.ChangeStockOnly(cartdetailid, ProductDetailId, Quantity);
+        // PUT api/<CartDetailsController>/5
+        [HttpPut("change-stock-only/{cartdetailid}")]
+        public async Task<string> ChangeStockOnly(Guid cartdetailid, Guid ProductDetailId, int Quantity)
+        {
+            if (Quantity <= 0)
+            {
+                return "Số lượng không hợp lệ";
+            }
+            var response = await _cartDetailServices.ChangeStockOnly(cartdetailid, ProductDetailId, Quantity);
+            return response;
+        }
 
-			await _cartServices.UpdateCartAsync(await _cartDetailServices.GetCartIdByCDId(cartdetailid), null);
-			return response;
-		}
 
-		// DELETE api/<CartDetailsController>/5
-		[HttpDelete("remove-from-cart/{cartdetailid}")]
+        // DELETE api/<CartDetailsController>/5
+        [HttpDelete("remove-from-cart/{cartdetailid}")]
 		public async Task<IActionResult> RemoveFromCart(Guid cartdetailid)
 		{
 			var cartId = await _cartDetailServices.GetCartIdByCDId(cartdetailid);

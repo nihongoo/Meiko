@@ -18,7 +18,7 @@ namespace API.Services
             {
                 Id = Guid.NewGuid(),
                 Name = sizeViewModel.Name,
-                Status = 1
+                Status = sizeViewModel.Status,
             };
 
             _dbcontext.Sizes.Add(size);
