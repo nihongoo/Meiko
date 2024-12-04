@@ -1,19 +1,34 @@
+import React from 'react';
+import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+
 function Header({ setCollapsed, collapsed }) {
     return (
-        <header
-            className="border-bottom"
-            style={{ height: 60, width: '100%' }}
+        <AppBar
+            position="static"
+            color="default"
+            sx={{
+                borderBottom: 1,
+                borderColor: 'divider',
+                height: 60,
+                width: '100%',
+            }}
         >
-            <div className="h-100 d-flex align-items-center bg-light">
-                <button
-                    className='sb-button m-2 btn border border-dark'
+            <Toolbar sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+                <IconButton
+                    edge="start"
+                    color="inherit"
+                    aria-label="menu"
                     onClick={() => setCollapsed(!collapsed)}
+                    sx={{ mr: 2 }}
                 >
-                    <i className="fa-solid fa-bars"></i>
-                </button>
-                aaaaa
-            </div>
-        </header>
+                    <MenuIcon />
+                </IconButton>
+                <Typography variant="h6" component="div">
+                    aaaaa
+                </Typography>
+            </Toolbar>
+        </AppBar>
     );
 }
 

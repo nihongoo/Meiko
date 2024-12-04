@@ -19,7 +19,7 @@ import Delete from '../../component/CRUD/Delete.js';
 
 function TableLG({ columns, data }) {
   return (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} style={{border:'none'}}>
       <Table>
         {/* Header */}
         <TableHead>

@@ -15,6 +15,7 @@ function AdminLayout({ children }) {
                 style={{
                     flex: 1,
                     overflow: 'auto',
+                    overflowY: 'hidden',
                     transition: 'margin-left 0.3s',
                 }}
             >
@@ -25,9 +26,9 @@ function AdminLayout({ children }) {
                         overflowY: 'auto',
                         overflowX: 'auto',
                     }}
-                    className='m-0 bg-body-secondary p-0'
+                    className='m-0 bg-body-secondary p-0 pb-4'
                 >
-                    <div className='content p-4'>
+                    <div className='content p-4 mb-4'>
                         {children}
                     </div>
                 </div>
