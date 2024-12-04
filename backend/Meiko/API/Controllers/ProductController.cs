@@ -1,4 +1,5 @@
-﻿using API.IServices;
+﻿using API.Extention;
+using API.IServices;
 using API.Services;
 using API.ViewModel;
 using DataProcessing.Models;
@@ -11,9 +12,11 @@ namespace API.Controllers
     public class ProductController : Controller
     {
         private readonly IProductServices _productServices;
-        public ProductController(IProductServices productServices)
+        private readonly ToolDB<Products> _tool;
+        public ProductController(IProductServices productServices, ToolDB<Products> tool)
         {
             _productServices = productServices;
+            _tool = tool;
         }
         [HttpGet("Get-All")]
         public async Task<ActionResult<IEnumerable<Products>>> GetProducts()
@@ -60,5 +63,20 @@ namespace API.Controllers
             await _productServices.DeleteAsync(id);
             return NoContent();
         }
-    }
+
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query, bool isSearchWithName)
+		{
+			if (isSearchWithName)
+			{
+				var result = await _tool.Search(query, "Name");
+				return Ok(result);
+			}
+			else
+			{
+				var result = await _tool.Search(query, "ProductCode");
+				return Ok(result);
+			}
+		}
+	}
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import apiURL from "../../routes/API/index.js";
-import useFetchData from "../../customHook/useFetchData";
+import useFetchData from "../../customHook/useFetchData.js";
 
 function Size({ onClose, onAddSize, SizeSelect }) {
     const [selectedSizes, setSelectedSizes] = useState(SizeSelect);

@@ -44,7 +44,6 @@ namespace DataProcessing.Models
         [JsonIgnore]
         public virtual ICollection<Address>? Address { get; set; }
 
-        [JsonIgnore]
         public virtual ICollection<VoucherDetails>? VoucherDetails { get; set; }
 
         [JsonIgnore]

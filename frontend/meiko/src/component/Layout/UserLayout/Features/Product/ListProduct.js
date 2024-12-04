@@ -216,34 +216,46 @@ const ListProducts = ({ selectedFilters }) => {
     );
   };
 
-  // Hiển thị phần màu sắc
-  const renderColors = (product) => (
-    <div className={styles.colorWrapper}>
-      <div className={styles.colors}>
-        {product.Product_detail?.length > 0 ? (
-          product.Product_detail.map((detail, index) =>
-            detail.colors ? (
-              <span
-                key={index}
-                className={`${styles.colorCircle} ${
-                  selectedColors[product.id]?.colorHex === detail.colors.hex
-                    ? styles.selected
-                    : ''
-                }`}
-                style={{ backgroundColor: detail.colors.hex }}
-                title={detail.colors.name}
-                onClick={() =>
-                  handleColorClick(product.id, detail.colors.hex, product.Product_detail)
-                }
-              ></span>
-            ) : null
-          )
-        ) : (
-          <span>Chưa có màu sắc</span>
-        )}
+  //Hiện thị màu sắc
+  const renderColors = (product) => {
+    const uniqueColors = product.Product_detail
+      ? product.Product_detail
+          .map((detail) => detail.colors.hex)
+          .filter((value, index, self) => self.indexOf(value) === index)
+      : [];
+  
+    return (
+      <div className={styles.colorWrapper}>
+        <div className={styles.colors}>
+          {uniqueColors.length > 0 ? (
+            uniqueColors.map((colorHex, index) => {
+              const colorDetail = product.Product_detail.find(
+                (detail) => detail.colors.hex === colorHex
+              );
+              return (
+                <span
+                  key={index}
+                  className={`${styles.colorCircle} ${
+                    selectedColors[product.id]?.colorHex === colorHex
+                      ? styles.selected
+                      : ''
+                  }`}
+                  style={{ backgroundColor: colorHex }}
+                  title={colorDetail?.colors.name}
+                  onClick={() =>
+                    handleColorClick(product.id, colorHex, product.Product_detail)
+                  }
+                ></span>
+              );
+            })
+          ) : (
+            <span>Chưa có màu sắc</span>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+  
 
   // Hiển thị phần ảnh
   const renderImage = (product) => {

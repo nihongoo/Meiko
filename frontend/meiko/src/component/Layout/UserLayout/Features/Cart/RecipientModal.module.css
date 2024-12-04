@@ -1,0 +1,94 @@
+.modalBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 460px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    padding: 24px;
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.modalIcon {
+    color: #007bff;
+    font-size: 32px;
+    margin-right: 10px;
+}
+
+.modalTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333333;
+    margin: 0;
+}
+
+.separator {
+    border: 0;
+    border-top: 2px solid #f0f0f0;
+    margin: 16px 0;
+}
+
+.modalContent {
+    margin-top: 16px;
+}
+
+.inputField {
+    margin-bottom: 16px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.inputField:hover .MuiOutlinedInput-notchedOutline {
+    border-color: #007bff;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+    gap: 20px;
+}
+
+.submitButton {
+    background-color: #007bff;
+    color: #ffffff;
+    text-transform: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    flex-grow: 1;
+    border: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.submitButton:hover {
+    background-color: #0056b3;
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4);
+}
+
+.cancelButton {
+    color: #666666;
+    background-color: #f1f1f1;
+    border: 1px solid #cccccc;
+    text-transform: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    flex-grow: 1;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.cancelButton:hover {
+    background-color: #e0e0e0;
+    border-color: #b0b0b0;
+}

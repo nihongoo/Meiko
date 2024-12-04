@@ -1,4 +1,5 @@
 ﻿using API.DTO;
+using API.Extention;
 using API.IServices;
 using API.ViewModel;
 using DataProcessing.Models;
@@ -11,7 +12,6 @@ namespace API.Controllers
     public class ProductDetailController : ControllerBase
     {
         private readonly IProductDetailServices _productDetailService;
-
         public ProductDetailController(IProductDetailServices productDetailService)
         {
             _productDetailService = productDetailService;
@@ -52,7 +52,6 @@ namespace API.Controllers
 
         [HttpPut("Update/{id}")]
         public async Task<ActionResult> UpdateProductDetail([FromBody] ProductDetailDto model)
-
         {
             if (!ModelState.IsValid)
             {
@@ -69,5 +68,21 @@ namespace API.Controllers
             await _productDetailService.DeleteAsync(id);
             return NoContent();
         }
-    }
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query)
+		{
+			var result = await _productDetailService.Search(query);
+			return Ok(result);
+		}
+
+		[HttpGet("SoldOff")]
+		public async Task<IActionResult> SoldOff()
+		{
+			var result = await _productDetailService.GetForSoldOff();
+			if (result == null || result.Count == 0)
+				return BadRequest("Lỗi load dữ liệu");
+			return Ok(result);
+		}
+
+	}
 }

@@ -1,6 +1,7 @@
 ﻿using API.DTO;
 using API.IServices;
 using API.Models;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -501,10 +502,11 @@ namespace API.Services
 
 
 		// Bill
-		public async Task<ReturnMessage> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId)
+		public async Task<(bool k, Guid id)> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId)
 		{
 			bool check = false;
 			Guid billId = Guid.Empty;
+			Guid Id;
 
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -556,27 +558,22 @@ namespace API.Services
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
+					Id = bill.Id;
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
 
-					return new ReturnMessage()
-					{
-						status = 2,
-						message = $"Đã có lỗi xảy ra : {ex.InnerException}"
-					};
+					Console.WriteLine(ex.Message);
+
+					return (false, Guid.Empty);
 				}
 			}
 
 			if (check == true) await _cartDetailServices.ClearCart((Guid)CartId);
 
-			return new ReturnMessage()
-			{
-				status = 0,
-				message = "Tạo thành công hoá đơn"
-			};
+			return (true, Id);
 		}
 		public async Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
 		{
@@ -1186,6 +1183,86 @@ namespace API.Services
 
 			await _dbcontext.SaveChangesAsync();
 		}
+
+		public async Task<List<ListBillDetailViewModel>> listBillDetails(Guid id)
+		{
+			try
+			{
+				var bill = await _dbcontext.BillDetails
+					.Where(k => k.BillId == id)
+					.ToListAsync();
+				var details = await _dbcontext.ProductDetails
+					.Include(k => k.Sizes)
+					.Include(k => k.Colors)
+					.ToListAsync();
+				var images = await _dbcontext.Images.ToListAsync();
+				var products = await _dbcontext.Products
+					.Include(k => k.ProductDetails)
+					.Include(k => k.Categories)
+					.Include(k => k.Brands)
+					.Include(k => k.Materials)
+					.Include(k => k.TargretCustomers)
+					.ToListAsync();
+
+				var Data = new List<ListBillDetailViewModel>();
+				foreach (var item in bill)
+				{
+					// Tìm Product dựa trên ProductDetailId
+					var product = products.FirstOrDefault(p =>
+						p.ProductDetails.Any(pd => pd.Id == item.ProductDetailId));
+
+					// Tìm ProductDetail dựa trên ProductDetailId
+					var detail = details.FirstOrDefault(k => k.Id == item.ProductDetailId);
+
+					// Tìm ảnh liên quan
+					var image = images.FirstOrDefault(k => k.ProductDetailId == item.ProductDetailId);
+
+					// Tạo ViewModel
+					var viewModel = new ListBillDetailViewModel
+					{
+						Id = item.Id,
+						ImgUrl = image?.ImgUrl ?? product?.ImageUrl,
+						Name = product?.Name,
+						Size = detail?.Sizes.Name,
+						Color = detail?.Colors.Name,
+						Price = detail?.Price ?? 0,
+						Quantity = item.Quantity,
+						status = item.Status
+					};
+
+					Data.Add(viewModel);
+				}
+
+				return Data;
+
+			}
+			catch (Exception ex)
+			{
+
+				throw new Exception("Đã có lỗi: " + ex.Message);
+			}
+		}
+
+		public async Task<(bool k, string msg)> DeleteBillDetail(Guid Id)
+		{
+			try
+			{
+				var item = await _dbcontext.BillDetails.FindAsync(Id);
+				if (item == null)
+				{
+					return (false, "Không tìm thấy sản phẩm cần xóa");
+				}
+
+				_dbcontext.BillDetails.Remove(item);
+				await _dbcontext.SaveChangesAsync();
+				return (true, "Xóa thành công");
+			}
+			catch (Exception ex)
+			{
+				return (false, ex.Message);
+			}
+		}
+
 	}
 
 }

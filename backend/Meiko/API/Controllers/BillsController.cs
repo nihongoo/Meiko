@@ -1,4 +1,5 @@
 ﻿using API.DTO;
+using API.Extention;
 using API.IServices;
 using API.Models;
 using DataProcessing.Models;
@@ -22,12 +23,15 @@ namespace API.Controllers
 		private readonly string _apiKey;
 		private readonly string _checkSum;
 		private readonly string _clientId;
+		private readonly ToolDB<Bills> _tool;
+
 		public BillsController(IBillServices billServices, IConfiguration configuration)
         {
             _IBillServices = billServices;
 			_apiKey = configuration["PayOS:ApiKey"];
 			_checkSum = configuration["PayOS:CheckSumKey"];
 			_clientId = configuration["PayOS:ClientId"];
+			_tool = tool;
 		}
 
 		// Cung cấp dữ liệu
@@ -125,10 +129,19 @@ namespace API.Controllers
 
 		//Bill
 		[HttpPost("create-bill")]
-		public async Task<IActionResult> CreateBill(BillInfoModel model)
+		public async Task<ActionResult<object>> CreateBill(BillInfoModel model)
 		{
-			return Ok(await _IBillServices.Create(DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString(), model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId));
+			var result = await _IBillServices.Create(model.BillCode, model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId);
+			if (result.k)
+			{
+				return Ok(new { success = result.k, id = result.id });
+			}
+			else
+			{
+				return BadRequest(new { success = result.k, message = "Failed to create bill." });
+			}
 		}
+
 
 		[HttpDelete("delete-bill/{id}")]
 		public async Task<IActionResult> DeleteBill(Guid id)
@@ -188,10 +201,14 @@ namespace API.Controllers
 			return Ok(response);
 		}
 
-		[HttpGet("Momo/Callback")]
-		public async Task<IActionResult> GetCallBack([FromQuery]MomoExecuteResponseModel collection)
+		[HttpPost("Momo/Notify")]
+		public async Task<IActionResult> GetCallBack([FromBody] MomoExecuteResponseModel collection)
 		{
-			await _IBillServices.Pay(collection.Amount, 1, 0, Guid.Parse(collection.OrderId));
+			if (collection.ErrorCode == 0)
+			{
+				await _IBillServices.Pay(decimal.Parse(collection.Amount), 0, 1, Guid.Parse(collection.OrderId));
+			}
+
 			return Ok(collection);
 		}
 
@@ -269,5 +286,33 @@ namespace API.Controllers
 		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 		//	}
 		//}
+		
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query)
+		{
+			var result = await _tool.Search(query, "BillCode");
+			return Ok(result);
+		}
+
+		[HttpGet("List-Bill-Detail")]
+		public async Task<IActionResult> ListBillDetail(Guid id)
+		{
+			var result = await _IBillServices.listBillDetails(id);
+			return Ok(result);
+		}
+
+		[HttpDelete("Delete-Bill-Detail")]
+		public async Task<IActionResult> Delete(Guid id)
+		{
+			var result = await _IBillServices.DeleteBillDetail(id);
+			if (result.k)
+			{
+				return Ok(new { success = result.k, msg = result.msg });
+			}
+			else
+			{
+				return BadRequest(new { success = result.k, msg = result.msg });
+			}
+		}
 	}
 }

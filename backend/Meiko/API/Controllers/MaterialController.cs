@@ -1,4 +1,5 @@
-﻿    using API.IServices;
+﻿using API.Extention;
+using API.IServices;
 using API.Services;
 using API.ViewModel;
 using DataProcessing.Models;
@@ -11,9 +12,11 @@ namespace API.Controllers
     public class MaterialController : ControllerBase
     {
         private readonly IMaterialServices _materialServices;
-        public MaterialController(IMaterialServices materialServices)
+        private readonly ToolDB<Materials> _tool;
+        public MaterialController(IMaterialServices materialServices, ToolDB<Materials> tool)
         {
             _materialServices = materialServices;
+            _tool = tool;
         }
         [HttpGet("get-all")]
         public async Task<ActionResult<IEnumerable<Materials>>> GetAll()
@@ -56,5 +59,12 @@ namespace API.Controllers
             await _materialServices.Delete(id);
             return NoContent();
         }
-    }
+
+		[HttpGet("Search")]
+		public async Task<IActionResult> Search(string query)
+		{
+			var result = await _tool.Search(query, "Name");
+			return Ok(result);
+		}
+	}
 }

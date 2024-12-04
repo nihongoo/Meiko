@@ -1,5 +1,6 @@
 ﻿using API.DTO;
 using API.Models;
+using API.ViewModel;
 using DataProcessing.Models;
 using Net.payOS.Types;
 
@@ -30,9 +31,9 @@ namespace API.IServices
 
 		// Xử lý
 		//Bill
-		Task<ReturnMessage> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId); // Từ giỏ hàng lấy những sản phẩm trong giỏ hàng.
 		Task<ReturnMessage> Delete(Guid Id);
 		Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis);
+		Task<(bool k, Guid id)> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId); // Từ giỏ hàng lấy những sản phẩm trong giỏ hàng.
 
 		//ShippingAddress
 		Task<ReturnMessage> AddAddressToBill(ShippingAddressInfoModel model);
@@ -48,6 +49,8 @@ namespace API.IServices
 		Task<ReturnMessage> AddToBill(BillDetailInfoModel model);
 		Task<ReturnMessage> AddQuantity(Guid Id, int Quantity); // Thêm số lượng sản phẩm, vd: +1 hoặc -1
 		Task<ReturnMessage> ChangeQuantityFor(Guid Id, int Quantity); // Đổi số lượng sản phẩm bằng với Quantity nhập vào
+		Task<List<ListBillDetailViewModel>> listBillDetails(Guid id);
+		Task<(bool k, string msg)> DeleteBillDetail(Guid Id);
 		
 		//Momo API
 		Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model);

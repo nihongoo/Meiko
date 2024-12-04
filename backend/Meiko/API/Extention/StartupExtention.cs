@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using API.Extention;
+using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ namespace Precious.core.Extention
 			var cloudinary = new CloudinaryDotNet.Cloudinary(cloudinaryAccount);
 
 			services.AddSingleton(cloudinary);
+			services.AddScoped(typeof(ToolDB<>));
 
 			//Cấu hình CORS
 			services.AddCors(options =>

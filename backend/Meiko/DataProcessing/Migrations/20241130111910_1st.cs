@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataProcessing.Migrations
 {
-    public partial class khanh : Migration
+    public partial class _1st : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -87,7 +87,7 @@ namespace DataProcessing.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false, comment: "Trạng thái là bắt buộc.")
                 },
                 constraints: table =>
@@ -114,7 +114,7 @@ namespace DataProcessing.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -174,7 +174,7 @@ namespace DataProcessing.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
@@ -365,6 +365,7 @@ namespace DataProcessing.Migrations
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     ProductCode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PublicId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     WarrantyPeriod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     CreateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
@@ -480,22 +481,16 @@ namespace DataProcessing.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BillCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, comment: "Mã hóa đơn, không quá 50 ký tự"),
-                    Total = table.Column<double>(type: "float(18)", precision: 18, scale: 2, nullable: false, defaultValue: 0.0, comment: "Tổng số tiền của hóa đơn"),
-                    CreateDate = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày tạo hóa đơn"),
-                    NgayGiaoHang = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày giao hàng dự kiến"),
-                    NgayNhanHang = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày nhận hàng thực tế"),
-                    NgayThanhToan = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày thanh toán hóa đơn"),
-                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1, comment: "Trạng thái hóa đơn, từ 0 đến 5"),
-                    TenNguoiNhan = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true, comment: "Tên người nhận không được vượt quá 100 ký tự"),
-                    EmailNguoiNhan = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true, comment: "Email người nhận, tuân theo chuẩn Email"),
-                    SDTNguoiNhan = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true, comment: "Số điện thoại người nhận, tối đa 15 ký tự"),
-                    DiaChiNguoiNhan = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true, comment: "Địa chỉ người nhận không vượt quá 200 ký tự"),
-                    GiamGia = table.Column<double>(type: "float", nullable: false, defaultValue: 0.0, comment: "Giá trị giảm giá của hóa đơn"),
-                    KhachThanhToan = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m, comment: "Số tiền khách thanh toán"),
-                    PhiVanChuyen = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m, comment: "Phí vận chuyển của hóa đơn"),
-                    LyDoKhachHuy = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Lý do khách hàng hủy hóa đơn, không quá 500 ký tự"),
-                    LoaiHoaDon = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, comment: "Loại hóa đơn, không quá 50 ký tự"),
-                    PhuongThucThanhToan = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, comment: "Phương thức thanh toán, không quá 50 ký tự"),
+                    IsShipping = table.Column<bool>(type: "bit", nullable: false, comment: "Có giao hàng hay không?"),
+                    Total = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m, comment: "Tổng số tiền của hóa đơn"),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày tạo hóa đơn"),
+                    DeliveryDate = table.Column<DateTime>(type: "datetime2", nullable: true, comment: "Ngày giao hàng dự kiến"),
+                    DateOfRecept = table.Column<DateTime>(type: "datetime2", nullable: true, comment: "Ngày nhận hàng thực tế"),
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: true, comment: "Ngày thanh toán hóa đơn"),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0, comment: "Trạng thái hóa đơn, từ 0 đến 10"),
+                    PaymentAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m, comment: "Số tiền khách thanh toán"),
+                    ShippingFee = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m, comment: "Phí vận chuyển của hóa đơn"),
+                    ReasonForCancellation = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true, comment: "Lý do khách hàng hủy hóa đơn, không quá 500 ký tự"),
                     CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     VoucherId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     StaffId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
@@ -588,6 +583,75 @@ namespace DataProcessing.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PaymentHistories",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày tạo ra trạng thái"),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false, comment: "Số tiền khách đã giao dịch"),
+                    PaymentMethod = table.Column<int>(type: "int", nullable: false, defaultValue: 0, comment: "Phương thức thanh toán được sử dụng khi giao dịch"),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0, comment: "Trạng thái của 1 lần thanh toán"),
+                    BillId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PaymentHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PaymentHistories_Bills_BillId",
+                        column: x => x.BillId,
+                        principalTable: "Bills",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ShippingAddresses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RecipientName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: false),
+                    AddressDetail = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    City = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    District = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Ward = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    BillId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShippingAddresses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ShippingAddresses_Bills_BillId",
+                        column: x => x.BillId,
+                        principalTable: "Bills",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StatusHistories",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày tạo ra trạng thái"),
+                    StatusType = table.Column<int>(type: "int", nullable: false, comment: "Danh sách trạng thái mà hoá đơn đã trải qua"),
+                    Note = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true, comment: "Ghi chú tối đa 256 kí tự"),
+                    WhoCreatedThis = table.Column<Guid>(type: "uniqueidentifier", nullable: false, comment: "Ai là người đổi trạng thái đơn hàng?"),
+                    BillId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StatusHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StatusHistories_Bills_BillId",
+                        column: x => x.BillId,
+                        principalTable: "Bills",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BillDetails",
                 columns: table => new
                 {
@@ -649,6 +713,7 @@ namespace DataProcessing.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PublicId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProductDetailId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -792,6 +857,11 @@ namespace DataProcessing.Migrations
                 column: "ProductDetailId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PaymentHistories_BillId",
+                table: "PaymentHistories",
+                column: "BillId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductDetails_ColorId",
                 table: "ProductDetails",
                 column: "ColorId");
@@ -832,11 +902,21 @@ namespace DataProcessing.Migrations
                 column: "SaleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ShippingAddresses_BillId",
+                table: "ShippingAddresses",
+                column: "BillId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Staffs_ApplicationUserId",
                 table: "Staffs",
                 column: "ApplicationUserId",
                 unique: true,
                 filter: "[ApplicationUserId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StatusHistories_BillId",
+                table: "StatusHistories",
+                column: "BillId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VoucherDetails_CustomerId",
@@ -888,16 +968,22 @@ namespace DataProcessing.Migrations
                 name: "otps");
 
             migrationBuilder.DropTable(
+                name: "PaymentHistories");
+
+            migrationBuilder.DropTable(
                 name: "SaleProducts");
+
+            migrationBuilder.DropTable(
+                name: "ShippingAddresses");
+
+            migrationBuilder.DropTable(
+                name: "StatusHistories");
 
             migrationBuilder.DropTable(
                 name: "VoucherDetails");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "Bills");
 
             migrationBuilder.DropTable(
                 name: "Carts");
@@ -909,13 +995,7 @@ namespace DataProcessing.Migrations
                 name: "Sales");
 
             migrationBuilder.DropTable(
-                name: "Staffs");
-
-            migrationBuilder.DropTable(
-                name: "Vouchers");
-
-            migrationBuilder.DropTable(
-                name: "Customers");
+                name: "Bills");
 
             migrationBuilder.DropTable(
                 name: "Colors");
@@ -927,7 +1007,13 @@ namespace DataProcessing.Migrations
                 name: "Sizes");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Customers");
+
+            migrationBuilder.DropTable(
+                name: "Staffs");
+
+            migrationBuilder.DropTable(
+                name: "Vouchers");
 
             migrationBuilder.DropTable(
                 name: "Brands");
@@ -940,6 +1026,9 @@ namespace DataProcessing.Migrations
 
             migrationBuilder.DropTable(
                 name: "TargretCustomers");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

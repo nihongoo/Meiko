@@ -50,7 +50,7 @@ namespace DataProcessing.Models
             optionsBuilder.UseSqlServer("Server=MSI\\MSI;Database =DATN; Trusted_Connection = True; TrustServerCertificate = True");
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
             modelBuilder.Entity<Bills>()
