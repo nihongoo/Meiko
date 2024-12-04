@@ -1,15 +1,16 @@
 import { Box, Button, Dialog, Typography, IconButton } from "@mui/material";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import apiURL from "../../routes/API/index";
 import { toast } from "react-toastify";
+import {BillInfoContext} from './SoldOfline'
 
 function ChooseDetail({ open, onClose, item, reloadList, bill }) {
     const [quantity, setQuantity] = useState(1);
+    const { handleReloadFromAnother } = useContext(BillInfoContext);
     const handleIncrease = () => {
         setQuantity((prev) => Math.min(prev + 1, item.quantity));
     };
-
     const handleDecrease = () => {
         setQuantity((prev) => Math.max(prev - 1, 1));
     };
@@ -31,6 +32,7 @@ function ChooseDetail({ open, onClose, item, reloadList, bill }) {
             if (res.ok) {
                 toast.success('Thêm sản phẩm thành công')
                 reloadList()
+                handleReloadFromAnother()
             }
             else {
                 toast.error('Thêm sản phẩm thất bại')

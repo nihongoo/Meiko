@@ -112,6 +112,7 @@ const apiURL = {
         list: 'https://localhost:7172/api/Bills/List-Bill-Detail',
         addToBill: 'https://localhost:7172/api/Bills/add-to-bill',
         deleteDetail: 'https://localhost:7172/api/Bills/Delete-Bill-Detail?id=',
+        billId:'https://localhost:7172/api/Bills/get-bill-by-id/',
     }
     
 };
