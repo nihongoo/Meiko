@@ -77,7 +77,7 @@ function ManageProduct() {
     ];
 
     return (
-        <div className="border bg-light rounded-3">
+        <div className="border rounded-3" style={{backgroundColor:'#fff'}}>
             <div className="d-flex justify-content-center m-2">
                 <h2>Thông tin sản phẩm</h2>
             </div>

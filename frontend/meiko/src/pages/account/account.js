@@ -14,11 +14,11 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import apiURL from '../../routes/API/index.js';
-import SearchInput from '../../component/Search';
-import useFetchData from '../../customHook/useFetchData';
-import UpdateStaffDialog from './UpdateStaffDialog';
-import CreateStaffDialog from './CreateStaffDialog';
-import generateSerialCode from '../../customHook/useRandom';
+import SearchInput from '../../component/Search/index.js';
+import useFetchData from '../../customHook/useFetchData.js';
+import UpdateStaffDialog from './UpdateStaffDialog.js';
+import CreateStaffDialog from './CreateStaffDialog.js';
+import generateSerialCode from '../../customHook/useRandom.js';
 
 function Account() {
   const { data: initialData, refetch } = useFetchData(apiURL.staff.all, (rawData) =>

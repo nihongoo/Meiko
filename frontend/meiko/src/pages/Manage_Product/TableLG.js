@@ -15,11 +15,11 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import apiURL from '../../routes/API/index.js';
-import Delete from '../../component/CRUD/Delete';
+import Delete from '../../component/CRUD/Delete.js';
 
 function TableLG({ columns, data }) {
   return (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} style={{border:'none'}}>
       <Table>
         {/* Header */}
         <TableHead>
