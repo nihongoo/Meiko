@@ -43,7 +43,6 @@ function ProductCart() {
           console.error('Lỗi khi lấy giỏ hàng:', error);
         });
     }
-    // eslint-disable-next-line
   }, [customerId]);
   const fetchCartDetails = (cartId) => {
     localStorage.setItem('cartId', cartId);
@@ -180,7 +179,7 @@ function ProductCart() {
       alert("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
-    const stockQuantity = item.productDetails.stockQuantity;
+    const stockQuantity = item.productDetails.quantity;
     const newQuantity = item.quantity + 1;
     if (newQuantity > stockQuantity) {
       alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);

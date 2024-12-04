@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from './Header/index'
-import SideBar from './SideBar/index';
+import SideBar from './Sidebar/index';
 
 function AdminLayout({ children }) {
 
