@@ -1,5 +1,5 @@
 import { Box, Tab, Tabs, Button, IconButton } from "@mui/material";
-import { useState } from "react";
+import { useState, useRef, createContext } from "react";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import NoContent from "./NoContent";
@@ -8,15 +8,25 @@ import generateSerialCode from '../../customHook/useRandom';
 import apiURL from "../../routes/API";
 import BillInfo from "./BillInfo";
 
+// Tạo context trực tiếp trong file
+export const BillInfoContext = createContext();
+
 function SoldOfline() {
     const [index, setIndex] = useState(0);
     const [tabs, setTabs] = useState([]);
     const [bills, setBills] = useState([]);
+    const billInfoRef = useRef();
 
     const handleChangeTab = (e, newValue) => {
         setIndex(newValue);
     };
-    
+
+    const handleReloadFromAnother = () => {
+        if (billInfoRef.current) {
+            billInfoRef.current.reload(); // Gọi hàm reload từ BillInfo
+        }
+    };
+
     const handleAddTab = async () => {
         if (tabs.length >= 5) {
             toast.warning("Chỉ có thể thêm tối đa 5 hóa đơn");
@@ -86,67 +96,69 @@ function SoldOfline() {
     };
 
     return (
-        <div>
-            <div className="border bg-light rounded-3">
-                <div className="d-flex justify-content-center m-2">
-                    <h2>Bán hàng</h2>
-                </div>
-                <div className="p-3">
-                    <Box sx={{ width: "100%" }}>
-                        <div className="d-flex justify-content-end">
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleAddTab}
+        <BillInfoContext.Provider value={{ handleReloadFromAnother }}>
+            <div>
+                <div className="border bg-light rounded-3">
+                    <div className="d-flex justify-content-center m-2">
+                        <h2>Bán hàng</h2>
+                    </div>
+                    <div className="p-3">
+                        <Box sx={{ width: "100%" }}>
+                            <div className="d-flex justify-content-end">
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleAddTab}
+                                >
+                                    Thêm hóa đơn
+                                </Button>
+                            </div>
+                            <Tabs
+                                value={index}
+                                onChange={handleChangeTab}
+                                variant="scrollable"
+                                scrollButtons="auto"
                             >
-                                Thêm hóa đơn
-                            </Button>
-                        </div>
-                        <Tabs
-                            value={index}
-                            onChange={handleChangeTab}
-                            variant="scrollable"
-                            scrollButtons="auto"
-                        >
                             {tabs.map((tab, i) => (
-                                <Tab
-                                    key={i}
-                                    label={
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 1,
-                                            }}
-                                        >
-                                            {tab}
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCloseTab(i);
+                                    <Tab
+                                        key={i}
+                                        label={
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 1,
                                                 }}
                                             >
-                                                <CloseIcon fontSize="small" />
-                                            </IconButton>
-                                        </Box>
-                                    }
-                                />
-                            ))}
-                        </Tabs>
-                    </Box>
+                                            {tab}
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleCloseTab(i);
+                                                    }}
+                                                >
+                                                    <CloseIcon fontSize="small" />
+                                                </IconButton>
+                                            </Box>
+                                        }
+                                    />
+                                ))}
+                            </Tabs>
+                        </Box>
                     {tabs.length === 0 ? (
-                        <NoContent />
-                    ) : (
-                        <div className="mt-2">
-                            <h4>Thông tin của {tabs[index]}</h4>
-                            <ListProduct bill={bills[index]} /> {/* Truyền bill vào ListProduct */}
-                            <BillInfo />
-                        </div>
-                    )}
+                            <NoContent />
+                        ) : (
+                            <div className="mt-2">
+                                <h4>Thông tin của {tabs[index]}</h4>
+                                <ListProduct bill={bills[index]}/>
+                                <BillInfo bill={bills[index]} ref={billInfoRef}/>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </BillInfoContext.Provider>
     );
 }
 

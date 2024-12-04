@@ -1083,6 +1083,7 @@ namespace API.Services
 				{
 					return (false, "Không tìm thấy sản phẩm cần xóa");
 				}
+				var bill = await _dbcontext.Bills.FirstOrDefaultAsync(k => k.Id == item.BillId);
 
 				_dbcontext.BillDetails.Remove(item);
 				await _dbcontext.SaveChangesAsync();

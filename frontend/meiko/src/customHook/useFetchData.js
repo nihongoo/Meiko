@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
-const useFetchData = (apiURL, transformData) => {
-    const [data, setData] = useState([]);
+const useFetchData = (apiURL, transformData, isObj = false) => {
+    const [data, setData] = useState(isObj ? {} : []);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [rfsKey, setRfsKey] = useState(0);
@@ -25,10 +25,12 @@ const useFetchData = (apiURL, transformData) => {
         fetchData();
 
         // eslint-disable-next-line
-    }, [apiURL,rfsKey]);
+    }, [apiURL, rfsKey]);
+
     const refetch = () => {
-        setRfsKey((pre) => pre + 1)
-    }
+        setRfsKey((prev) => prev + 1);
+    };
+
     return { data, loading, error, refetch };
 };
 
