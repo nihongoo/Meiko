@@ -833,24 +833,19 @@ namespace API.Services
 			}
 		}
 
-		public async Task<ReturnMessage> DeletePaymentById(Guid id, bool confirmDelete)
+		public async Task<ReturnMessage> CancelPaymentById(Guid id)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
-					var payment = await _dbcontext.PaymentHistories.Where(c => c.Id == id).FirstOrDefaultAsync();
+					var payment = await _dbcontext.PaymentHistories.Where(c => c.Id == id).Include(ph => ph.Bill).FirstOrDefaultAsync();
 
-					if (payment == null) return new ReturnMessage()
-					{
-						status = 1,
-						message = "Không tìm thấy lần thanh toán này"
-					};
-
-					if (confirmDelete) _dbcontext.PaymentHistories.Remove(payment);
-
-					payment.Status = StatusForPayment.DaHoanTra;
+					payment.Status = StatusForPayment.Cancelled;
 					_dbcontext.PaymentHistories.Update(payment);
+
+					PayOS payOs = new PayOS(_clientId, _apiKey, _checkSum);
+					var result = await payOs.cancelPaymentLink(long.Parse(payment.Bill.BillCode));
 
 					await _dbcontext.SaveChangesAsync();
 
@@ -858,7 +853,7 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 0,
-						message = "Xoá thành công lần thanh toán này"
+						message = result.ToString()
 					};
 
 				}
@@ -1129,20 +1124,27 @@ namespace API.Services
 		//PayOS API
 		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(OrderInfoModel model)
 		{
-			var cancelUrl = "https://localhost:7172/api/Bills/PayOS/CancelPayOS/";
-			var returnUrl = "https://localhost:7172/api/Bills/PayOS/ReturnPayOS/";
+			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{model.OrderId}";
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{model.OrderId}";
 
-			var payment = new PayOS(_clientId, _apiKey, _checkSum);
+			PayOS payment = new(_clientId, _apiKey, _checkSum);
 			var list = new List<ItemData>();
 			var listProduct = await _dbcontext.BillDetails.Where(bd => bd.BillId == Guid.Parse(model.OrderId))
 				.Include(bd => bd.ProductDetails)
 				.ThenInclude(pd => pd.Products)
 				.ToListAsync();
-
-			foreach(var item in listProduct)
+			if (listProduct == null)
 			{
-				list.Add(new ItemData(item.ProductDetails.Products.Name, item.Quantity, (int)item.Price));
-			};
+				list.Add(new ItemData(null, 1, 0));
+			}
+			else
+			{
+				foreach (var item in listProduct)
+				{
+					list.Add(new ItemData(item.ProductDetails.Products.Name, item.Quantity, (int)item.Price));
+				};
+			}
+
 			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)model.Amount,
 				model.OrderInfo,

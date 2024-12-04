@@ -42,7 +42,7 @@ namespace API.IServices
 
 		//PaymentHistory
 		Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId);
-		Task<ReturnMessage> DeletePaymentById(Guid id, bool confirmDelete);
+		Task<ReturnMessage> CancelPaymentById(Guid id);
 
 		//BillDetails
 		Task<ReturnMessage> AddToBill(BillDetailInfoModel model);

@@ -21,44 +21,7 @@ namespace Meiko
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 			builder.Services.AddDbContext<AppDbContext>(options =>
 				options.UseSqlServer(connectionString));
-			////CORS
-			//builder.Services.AddCors(options =>
-			//{
-			//	options.AddPolicy("AllowAll", policy =>
-			//	{
-			//		policy.AllowAnyOrigin()
-			//			  .AllowAnyHeader()
-			//			  .AllowAnyMethod();
-			//	});
-			//});
-			//Configure
-			builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
-			//Service
-			builder.Services.AddScoped<IAccountServices, AccountService>();
-			builder.Services.AddScoped<IAddressServices, AddressServices>();
-			builder.Services.AddScoped<IStaffServices, StaffServices>();
-			builder.Services.AddScoped<ICustomerServices, CustomerServices>();
-			builder.Services.AddScoped<IEmailService, EmailService>();
-			builder.Services.AddScoped<IOtpService, OtpService>();
-			builder.Services.AddScoped<IMaterialServices, MaterialServices>();
-			builder.Services.AddScoped<IBrandServices, BrandServices>();
-			builder.Services.AddScoped<ICategoryServices, CategoryServices>();
-			builder.Services.AddScoped<IColorServices, ColorServices>();
-			builder.Services.AddScoped<ISizeServices, SizeServices>();
-			builder.Services.AddScoped<ITargetServices, TargetServices>();
-			builder.Services.AddScoped<IProductServices, ProductServices>();
-			builder.Services.AddScoped<IProductDetailServices, ProductDetailServices>();
-			builder.Services.AddScoped<ICartServices, CartServices>();
-			builder.Services.AddScoped<ICartDetailServices, CartDetailServices>();
-			builder.Services.AddScoped<ISaleServices, SaleServices>();
-			builder.Services.AddScoped<ISaleProductServices, SaleProductServices>();
-			builder.Services.AddScoped<IImageServices, ImageServices>();
-			builder.Services.AddScoped<IBillServices, BillServices>();
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString));
 
-            builder.Services.AddExtentionsService(builder.Configuration);
 			//CORS
 			builder.Services.AddCors(options =>
 			{
@@ -95,6 +58,8 @@ namespace Meiko
 
             builder.Services.AddScoped<IImageServices, ImageServices>();
             builder.Services.AddScoped<IBillServices, BillServices>();
+
+			builder.Services.AddExtentionsService(builder.Configuration);
 
 			// Thêm Identity
 			builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -141,7 +106,12 @@ namespace Meiko
 			builder.Services.AddSwaggerGen();
 			var app = builder.Build();
 
-            app.UseCors("AllowLocalhost3000");
+			// Thiết lập bỏ qua SSL
+			ServicePointManager.ServerCertificateValidationCallback +=
+				(sender, cert, chain, sslPolicyErrors) => true;
+
+
+			app.UseCors("AllowLocalhost3000");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

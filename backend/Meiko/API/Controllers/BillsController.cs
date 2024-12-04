@@ -4,6 +4,8 @@ using API.Models;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Net.payOS;
+using Net.payOS.Types;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,11 +19,15 @@ namespace API.Controllers
 	public class BillsController : ControllerBase
 	{
 		private readonly IBillServices _IBillServices;
+		private readonly string _apiKey;
 		private readonly string _checkSum;
-        public BillsController(IBillServices billServices, IConfiguration configuration)
+		private readonly string _clientId;
+		public BillsController(IBillServices billServices, IConfiguration configuration)
         {
             _IBillServices = billServices;
+			_apiKey = configuration["PayOS:ApiKey"];
 			_checkSum = configuration["PayOS:CheckSumKey"];
+			_clientId = configuration["PayOS:ClientId"];
 		}
 
 		// Cung cấp dữ liệu
@@ -121,7 +127,7 @@ namespace API.Controllers
 		[HttpPost("create-bill")]
 		public async Task<IActionResult> CreateBill(BillInfoModel model)
 		{
-			return Ok(await _IBillServices.Create(model.BillCode, model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId));
+			return Ok(await _IBillServices.Create(DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString(), model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId));
 		}
 
 		[HttpDelete("delete-bill/{id}")]
@@ -196,75 +202,72 @@ namespace API.Controllers
 			return Ok(await _IBillServices.CreatePayOSRequestAsync(model));
 		}
 
-		[HttpGet("PayOS/ReturnPayOS")]
-		public async Task<IActionResult> ReturnData([FromQuery] string orderId, [FromQuery] string status, [FromQuery] decimal amount, [FromQuery] string signature)
+		[HttpGet("PayOS/ReturnPayOS/{billId}")]
+		public async Task<IActionResult> ReturnData(Guid billId, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] int orderCode)
 		{
 			try
 			{
-				// 1. Xác thực chữ ký
-				string data = $"orderId={orderId}&status={status}&amount={amount}";
-				string calculatedSignature = GenerateSignature(data, _checkSum);
+				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
+				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
 
-				if (calculatedSignature != signature)
-				{
-					return BadRequest(new { error = "Invalid signature." });
-				}
-
-				// 2. Xử lý trạng thái thanh toán
-				if (status == "SUCCESS")
+				if (status == "PAID")
 				{
 					// Cập nhật trạng thái đơn hàng trong hệ thống
-					Console.WriteLine($"Order {orderId} completed successfully with amount {amount}.");
+					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 0, 0, billId);
+
 				}
 				else
 				{
-					// Xử lý các trạng thái khác (FAILED, CANCELED...)
-					Console.WriteLine($"Order {orderId} failed or canceled.");
+					// Xử lý các trạng thái khác (PENDING, CANCELLED...)
+					return BadRequest(paymentLinkInfo);
 				}
 
 				// 3. Trả về trạng thái thành công
-				return Ok(new { message = "Payment status received successfully." });
+				return Ok(paymentLinkInfo);
 			}
 			catch (Exception ex)
 			{
-				return StatusCode(500, new { error = ex.Message });
+				return StatusCode(500, new ReturnMessage()
+				{
+					status = 2,
+					message = $"Đã xảy ra lỗi khi giao dịch : {ex.InnerException}",
+				});
 			}
 		}
 
-		[HttpGet("PayOS/CancelPayOS")]
-		public async Task<IActionResult> CancelData([FromQuery] string orderId, [FromQuery] string status, [FromQuery] decimal? amount)
+		[HttpGet("PayOS/CancelPayOS/{id}")]
+		public async Task<IActionResult> CancelData(Guid id, [FromQuery] string orderId, [FromQuery] string status, [FromQuery] decimal? amount)
 		{
 			try
 			{
 				// Kiểm tra trạng thái và xử lý hủy đơn hàng
-				if (status == "CANCELED")
+				if (status == "CANCELLED")
 				{
-					// Cập nhật trạng thái đơn hàng trong hệ thống
-					Console.WriteLine($"Order {orderId} has been canceled. Amount: {amount ?? 0}");
+					
 
 					// Thực hiện các hành động khác nếu cần, như ghi log hoặc thông báo người dùng.
-					return Ok(new { message = "Order cancellation received successfully." });
+					return Ok(await _IBillServices.CancelPaymentById(id));
 				}
 
 				// Xử lý trạng thái khác (nếu có)
-				return BadRequest(new { error = "Invalid status received." });
+				return BadRequest(new ReturnMessage { status = 1, message = "Invalid status received." });
 			}
 			catch (Exception ex)
 			{
 				// Trả về lỗi nếu xảy ra vấn đề
-				return StatusCode(500, new { error = ex.Message });
+				return StatusCode(500, new ReturnMessage { status = 2, message = $"Đã xảy ra lỗi :  {ex.Message}" });
 			}
 		}
 
-		private string GenerateSignature(string data, string checksumKey)
-		{
-			var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
-			using (var hmac = new HMACSHA256(keyBytes))
-			{
-				var dataBytes = Encoding.UTF8.GetBytes(data);
-				var hashBytes = hmac.ComputeHash(dataBytes);
-				return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-			}
-		}
+		//private string GenerateSignature(string data, string checksumKey)
+		//{
+		//	var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
+		//	using (var hmac = new HMACSHA256(keyBytes))
+		//	{
+		//		var dataBytes = Encoding.UTF8.GetBytes(data);
+		//		var hashBytes = hmac.ComputeHash(dataBytes);
+		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+		//	}
+		//}
 	}
 }
