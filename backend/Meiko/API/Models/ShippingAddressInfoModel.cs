@@ -29,6 +29,6 @@ namespace API.Models
 		[Range(0, 5, ErrorMessage = "Trạng thái phải từ 0 đến 5.")]
 		public int Status { get; set; }
 
-		public Guid? BillId { get; set; }
+		public Guid BillId { get; set; }
 	}
 }
