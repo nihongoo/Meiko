@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Net;
 using Precious.core.Extention;
 using System.Text;
 
@@ -17,11 +18,10 @@ namespace Meiko
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString));
+			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+			builder.Services.AddDbContext<AppDbContext>(options =>
+				options.UseSqlServer(connectionString));
 
-            builder.Services.AddExtentionsService(builder.Configuration);
 			//CORS
 			builder.Services.AddCors(options =>
 			{
@@ -59,31 +59,36 @@ namespace Meiko
             builder.Services.AddScoped<IImageServices, ImageServices>();
             builder.Services.AddScoped<IBillServices, BillServices>();
 
-            // Thêm Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<AppDbContext>()
-                .AddDefaultTokenProviders();
+			builder.Services.AddExtentionsService(builder.Configuration);
 
-            //JWT Authentication
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-                };
-            });
-            // Add services to the container.
+			// Thêm Identity
+			builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+				.AddEntityFrameworkStores<AppDbContext>()
+				.AddDefaultTokenProviders();
 
+			//JWT Authentication
+			builder.Services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			}).AddJwtBearer(options =>
+			{
+				options.TokenValidationParameters = new TokenValidationParameters
+				{
+					ValidateIssuer = true,
+					ValidateAudience = true,
+					ValidateLifetime = true,
+					ValidateIssuerSigningKey = true,
+					ValidIssuer = builder.Configuration["Jwt:Issuer"],
+					ValidAudience = builder.Configuration["Jwt:Audience"],
+					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+				};
+			});
+			// Add services to the container.
+
+			builder.Services.AddControllers();
+			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+			builder.Services.AddEndpointsApiExplorer();
             // Cấu hình CORS
             builder.Services.AddCors(options =>
             {
@@ -101,7 +106,12 @@ namespace Meiko
 			builder.Services.AddSwaggerGen();
 			var app = builder.Build();
 
-            app.UseCors("AllowLocalhost3000");
+			// Thiết lập bỏ qua SSL
+			ServicePointManager.ServerCertificateValidationCallback +=
+				(sender, cert, chain, sslPolicyErrors) => true;
+
+
+			app.UseCors("AllowLocalhost3000");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -114,7 +124,7 @@ namespace Meiko
 
 			app.UseAuthentication();
 
-            app.UseAuthorization();
+			app.UseAuthorization();
 
 			//app.UseCors("AllowAll");
 

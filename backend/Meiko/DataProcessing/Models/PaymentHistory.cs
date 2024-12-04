@@ -33,15 +33,19 @@ namespace DataProcessing.Models
 	{
 		[Display(Name = "Tiền mặt")]
 		TienMat = 0,
-		[Display(Name = "Thanh toán qua ngân hàng")]
+		[Display(Name = "Chuyển khoản")]
 		NganHang = 1
 	}
 
 	public enum StatusForPayment
 	{
-		[Display(Name = "Ổn định")]
-		OnDinh = 0,
-		[Display(Name = "Đã hoàn trả")]
-		DaHoanTra = 1,
+		[Display(Name = "PAID")]
+		Paid = 0,
+		[Display(Name = "PENDING")]
+		Pending = 1,
+		[Display(Name = "PROCESSING")]
+		Processing = 2,
+		[Display(Name = "CANCELLED")]
+		Cancelled = 3
 	}
 }

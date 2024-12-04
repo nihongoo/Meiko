@@ -6,6 +6,8 @@ using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
+using Net.payOS.Types;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Crmf;
 using RestSharp;
@@ -18,10 +20,18 @@ namespace API.Services
 	{
 		private readonly AppDbContext _dbcontext;
 		private readonly ICartDetailServices _cartDetailServices;
-		public BillServices(AppDbContext context, ICartDetailServices cartDetailServices)
+		private readonly string _baseUrl;
+		private readonly string _apiKey;
+		private readonly string _checkSum;
+		private readonly string _clientId;
+		public BillServices(AppDbContext context, ICartDetailServices cartDetailServices, IConfiguration configuration)
 		{
 			_dbcontext = context;
 			_cartDetailServices = cartDetailServices;
+			_baseUrl = configuration["PayOS:BaseUrl"];
+			_apiKey = configuration["PayOS:ApiKey"];
+			_checkSum = configuration["PayOS:CheckSumKey"];
+			_clientId = configuration["PayOS:ClientId"];
 		}
 
 		//View
@@ -565,7 +575,7 @@ namespace API.Services
 
 			return (true, Id);
 		}
-		public async Task<bool> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
+		public async Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -589,29 +599,43 @@ namespace API.Services
 						BillId = BillId
 					});
 
+
+
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
-					return true;
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Đã chuyển trạng thái thành công"
+					};
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
 
-					Console.WriteLine(ex.Message);
-					return false;
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã có lỗi xảy ra : {ex.InnerException}"
+					};
 				}
 			}
 		}
-		public async Task<bool> Delete(Guid Id)
+		public async Task<ReturnMessage> Delete(Guid Id)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
 					var bill = await _dbcontext.Bills.Where(c => c.Id == Id).FirstOrDefaultAsync();
-					if (bill == null) return false;
+					if (bill == null)
+						return new ReturnMessage()
+						{
+							status = 1,
+							message = "Không tìm thấy hoá đơn để xoá"
+						};
 					if (bill.Total == 0) _dbcontext.Bills.Remove(bill);
 					else
 					{
@@ -622,22 +646,29 @@ namespace API.Services
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
-					return true;
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Xoá thành công hoá đơn"
+					};
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
 
-					Console.WriteLine(ex.Message);
-					return false;
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã có lỗi xảy ra : {ex.InnerException}"
+					};
 				}
 			}
 		}
 
 
 		//Shipping Address
-		public async Task<bool> AddAddressToBill(ShippingAddressInfoModel model)
+		public async Task<ReturnMessage> AddAddressToBill(ShippingAddressInfoModel model)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -659,19 +690,26 @@ namespace API.Services
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
-					return true;
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Đã thêm thành công địa chỉ giao hàng"
+					};
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
 
-					Console.WriteLine(ex.Message);
-					return false;
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã có lỗi xảy ra khi thêm địa chỉ : {ex.InnerException}"
+					};
 				}
 			}
 		}
-		public async Task DeleteAddress(Guid Id)
+		public async Task<ReturnMessage> DeleteAddress(Guid Id)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -685,16 +723,25 @@ namespace API.Services
 
 					await dbTransaction.CommitAsync();
 
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Đã xoá thành công địa chỉ khỏi hoá đơn"
+					};
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
 
-					Console.WriteLine(ex.Message);
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = "Đã có lỗi xảy ra khi xoá địa chỉ này"
+					};
 				}
 			}
 		}
-		public async Task EditAddress(Guid Id, ShippingAddressInfoModel model)
+		public async Task<ReturnMessage> EditAddress(Guid Id, ShippingAddressInfoModel model)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -714,19 +761,28 @@ namespace API.Services
 
 					await dbTransaction.CommitAsync();
 
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Sửa thành công địa chỉ giao hàng"
+					};
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
 
-					Console.WriteLine(ex.Message);
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = "Đã có lỗi xảy ra khi sửa địa chỉ"
+					};
 				}
 			}
 		}
 
 
 		//Payment History
-		public async Task<bool> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId)
+		public async Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -742,130 +798,77 @@ namespace API.Services
 						BillId = BillId
 					});
 
+					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.Bills).ToListAsync();
+					List<ProductDetails> productDetails = new List<ProductDetails>();
+					for (int i = 0; i < billDetails.Count; i++)
+					{
+						ProductDetails productDetail = await _dbcontext.ProductDetails.FindAsync(billDetails[i].ProductDetails.Id);
+						if (billDetails[i].Quantity > productDetail.Quantity)
+							return new ReturnMessage()
+							{
+								status = 1,
+								message = $"Số lượng sản phẩm {productDetail.Products.Name} trong kho không đủ cho đơn hàng"
+							};
+						productDetail.Quantity -= billDetails[i].Quantity;
+
+						productDetails.Add(productDetail);
+					}
+
+					_dbcontext.ProductDetails.UpdateRange(productDetails);
+
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
-					return true;
+					return new ReturnMessage() { status = 0, message = $"Thanh toán thành công ${AmountInput} cho đơn hàng {billDetails.First().Bills.BillCode}!" };
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
-
-					Console.WriteLine(ex.Message);
-					return false;
+					return new ReturnMessage() { status = 2, message = $"Đã có lỗi xảy ra: {ex.InnerException}" };
 				}
 			}
 		}
 
-		public async Task<bool> DeletePaymentById(Guid id, bool confirmDelete)
+		public async Task<ReturnMessage> CancelPaymentById(Guid id)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
-					var payment = await _dbcontext.PaymentHistories.Where(c => c.Id == id).FirstOrDefaultAsync();
+					var payment = await _dbcontext.PaymentHistories.Where(c => c.Id == id).Include(ph => ph.Bill).FirstOrDefaultAsync();
 
-					if (payment == null) return false;
-
-					if (confirmDelete) _dbcontext.PaymentHistories.Remove(payment);
-
-					payment.Status = StatusForPayment.DaHoanTra;
+					payment.Status = StatusForPayment.Cancelled;
 					_dbcontext.PaymentHistories.Update(payment);
+
+					PayOS payOs = new PayOS(_clientId, _apiKey, _checkSum);
+					var result = await payOs.cancelPaymentLink(long.Parse(payment.Bill.BillCode));
 
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
-					return true;
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = result.ToString()
+					};
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
 
-					Console.WriteLine(ex.Message);
-					return false;
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã có lỗi xảy ra trong quá trình xoá : {ex.InnerException}"
+					};
 				}
 			}
 		}
-		// MomoAPI
-		public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
-		{
-			model.OrderId = DateTime.UtcNow.Ticks.ToString();
-			model.OrderInfo = "Khách hàng: " + model.FullName + ". Nội dung: " + model.OrderInfo;
-			var rawData =
-				$"partnerCode=MOMO" +
-				$"&accessKey=F8BBA842ECF85" +
-				$"&requestId={model.OrderId}" +
-				$"&amount={model.Amount}" +
-				$"&orderId={model.OrderId}" +
-				$"&orderInfo={model.OrderInfo}" +
-				$"&returnUrl=https://localhost:7172/api/Bills/Momo/CallBack" +
-				$"&notifyUrl=https://localhost:7172/api/Bills/Momo/Notify" +
-				$"&extraData=";
-
-			var signature = ComputeHmacSha256(rawData, "K951B6PE1waDMi640xX08PD3vg6EkVlz");
-
-			var client = new RestClient("https://test-payment.momo.vn/gw_payment/transactionProcessor");
-			var request = new RestRequest() { Method = Method.Post };
-			request.AddHeader("Content-Type", "application/json; charset=UTF-8");
-
-			// Create an object representing the request data
-			var requestData = new
-			{
-				accessKey = "F8BBA842ECF85",
-				partnerCode = "MOMO",
-				requestType = "captureMoMoWallet",
-				notifyUrl = "https://localhost:7172/api/Bills/Momo/Notify",
-				returnUrl = "https://localhost:7172/api/Bills/Momo/CallBack",
-				orderId = model.OrderId,
-				amount = model.Amount.ToString(),
-				orderInfo = model.OrderInfo,
-				requestId = model.OrderId,
-				extraData = "",
-				signature = signature
-			};
-
-			request.AddParameter("application/json", JsonConvert.SerializeObject(requestData), ParameterType.RequestBody);
-
-			var response = await client.ExecuteAsync(request);
-			var momoResponse = JsonConvert.DeserializeObject<MomoCreatePaymentResponseModel>(response.Content);
-			return momoResponse;
-
-		}
-		public async Task<MomoExecuteResponseModel> PaymentExecuteAsync(IQueryCollection collection)
-		{
-			var amount = collection.First(s => s.Key == "amount").Value;
-			var orderInfo = collection.First(s => s.Key == "orderInfo").Value;
-			var orderId = collection.First(s => s.Key == "orderId").Value;
-
-			return new MomoExecuteResponseModel()
-			{
-				Amount = amount,
-				OrderId = orderId,
-				OrderInfo = orderInfo
-
-			};
-		}
-		private string ComputeHmacSha256(string message, string secretKey)
-		{
-			var keyBytes = Encoding.UTF8.GetBytes(secretKey);
-			var messageBytes = Encoding.UTF8.GetBytes(message);
-
-			byte[] hashBytes;
-
-			using (var hmac = new HMACSHA256(keyBytes))
-			{
-				hashBytes = hmac.ComputeHash(messageBytes);
-			}
-
-			var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-
-			return hashString;
-		}
 
 		// BillDetails
-		public async Task<bool> AddToBill(BillDetailInfoModel model)
+		public async Task<ReturnMessage> AddToBill(BillDetailInfoModel model)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -908,7 +911,11 @@ namespace API.Services
 
 					await dbTransaction.CommitAsync();
 
-					return true;
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Đã thêm vào hoá đơn thành công"
+					};
 				}
 				catch (Exception ex)
 				{
@@ -916,21 +923,31 @@ namespace API.Services
 
 					Console.WriteLine(ex.Message);
 
-					return false;
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã xảy ra lỗi khi thêm vào hoá đơn : {ex.InnerException}"
+					};
 				}
 			}
 		}
 
-		public async Task<bool> AddQuantity(Guid Id, int Quantity)
+		public async Task<ReturnMessage> AddQuantity(Guid Id, int Quantity)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
 					var billDetail = await _dbcontext.BillDetails.FindAsync(Id);
-					var productDetail = await _dbcontext.ProductDetails.FindAsync(billDetail.ProductDetailId);
+					var productDetail = await _dbcontext.ProductDetails
+						.Include(pd => pd.Products)
+						.FirstOrDefaultAsync(pd => pd.Id == billDetail.ProductDetailId);
 
-					if (billDetail == null) return false;
+					if (billDetail == null) return new ReturnMessage()
+					{
+						status = 1,
+						message = "Không tìm thấy sản phẩm này trong hoá đơn"
+					};
 
 					billDetail.Quantity += Quantity;
 
@@ -949,7 +966,11 @@ namespace API.Services
 
 					await dbTransaction.CommitAsync();
 
-					return true;
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = $"Đã thêm {Quantity} {productDetail.Products.Name} vào hoá đơn"
+					};
 				}
 				catch (Exception ex)
 				{
@@ -957,21 +978,31 @@ namespace API.Services
 
 					Console.WriteLine(ex.Message);
 
-					return false;
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã xảy ra lỗi khi thêm sản phẩm vào hoá đơn : {ex.InnerException}"
+					};
 				}
 			}
 		}
 
-		public async Task<bool> ChangeQuantityFor(Guid Id, int Quantity)
+		public async Task<ReturnMessage> ChangeQuantityFor(Guid Id, int Quantity)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
 					var billDetail = await _dbcontext.BillDetails.FindAsync(Id);
-					var productDetail = await _dbcontext.ProductDetails.FindAsync(billDetail.ProductDetailId);
+					var productDetail = await _dbcontext.ProductDetails
+						.Include(pd => pd.Products)
+						.FirstOrDefaultAsync(pd => pd.Id == billDetail.ProductDetailId);
 
-					if (billDetail == null) return false;
+					if (billDetail == null) return new ReturnMessage()
+					{
+						status = 1,
+						message = "Không tìm thấy sản phẩm cần đổi số lượng"
+					};
 
 					billDetail.Quantity = Quantity;
 
@@ -990,7 +1021,11 @@ namespace API.Services
 
 					await dbTransaction.CommitAsync();
 
-					return true;
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = $"Đã đổi số lượng sản phẩm của {productDetail.Products.Name} trong hoá đơn thành {Quantity}"
+					};
 				}
 				catch (Exception ex)
 				{
@@ -998,10 +1033,144 @@ namespace API.Services
 
 					Console.WriteLine(ex.Message);
 
-					return false;
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã xảy ra lỗi khi đổi số lượng sản phẩm : {ex.InnerException}"
+					};
 				}
 			}
 
+		}
+
+		// Momo API
+		public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
+		{
+			model.OrderInfo = "Khách hàng: " + model.FullName + ". Nội dung: " + model.OrderInfo;
+			var rawData =
+				$"partnerCode=MOMO" +
+				$"&accessKey=F8BBA842ECF85" +
+				$"&requestId={model.OrderId}" +
+				$"&amount={model.Amount}" +
+				$"&orderId={model.OrderId}" +
+				$"&orderInfo={model.OrderInfo}" +
+				$"&returnUrl=https://localhost:7172/api/Bills/Momo/CallBack/" +
+				$"&notifyUrl=https://localhost:7172/api/Bills/Momo/Notify" +
+				$"&extraData=";
+
+			var signature = ComputeHmacSha256(rawData, "K951B6PE1waDMi640xX08PD3vg6EkVlz");
+
+			var client = new RestClient("https://test-payment.momo.vn/gw_payment/transactionProcessor");
+			var request = new RestRequest() { Method = Method.Post };
+			request.AddHeader("Content-Type", "application/json; charset=UTF-8");
+
+			// Create an object representing the request data
+			var requestData = new
+			{
+				accessKey = "F8BBA842ECF85",
+				partnerCode = "MOMO",
+				requestType = "captureMoMoWallet",
+				notifyUrl = "https://localhost:7172/api/Bills/Momo/Notify",
+				returnUrl = $"https://localhost:7172/api/Bills/Momo/CallBack/",
+				orderId = model.OrderId,
+				amount = model.Amount.ToString(),
+				orderInfo = model.OrderInfo,
+				requestId = model.OrderId,
+				extraData = "",
+				signature = signature
+			};
+
+			request.AddParameter("application/json", JsonConvert.SerializeObject(requestData), ParameterType.RequestBody);
+
+			var response = await client.ExecuteAsync(request);
+			var momoResponse = JsonConvert.DeserializeObject<MomoCreatePaymentResponseModel>(response.Content);
+			return momoResponse;
+
+		}
+		public async Task<MomoExecuteResponseModel> PaymentExecuteAsync(IQueryCollection collection)
+		{
+			var amount = collection.First(s => s.Key == "amount").Value;
+			var orderInfo = collection.First(s => s.Key == "orderInfo").Value;
+			var orderId = collection.First(s => s.Key == "orderId").Value;
+
+			return new MomoExecuteResponseModel()
+			{
+				Amount = long.Parse(amount),
+				OrderId = orderId,
+				OrderInfo = orderInfo
+
+			};
+		}
+		private string ComputeHmacSha256(string message, string secretKey)
+		{
+			var keyBytes = Encoding.UTF8.GetBytes(secretKey);
+			var messageBytes = Encoding.UTF8.GetBytes(message);
+
+			byte[] hashBytes;
+
+			using (var hmac = new HMACSHA256(keyBytes))
+			{
+				hashBytes = hmac.ComputeHash(messageBytes);
+			}
+
+			var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+			return hashString;
+		}
+
+		//PayOS API
+		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(OrderInfoModel model)
+		{
+			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{model.OrderId}";
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{model.OrderId}";
+
+			PayOS payment = new(_clientId, _apiKey, _checkSum);
+			var list = new List<ItemData>();
+			var listProduct = await _dbcontext.BillDetails.Where(bd => bd.BillId == Guid.Parse(model.OrderId))
+				.Include(bd => bd.ProductDetails)
+				.ThenInclude(pd => pd.Products)
+				.ToListAsync();
+			if (listProduct == null)
+			{
+				list.Add(new ItemData(null, 1, 0));
+			}
+			else
+			{
+				foreach (var item in listProduct)
+				{
+					list.Add(new ItemData(item.ProductDetails.Products.Name, item.Quantity, (int)item.Price));
+				};
+			}
+
+			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+				(int)model.Amount,
+				model.OrderInfo,
+				list,
+				cancelUrl,
+				returnUrl
+			);
+
+			var paymentResult = await payment.createPaymentLink(paymentRequestOs);
+			return paymentResult;
+		}
+
+		public static string GenerateSignature(decimal amount, string cancelUrl, string description, string orderCode, string returnUrl, string checksumKey)
+		{
+			// Tạo chuỗi data theo định dạng được sắp xếp alphabet
+			string data = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
+
+			// Chuyển checksumKey thành byte
+			var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
+
+			// Tạo chữ ký HMAC_SHA256
+			using (var hmac = new HMACSHA256(keyBytes))
+			{
+				var dataBytes = Encoding.UTF8.GetBytes(data);
+				var hashBytes = hmac.ComputeHash(dataBytes);
+
+				// Chuyển đổi hash thành chuỗi hex
+				return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+			}
 		}
 
 		private async Task UpdatePrice(Guid BillId)
