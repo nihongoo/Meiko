@@ -25,7 +25,7 @@ namespace API.Controllers
 		private readonly string _clientId;
 		private readonly ToolDB<Bills> _tool;
 
-		public BillsController(IBillServices billServices, IConfiguration configuration)
+		public BillsController(IBillServices billServices, IConfiguration configuration, ToolDB<Bills> tool)
         {
             _IBillServices = billServices;
 			_apiKey = configuration["PayOS:ApiKey"];
@@ -204,9 +204,9 @@ namespace API.Controllers
 		[HttpPost("Momo/Notify")]
 		public async Task<IActionResult> GetCallBack([FromBody] MomoExecuteResponseModel collection)
 		{
-			if (collection.ErrorCode == 0)
+			if (collection.ResultCode == 0)
 			{
-				await _IBillServices.Pay(decimal.Parse(collection.Amount), 0, 1, Guid.Parse(collection.OrderId));
+				await _IBillServices.Pay(collection.Amount, 0, 1, Guid.Parse(collection.OrderId));
 			}
 
 			return Ok(collection);
