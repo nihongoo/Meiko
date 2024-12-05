@@ -1,145 +1,110 @@
-import TableLG from './TableLG.js';
-import SearchInput from '../../component/Search/index.js';
-import apiURL from '../../routes/API/index.js';
-import { useState, useEffect, useCallback } from 'react';
-import moment from 'moment';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel } from '@mui/material';
+import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button, CircularProgress, Typography, Box } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+import moment from 'moment';
+import SearchInput from '../../component/Search';
+import apiURL from '../../routes/API';
+import useFetchData from '../../customHook/useFetchData';
 
 function ManageProduct() {
-    const [product, setProduct] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [dataChange, setDataChange] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
     const [searchType, setSearchType] = useState('isSearchWithName=true');
 
-    const formatProductData = (item) => ({
-        id: item.id,
-        name: item.name,
-        productCode: item.productCode,
-        createTime: item.createTime,
-        image: item.imageUrl,
-        status: item.status,
-    });
+    const formatProductData = (data) =>
+        data.map((item, index) => ({
+            id: item.id,
+            stt: index + 1,
+            name: item.name,
+            productCode: item.productCode,
+            createTime: moment(item.createTime).format('DD-MM-YYYY'),
+            image: item.imageUrl,
+            status: item.status === 1 ? 'Active' : 'Inactive',
+        }));
 
-    const fetchProductData = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(apiURL.product.all);
-            if (!response.ok) throw new Error('Network response was not ok');
-            const data = await response.json();
-            setProduct(data.map(formatProductData));
-            setDataChange(false);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const {
+        data: product,
+        loading,
+        error,
+        refetch,
+    } = useFetchData(apiURL.product.all, formatProductData);
 
-    useEffect(() => {
-        fetchProductData();
-    }, [dataChange, fetchProductData]);
+    const handleSearch = () => refetch();
 
-    const handleSearch = (data) => setProduct(data.map(formatProductData));
-    const handleChangeData = () => setDataChange(true);
-    const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
-    const handleItemsPerPageChange = (event) => setItemsPerPage(Number(event.target.value));
-
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-
-    const currentItems = product.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-    const totalPages = Math.ceil(product.length / itemsPerPage);
+    if (loading) return <Box textAlign="center"><CircularProgress /></Box>;
+    if (error) return <Typography color="error">Error: {error}</Typography>;
 
     const columns = [
-        { Header: 'STT', accessor: 'serialNumber' },
-        { Header: 'Tên sản phẩm', accessor: 'name' },
-        { Header: 'Mã sản phẩm', accessor: 'productCode' },
+        { field: 'stt', headerName: 'STT', flex: 0.5 },
+        { field: 'name', headerName: 'Tên sản phẩm', flex: 1 },
+        { field: 'productCode', headerName: 'Mã sản phẩm', flex: 1 },
+        { field: 'createTime', headerName: 'Ngày thêm', flex: 1 },
         {
-            Header: 'Ngày thêm',
-            accessor: 'createTime',
-            Cell: ({ value }) => moment(value).format('DD-MM-YYYY'),
-        },
-        {
-            Header: 'Ảnh',
-            accessor: 'image',
-            Cell: ({ value }) => (
-                <img src={value} alt="Product" style={{ width: '50px', height: '50px' }} />
+            field: 'image',
+            headerName: 'Ảnh',
+            flex: 1,
+            renderCell: (params) => (
+                <img src={params.value} alt="Product" style={{ width: '50px', height: '50px' }} />
             ),
         },
-        { Header: 'Status', accessor: 'status' },
+        { field: 'status', headerName: 'Trạng thái', flex: 1 },
     ];
 
     return (
-        <div className="border rounded-3" style={{backgroundColor:'#fff'}}>
-            <div className="d-flex justify-content-center m-2">
-                <h2>Thông tin sản phẩm</h2>
-            </div>
-            <div className="p-3">
-                <div className="d-flex mb-2 justify-content-between">
-                    <div className='d-flex align-items-center'>
-                        <SearchInput
-                            ApiURL={apiURL.product.search}
-                            onSearch={handleSearch}
-                            optional={searchType}
-                        />
-                    </div>
-                    <FormControl component="fieldset">
-                        <FormLabel component="legend" className="m-0">Tìm kiếm theo:</FormLabel>
-                        <RadioGroup
-                            row
-                            value={searchType}
-                            onChange={(e) => setSearchType(e.target.value)}
-                        >
-                            <FormControlLabel value="isSearchWithName=true" control={<Radio />} label="Tên sản phẩm" />
-                            <FormControlLabel value="isSearchWithName=false" control={<Radio />} label="Mã sản phẩm" />
-                        </RadioGroup>
-                    </FormControl>
-                    <div className='d-flex align-items-center'>
-                        <Link to='/manageproduct/add' className='btn btn-outline-success'>
-                            + Thêm mới
-                        </Link>
-                    </div>
-                </div>
-                <TableLG
-                    columns={columns}
-                    data={currentItems.map((item, index) => ({
-                        ...item,
-                        serialNumber: index + 1 + (currentPage - 1) * itemsPerPage,
-                    }))}
-                    onChangeData={handleChangeData}
-                    apiURLDel={apiURL.product.delete}
-                    apiURLEdit={apiURL.product.edit}
+        <Box p={3} bgcolor="#fff" borderRadius={2}>
+            <Typography variant="h5" align="center" gutterBottom>Thông tin sản phẩm</Typography>
+
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <SearchInput
+                    ApiURL={apiURL.product.search}
+                    onSearch={handleSearch}
+                    optional={searchType}
                 />
-                <div className="d-flex justify-content-between mt-3">
-                    <div>
-                        <label>Số lượng mục trên trang:</label>
-                        <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
-                            {[5, 10, 15, 20].map((size) => (
-                                <option key={size} value={size}>{size}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        {Array.from({ length: totalPages }, (_, index) => (
-                            <button
-                                key={index + 1}
-                                onClick={() => handlePageChange(index + 1)}
-                                className={`btn ${currentPage === index + 1 ? 'btn-primary' : 'btn-secondary'} mx-1`}
-                            >
-                                {index + 1}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
+
+                <FormControl>
+                    <FormLabel>Tìm kiếm theo:</FormLabel>
+                    <RadioGroup
+                        row
+                        value={searchType}
+                        onChange={(e) => setSearchType(e.target.value)}
+                    >
+                        <FormControlLabel value="isSearchWithName=true" control={<Radio />} label="Tên sản phẩm" />
+                        <FormControlLabel value="isSearchWithName=false" control={<Radio />} label="Mã sản phẩm" />
+                    </RadioGroup>
+                </FormControl>
+
+                <Button
+                    variant="outlined"
+                    color="success"
+                    component={Link}
+                    to="/manageproduct/add"
+                >
+                    + Thêm mới
+                </Button>
+            </Box>
+
+            <DataGrid
+                autoHeight
+                rows={product}
+                columns={columns}
+                pageSizeOptions={[5, 10, 15, 20]}
+                pagination
+                disableRowSelectionOnClick
+                rowHeight={80} // Tăng chiều cao của mỗi hàng
+                sx={{
+                    border: 'none',
+                    '& .MuiDataGrid-cell': {
+                        borderBottom: 'none',
+                    },
+                    '& .MuiDataGrid-columnHeaders': {
+                        borderBottom: 'none',
+                    },
+                    backgroundColor: '#fff',
+                    minHeight: 550, // Đặt chiều cao tối thiểu
+                    maxHeight: 'calc(100vh - 200px)', // Đặt chiều cao tối đa (nếu cần)
+                }}
+            />
+
+        </Box>
     );
 }
 
