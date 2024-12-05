@@ -5,9 +5,6 @@ namespace API.Models
 {
 	public class BillInfoModel
 	{
-
-		public string? BillCode { get; set; }
-
 		public bool IsShipping { get; set; }
 
 		[Range(0, double.MaxValue, ErrorMessage = "Tổng tiền phải lớn hơn hoặc bằng 0.")]
@@ -31,7 +28,6 @@ namespace API.Models
 	{
 		public int StatusType { get; set; }
 		public string? Note { get; set; }
-
 		public Guid StaffWhoCreatedThis { get; set; }
 	}
 }

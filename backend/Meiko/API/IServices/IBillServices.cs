@@ -33,7 +33,7 @@ namespace API.IServices
 		//Bill
 		Task<ReturnMessage> Delete(Guid Id);
 		Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis);
-		Task<(bool k, Guid id)> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId); // Từ giỏ hàng lấy những sản phẩm trong giỏ hàng.
+		Task<(bool k, Guid id)> Create(bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId); // Từ giỏ hàng lấy những sản phẩm trong giỏ hàng.
 
 		//ShippingAddress
 		Task<ReturnMessage> AddAddressToBill(ShippingAddressInfoModel model);
@@ -43,7 +43,7 @@ namespace API.IServices
 
 		//PaymentHistory
 		Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId);
-		Task<ReturnMessage> CancelPaymentById(Guid id);
+		Task<ReturnMessage> CancelPaymentById(Guid id, long billCode);
 
 		//BillDetails
 		Task<ReturnMessage> AddToBill(BillDetailInfoModel model);
@@ -53,10 +53,10 @@ namespace API.IServices
 		Task<(bool k, string msg)> DeleteBillDetail(Guid Id);
 		
 		//Momo API
-		Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model);
+		Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(Guid id, string description);
 		Task<MomoExecuteResponseModel> PaymentExecuteAsync(IQueryCollection collection);
 
 		//PayOS API
-		Task<CreatePaymentResult> CreatePayOSRequestAsync(OrderInfoModel model);
+		Task<CreatePaymentResult> CreatePayOSRequestAsync(Guid id, string description);
 	}
 }

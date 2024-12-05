@@ -502,7 +502,7 @@ namespace API.Services
 
 
 		// Bill
-		public async Task<(bool k, Guid id)> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId)
+		public async Task<(bool k, Guid id)> Create(bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId)
 		{
 			bool check = false;
 			Guid billId = Guid.Empty;
@@ -515,7 +515,7 @@ namespace API.Services
 					Bills bill = new Bills()
 					{
 						Id = Guid.NewGuid(),
-						BillCode = BillCode,
+						BillCode = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString(),
 						IsShipping = IsShiping,
 						Total = 0,
 						CreatedDate = DateTime.Now,
@@ -531,6 +531,16 @@ namespace API.Services
 
 					billId = bill.Id;
 
+					StatusHistory statusHistory = new StatusHistory()
+					{
+						Id = Guid.NewGuid(),
+						CreatedDate = DateTime.Now,
+						StatusType = StatusType.TaoHoaDon,
+						WhoCreatedThis = CustomerWhoCreateThis != null ? (Guid)CustomerWhoCreateThis : (Guid)StaffWhoCreateThis,
+						BillId = billId
+					};
+
+					await _dbcontext.StatusHistories.AddAsync(statusHistory);
 					if (CartId != null)
 					{
 						List<CartDetails>? cartDetails = await _dbcontext.CartDetails.Where(cd => cd.CartId == CartId).ToListAsync();
@@ -630,18 +640,31 @@ namespace API.Services
 				try
 				{
 					var bill = await _dbcontext.Bills.Where(c => c.Id == Id).FirstOrDefaultAsync();
-					if (bill == null)
+					if (bill == null || bill.Status == StatusType.DaHuy)
 						return new ReturnMessage()
 						{
 							status = 1,
-							message = "Không tìm thấy hoá đơn để xoá"
+							message = "Hoá đơn đã xoá hoặc đã huỷ"
 						};
-					if (bill.Total == 0) _dbcontext.Bills.Remove(bill);
-					else
+					if (bill.Total > 0)
 					{
-						bill.Status = StatusType.DaHuy;
-						_dbcontext.Bills.Update(bill);
-					}
+						var billDetails = await _dbcontext.BillDetails.Where(bd => bd.BillId == Id).ToListAsync();
+						if (billDetails != null)
+						{
+							var productDetails = await _dbcontext.ProductDetails.ToListAsync();
+							var query = from bd in billDetails
+										join pd in productDetails
+										on bd.ProductDetailId equals pd.Id
+										select pd;
+							query.ToList().ForEach(product =>
+							{
+								product.Quantity += billDetails.FirstOrDefault(bd => bd.ProductDetailId == product.Id).Quantity;
+							});
+
+							_dbcontext.ProductDetails.UpdateRange(query);
+						}
+					
+					}else _dbcontext.Bills.Remove(bill);
 
 					await _dbcontext.SaveChangesAsync();
 
@@ -660,7 +683,7 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 2,
-						message = $"Đã có lỗi xảy ra : {ex.InnerException}"
+						message = $"Đã có lỗi xảy ra : {ex.Message}"
 					};
 				}
 			}
@@ -674,6 +697,19 @@ namespace API.Services
 			{
 				try
 				{
+					var bill = _dbcontext.Bills.FirstOrDefaultAsync(b => b.Id == model.BillId).Result;
+					if (bill == null) return new ReturnMessage()
+					{
+						status = 4,
+						message = "Không tìm thấy hoá đơn"
+					};
+
+					if ((int)bill.Status >= 3 && (int)bill.Status <= 5) return new ReturnMessage()
+					{
+						status = 1,
+						message = "Đơn hàng đang trong quá trình vận chuyển hoặc đã vận chuyển nên không thể đổi địa chỉ"
+					};
+
 					await _dbcontext.ShippingAddresses.AddAsync(new ShippingAddress()
 					{
 						Id = Guid.NewGuid(),
@@ -747,6 +783,19 @@ namespace API.Services
 			{
 				try
 				{
+					var bill = _dbcontext.Bills.FirstOrDefaultAsync(b => b.Id == model.BillId).Result;
+					if (bill == null) return new ReturnMessage()
+					{
+						status = 4,
+						message = "Không tìm thấy hoá đơn"
+					};
+
+					if ((int)bill.Status >= 3 && (int)bill.Status <= 5) return new ReturnMessage()
+					{
+						status = 1,
+						message = "Đơn hàng đang trong quá trình vận chuyển hoặc đã vận chuyển nên không thể đổi địa chỉ"
+					};
+
 					var shippingAddress = await _dbcontext.ShippingAddresses.Where(c => c.Id == Id).FirstOrDefaultAsync();
 
 					shippingAddress.RecipientName = model.RecipientName;
@@ -788,6 +837,23 @@ namespace API.Services
 			{
 				try
 				{
+					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.ProductDetails).ToListAsync();
+					var bill = _dbcontext.Bills.FirstOrDefault(b => b.Id == BillId);
+					var billCode = bill.BillCode;
+
+					if (bill.PaymentAmount >= bill.Total)
+						return new ReturnMessage()
+						{
+							status = 3,
+							message = "Đơn hàng đã được thanh toán đủ"
+						};
+
+					if (bill.Status == StatusType.DaHuy)
+						return new ReturnMessage()
+						{
+							status = 4,
+							message = "Đơn hàng đã bị huỷ, không thể thanh toán"
+						};
 					await _dbcontext.PaymentHistories.AddAsync(new PaymentHistory()
 					{
 						Id = Guid.NewGuid(),
@@ -798,7 +864,6 @@ namespace API.Services
 						BillId = BillId
 					});
 
-					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.Bills).ToListAsync();
 					List<ProductDetails> productDetails = new List<ProductDetails>();
 					for (int i = 0; i < billDetails.Count; i++)
 					{
@@ -816,33 +881,46 @@ namespace API.Services
 
 					_dbcontext.ProductDetails.UpdateRange(productDetails);
 
+					bill.PaymentDate = DateTime.Now;
+					bill.PaymentAmount = AmountInput;
+
+					_dbcontext.Bills.Update(bill);
+
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
-					return new ReturnMessage() { status = 0, message = $"Thanh toán thành công ${AmountInput} cho đơn hàng {billDetails.First().Bills.BillCode}!" };
+					return new ReturnMessage() { status = 0, message = $"Thanh toán thành công {AmountInput} VND cho đơn hàng {billCode}!" };
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
-					return new ReturnMessage() { status = 2, message = $"Đã có lỗi xảy ra: {ex.InnerException}" };
+					return new ReturnMessage() { status = 2, message = $"Đã có lỗi xảy ra: {ex.Message}" };
 				}
 			}
 		}
 
-		public async Task<ReturnMessage> CancelPaymentById(Guid id)
+		public async Task<ReturnMessage> CancelPaymentById(Guid id, long billCode)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
 					var payment = await _dbcontext.PaymentHistories.Where(c => c.Id == id).Include(ph => ph.Bill).FirstOrDefaultAsync();
+					var bill = await _dbcontext.Bills.FindAsync(id);
 
-					payment.Status = StatusForPayment.Cancelled;
-					_dbcontext.PaymentHistories.Update(payment);
+
 
 					PayOS payOs = new PayOS(_clientId, _apiKey, _checkSum);
-					var result = await payOs.cancelPaymentLink(long.Parse(payment.Bill.BillCode));
+					var result = await payOs.cancelPaymentLink(billCode);
+
+					bill.PaymentAmount -= result.amount;
+					if (bill.PaymentAmount < 0) bill.PaymentAmount = 0;
+
+					payment.Status = StatusForPayment.Cancelled;
+
+					_dbcontext.PaymentHistories.Update(payment);
+					_dbcontext.Bills.Update(bill);
 
 					await _dbcontext.SaveChangesAsync();
 
@@ -861,7 +939,7 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 2,
-						message = $"Đã có lỗi xảy ra trong quá trình xoá : {ex.InnerException}"
+						message = $"Đã có lỗi xảy ra trong quá trình xoá : {ex.Message}"
 					};
 				}
 			}
@@ -926,7 +1004,7 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 2,
-						message = $"Đã xảy ra lỗi khi thêm vào hoá đơn : {ex.InnerException}"
+						message = $"Đã xảy ra lỗi khi thêm vào hoá đơn : {ex.Message}"
 					};
 				}
 			}
@@ -1044,16 +1122,20 @@ namespace API.Services
 		}
 
 		// Momo API
-		public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
+		public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(Guid id, string description)
 		{
-			model.OrderInfo = "Khách hàng: " + model.FullName + ". Nội dung: " + model.OrderInfo;
+			var bill = _dbcontext.Bills.FirstOrDefaultAsync(b => b.Id == id).Result;
+			if (bill.Total - bill.PaymentAmount <= 0) return new MomoCreatePaymentResponseModel() { };
+
+			var orderInfo = "Nội dung: " + description;
+			var requestId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 			var rawData =
 				$"partnerCode=MOMO" +
 				$"&accessKey=F8BBA842ECF85" +
-				$"&requestId={model.OrderId}" +
-				$"&amount={model.Amount}" +
-				$"&orderId={model.OrderId}" +
-				$"&orderInfo={model.OrderInfo}" +
+				$"&requestId={requestId}" +
+				$"&amount={(long)(bill.Total - bill.PaymentAmount)}" +
+				$"&orderId={id}" +
+				$"&orderInfo={orderInfo}" +
 				$"&returnUrl=https://localhost:7172/api/Bills/Momo/CallBack/" +
 				$"&notifyUrl=https://localhost:7172/api/Bills/Momo/Notify" +
 				$"&extraData=";
@@ -1072,10 +1154,10 @@ namespace API.Services
 				requestType = "captureMoMoWallet",
 				notifyUrl = "https://localhost:7172/api/Bills/Momo/Notify",
 				returnUrl = $"https://localhost:7172/api/Bills/Momo/CallBack/",
-				orderId = model.OrderId,
-				amount = model.Amount.ToString(),
-				orderInfo = model.OrderInfo,
-				requestId = model.OrderId,
+				orderId = id.ToString(),
+				amount = ((long)(bill.Total - bill.PaymentAmount)).ToString(),
+				orderInfo = orderInfo,
+				requestId = requestId,
 				extraData = "",
 				signature = signature
 			};
@@ -1083,6 +1165,7 @@ namespace API.Services
 			request.AddParameter("application/json", JsonConvert.SerializeObject(requestData), ParameterType.RequestBody);
 
 			var response = await client.ExecuteAsync(request);
+			Console.WriteLine(response.Content);
 			var momoResponse = JsonConvert.DeserializeObject<MomoCreatePaymentResponseModel>(response.Content);
 			return momoResponse;
 
@@ -1119,17 +1202,19 @@ namespace API.Services
 		}
 
 		//PayOS API
-		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(OrderInfoModel model)
+		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(Guid id, string description)
 		{
-			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{model.OrderId}";
-			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{model.OrderId}";
+			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{id}";
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}";
 
 			PayOS payment = new(_clientId, _apiKey, _checkSum);
 			var list = new List<ItemData>();
-			var listProduct = await _dbcontext.BillDetails.Where(bd => bd.BillId == Guid.Parse(model.OrderId))
+			var listProduct = await _dbcontext.BillDetails.Where(bd => bd.BillId == id)
 				.Include(bd => bd.ProductDetails)
 				.ThenInclude(pd => pd.Products)
 				.ToListAsync();
+			var bill = await _dbcontext.Bills.FindAsync(id);
+			
 			if (listProduct == null)
 			{
 				list.Add(new ItemData(null, 1, 0));
@@ -1143,8 +1228,8 @@ namespace API.Services
 			}
 
 			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-				(int)model.Amount,
-				model.OrderInfo,
+				(int)(bill.Total - bill.PaymentAmount),
+				description,
 				list,
 				cancelUrl,
 				returnUrl
@@ -1154,31 +1239,31 @@ namespace API.Services
 			return paymentResult;
 		}
 
-		public static string GenerateSignature(decimal amount, string cancelUrl, string description, string orderCode, string returnUrl, string checksumKey)
-		{
-			// Tạo chuỗi data theo định dạng được sắp xếp alphabet
-			string data = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
+		//public static string GenerateSignature(decimal amount, string cancelUrl, string description, string orderCode, string returnUrl, string checksumKey)
+		//{
+		//	// Tạo chuỗi data theo định dạng được sắp xếp alphabet
+		//	string data = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
 
-			// Chuyển checksumKey thành byte
-			var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
+		//	// Chuyển checksumKey thành byte
+		//	var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
 
-			// Tạo chữ ký HMAC_SHA256
-			using (var hmac = new HMACSHA256(keyBytes))
-			{
-				var dataBytes = Encoding.UTF8.GetBytes(data);
-				var hashBytes = hmac.ComputeHash(dataBytes);
+		//	// Tạo chữ ký HMAC_SHA256
+		//	using (var hmac = new HMACSHA256(keyBytes))
+		//	{
+		//		var dataBytes = Encoding.UTF8.GetBytes(data);
+		//		var hashBytes = hmac.ComputeHash(dataBytes);
 
-				// Chuyển đổi hash thành chuỗi hex
-				return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-			}
-		}
+		//		// Chuyển đổi hash thành chuỗi hex
+		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+		//	}
+		//}
 
 		private async Task UpdatePrice(Guid BillId)
 		{
 			var bill = await _dbcontext.Bills.FindAsync(BillId);
 
 			bill.Total = bill.BillDetails == null ? 0 : bill.BillDetails.Sum(bd => bd.Price);
-			if (bill.VoucherId != null) 
+			if (bill.VoucherId != null)
 			{
 				var voucher = await _dbcontext.Vouchers.FindAsync(bill.VoucherId);
 				bill.Total -= (bill.Total * (decimal)voucher.Value) / 100;
