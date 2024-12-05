@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import 'font-awesome/css/font-awesome.min.css';
 import styles from './FeaturedProducts.module.css';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState([]);
@@ -171,8 +172,8 @@ const FeaturedProducts = () => {
   };
   
 
-  if (loading) return <div>Đang tải dữ liệu...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <div className='d-flex justify-content-center'><CircularProgress/></div>;
+  if (error) return <div className='d-flex justify-content-center'>{error}</div>;
 
   return (
     <div className={styles.featuredProducts} style={{ marginTop: '70px' }}>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Rating } from '@mui/material';
 import { Button, Form, Alert, Image } from 'react-bootstrap';
-import { FaThumbsUp, FaThumbsDown, FaTrashAlt } from 'react-icons/fa';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import DeleteIcon from '@mui/icons-material/Delete';
 import styles from './ProductReviews.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify'; // Import react-toastify
@@ -209,7 +211,7 @@ const ProductReviews = ({ productId }) => {
                           className={styles.deleteButton}
                           onClick={() => handleDeleteReview(review.id)}
                         >
-                          <FaTrashAlt />
+                          <DeleteIcon />
                         </Button>
                       )}
                     </div>
@@ -224,7 +226,7 @@ const ProductReviews = ({ productId }) => {
                         onClick={() => handleHelpful(review.id, true)}
                         disabled={review.userInteractions?.[customerId] === 'like'}
                       >
-                        <FaThumbsUp /> {review.helpfulCount}
+                        <ThumbUpIcon /> {review.helpfulCount}
                       </button>
                       |
                       <button
@@ -232,7 +234,7 @@ const ProductReviews = ({ productId }) => {
                         onClick={() => handleHelpful(review.id, false)}
                         disabled={review.userInteractions?.[customerId] === 'dislike'}
                       >
-                        <FaThumbsDown /> {review.unhelpfulCount}
+                        <ThumbDownIcon /> {review.unhelpfulCount}
                       </button>
                     </div>
                   </div>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from './ProductDetail.module.css';
 import ProductReviews from './ProductReview';
 import RelatedProducts from './RelatedProducts';
+import { CircularProgress } from '@mui/material';
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -74,7 +75,7 @@ const ProductDetail = () => {
   }, [selectedSize, selectedColor, product]);
 
   // Nếu đang tải dữ liệu
-  if (loading) return <div className={styles.loading}>Đang tải dữ liệu...</div>;
+  if (loading) return <div className='d-flex justify-content-center'><CircularProgress/></div>;
 
   // Nếu có lỗi khi tải dữ liệu
   if (error) return <div className={styles.error}>{error}</div>;

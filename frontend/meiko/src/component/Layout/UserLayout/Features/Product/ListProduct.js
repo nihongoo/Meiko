@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import 'font-awesome/css/font-awesome.min.css';
 import styles from './FeaturedProducts.module.css';
 import { Link } from 'react-router-dom';
+import { CircularProgress } from '@mui/material';
 
 const ListProducts = ({ selectedFilters }) => {
   const [products, setProducts] = useState([]);
@@ -292,7 +293,7 @@ const ListProducts = ({ selectedFilters }) => {
     );
   };
 
-  if (loading) return <div>Đang tải dữ liệu...</div>;
+  if (loading) return <div className='d-flex justify-content-center'><CircularProgress/></div>;
   if (error) return <div>{error}</div>;
 
   return (
