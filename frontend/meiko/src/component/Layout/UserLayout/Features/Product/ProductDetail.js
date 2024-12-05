@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './ProductDetail.module.css';
+import ProductReviews from './ProductReview';
+import RelatedProducts from './RelatedProducts';
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -17,7 +19,6 @@ const ProductDetail = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [availableQuantity, setAvailableQuantity] = useState(0);
-console.log(productId);
 
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [discountPercentage, setDiscountPercentage] = useState(null);
@@ -331,6 +332,9 @@ console.log(productId);
           </div>
         </div>
       </div>
+      <ProductReviews productId={productId} />
+      
+      <RelatedProducts productId={productId} />
     </div>
   );
 };

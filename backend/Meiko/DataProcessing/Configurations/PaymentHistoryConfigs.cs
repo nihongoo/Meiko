@@ -30,7 +30,7 @@ namespace DataProcessing.Configurations
 
 			builder.Property(ph => ph.Status)
 				.IsRequired()
-				.HasDefaultValue(StatusForPayment.OnDinh)
+				.HasDefaultValue(StatusForPayment.Pending)
 				.HasComment("Trạng thái của 1 lần thanh toán");
 
 			builder.HasOne(b => b.Bill)

@@ -36,15 +36,6 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
             };
             const billCode = generateBillCode();
     
-            // Debugging: In ra các trường dữ liệu trước khi gửi yêu cầu
-            console.log("Bill Code:", billCode);
-            console.log("Total:", total);
-            console.log("Shipping Fee:", shippingFee);
-            console.log("Coupon:", coupon);
-            console.log("Selected Address:", selectedAddress);
-            console.log("Cart ID:", cartId);
-            console.log("Customer ID:", localStorage.getItem("customerId"));
-    
             const createBillResponse = await fetch("https://localhost:7172/api/Bills/create-bill", {
                 method: "POST",
                 headers: {
@@ -60,13 +51,15 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
                     cartId: localStorage.getItem("cartId"), 
                     customerId: localStorage.getItem("customerId"), 
                     voucherId: coupon ? coupon.voucherId : null, 
-                    staffId: "staff123", 
+                    staffId: null
                 }),
             });
-    
             const createBillData = await createBillResponse.json();
-            console.log("Create Bill Response:", createBillData); // In phản hồi từ server để xem dữ liệu trả về
-            const billId = createBillData.billId;
+            console.log("Create Bill Response:", createBillData); 
+            const billId = createBillData.id;
+
+            console.log("Bill Id:", billId);
+
     
             const addAddressResponse = await fetch("https://localhost:7172/api/Bills/add-address-to-bill", {
                 method: "POST",
@@ -81,12 +74,12 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
                     city: selectedAddress.city,
                     district: selectedAddress.district,
                     ward: selectedAddress.ward,
-                    status: 1, 
+                    status: 1
                 }),
             });
-    
             const addAddressData = await addAddressResponse.json();
-            if (addAddressData.success) {
+            console.log("Add Address Response:", addAddressData); 
+            if (addAddressData) {
                 console.log("Địa chỉ đã được cập nhật vào hóa đơn.");
             } else {
                 alert("Không thể cập nhật địa chỉ vào hóa đơn.");

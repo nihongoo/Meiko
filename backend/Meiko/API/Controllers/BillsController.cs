@@ -5,6 +5,11 @@ using API.Models;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Net.payOS;
+using Net.payOS.Types;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -15,10 +20,17 @@ namespace API.Controllers
 	public class BillsController : ControllerBase
 	{
 		private readonly IBillServices _IBillServices;
+		private readonly string _apiKey;
+		private readonly string _checkSum;
+		private readonly string _clientId;
 		private readonly ToolDB<Bills> _tool;
-		public BillsController(IBillServices billServices, ToolDB<Bills> tool)
-		{
-			_IBillServices = billServices;
+
+		public BillsController(IBillServices billServices, IConfiguration configuration, ToolDB<Bills> tool)
+        {
+            _IBillServices = billServices;
+			_apiKey = configuration["PayOS:ApiKey"];
+			_checkSum = configuration["PayOS:CheckSumKey"];
+			_clientId = configuration["PayOS:ClientId"];
 			_tool = tool;
 		}
 
@@ -132,48 +144,53 @@ namespace API.Controllers
 
 
 		[HttpDelete("delete-bill/{id}")]
-		public async Task<bool> DeleteBill(Guid id)
+		public async Task<IActionResult> DeleteBill(Guid id)
 		{
-			return await _IBillServices.Delete(id);
+			return Ok(await _IBillServices.Delete(id));
 		}
 
 		[HttpPost("change-status-from-bill/{id}")]
-		public async Task<bool> ChangeStatus(Guid id, StatusInfo model)
+		public async Task<IActionResult> ChangeStatus(Guid id, StatusInfo model)
 		{
-			return await _IBillServices.ChangeStatusTo(id, model.StatusType, model.Note, model.StaffWhoCreatedThis);
+			return Ok(await _IBillServices.ChangeStatusTo(id, model.StatusType, model.Note, model.StaffWhoCreatedThis));
+		}
+
+		[HttpPost("pay-for-bill/{id}")]
+		public async Task<IActionResult> PayForBill(Guid id, decimal paymentAmount)
+		{
+			return Ok(await _IBillServices.Pay(paymentAmount, 0, 0, id));
 		}
 
 		//Shipping Address
 		[HttpPost("add-address-to-bill")]
-		public async Task<bool> AddAddressToBill(ShippingAddressInfoModel model)
+		public async Task<IActionResult> AddAddressToBill(ShippingAddressInfoModel model)
 		{
-			return await _IBillServices.AddAddressToBill(model);
+			return Ok(await _IBillServices.AddAddressToBill(model));
 		}
 
 		[HttpPut("edit-address-from-id/{id}")]
 		public async Task<IActionResult> EditAddress(Guid id, ShippingAddressInfoModel model)
 		{
-			await _IBillServices.EditAddress(id, model);
-			return CreatedAtAction(nameof(GetShippingAddressById), new { id }, model);
+			return Ok(await _IBillServices.EditAddress(id, model));
 		}
 
 		//Bill Detail
 		[HttpPost("add-to-bill")]
-		public async Task<bool> AddToBill(BillDetailInfoModel model)
+		public async Task<IActionResult> AddToBill(BillDetailInfoModel model)
 		{
-			return await _IBillServices.AddToBill(model);
+			return Ok(await _IBillServices.AddToBill(model));
 		}
 
 		[HttpPut("add-quantity-to/{id}")]
-		public async Task<bool> AddQuantity(Guid id, int Quantity)
+		public async Task<IActionResult> AddQuantity(Guid id, int Quantity)
 		{
-			return await _IBillServices.AddQuantity(id, Quantity);
+			return Ok(await _IBillServices.AddQuantity(id, Quantity));
 		}
 
 		[HttpPut("change-quantity-for/{id}")]
-		public async Task<bool> ChangeQuantity(Guid id, int Quantity)
+		public async Task<IActionResult> ChangeQuantity(Guid id, int Quantity)
 		{
-			return await _IBillServices.ChangeQuantityFor(id, Quantity);
+			return Ok(await _IBillServices.ChangeQuantityFor(id, Quantity));
 		}
 
 		//Momo API
@@ -187,14 +204,89 @@ namespace API.Controllers
 		[HttpPost("Momo/Notify")]
 		public async Task<IActionResult> GetCallBack([FromBody] MomoExecuteResponseModel collection)
 		{
-			if (collection.ErrorCode == 0)
+			if (collection.ResultCode == 0)
 			{
-				await _IBillServices.Pay(decimal.Parse(collection.Amount), 0, 1, Guid.Parse(collection.OrderId));
+				await _IBillServices.Pay(collection.Amount, 0, 1, Guid.Parse(collection.OrderId));
 			}
 
 			return Ok(collection);
-
 		}
+
+		//PayOS API
+		[HttpPost("CreatePaymentWithPayOS")]
+		public async Task<IActionResult> CreatePayOS(OrderInfoModel model)
+		{
+			return Ok(await _IBillServices.CreatePayOSRequestAsync(model));
+		}
+
+		[HttpGet("PayOS/ReturnPayOS/{billId}")]
+		public async Task<IActionResult> ReturnData(Guid billId, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] int orderCode)
+		{
+			try
+			{
+				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
+				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
+
+				if (status == "PAID")
+				{
+					// Cập nhật trạng thái đơn hàng trong hệ thống
+					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 0, 0, billId);
+
+				}
+				else
+				{
+					// Xử lý các trạng thái khác (PENDING, CANCELLED...)
+					return BadRequest(paymentLinkInfo);
+				}
+
+				// 3. Trả về trạng thái thành công
+				return Ok(paymentLinkInfo);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, new ReturnMessage()
+				{
+					status = 2,
+					message = $"Đã xảy ra lỗi khi giao dịch : {ex.InnerException}",
+				});
+			}
+		}
+
+		[HttpGet("PayOS/CancelPayOS/{id}")]
+		public async Task<IActionResult> CancelData(Guid id, [FromQuery] string orderId, [FromQuery] string status, [FromQuery] decimal? amount)
+		{
+			try
+			{
+				// Kiểm tra trạng thái và xử lý hủy đơn hàng
+				if (status == "CANCELLED")
+				{
+					
+
+					// Thực hiện các hành động khác nếu cần, như ghi log hoặc thông báo người dùng.
+					return Ok(await _IBillServices.CancelPaymentById(id));
+				}
+
+				// Xử lý trạng thái khác (nếu có)
+				return BadRequest(new ReturnMessage { status = 1, message = "Invalid status received." });
+			}
+			catch (Exception ex)
+			{
+				// Trả về lỗi nếu xảy ra vấn đề
+				return StatusCode(500, new ReturnMessage { status = 2, message = $"Đã xảy ra lỗi :  {ex.Message}" });
+			}
+		}
+
+		//private string GenerateSignature(string data, string checksumKey)
+		//{
+		//	var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
+		//	using (var hmac = new HMACSHA256(keyBytes))
+		//	{
+		//		var dataBytes = Encoding.UTF8.GetBytes(data);
+		//		var hashBytes = hmac.ComputeHash(dataBytes);
+		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+		//	}
+		//}
+		
 		[HttpGet("Search")]
 		public async Task<IActionResult> Search(string query)
 		{

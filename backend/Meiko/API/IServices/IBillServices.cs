@@ -2,6 +2,7 @@
 using API.Models;
 using API.ViewModel;
 using DataProcessing.Models;
+using Net.payOS.Types;
 
 namespace API.IServices
 {
@@ -30,29 +31,32 @@ namespace API.IServices
 
 		// Xử lý
 		//Bill
+		Task<ReturnMessage> Delete(Guid Id);
+		Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis);
 		Task<(bool k, Guid id)> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId); // Từ giỏ hàng lấy những sản phẩm trong giỏ hàng.
-		Task<bool> Delete(Guid Id);
-		Task<bool> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis);
 
 		//ShippingAddress
-		Task<bool> AddAddressToBill(ShippingAddressInfoModel model);
-		Task EditAddress(Guid Id, ShippingAddressInfoModel model);
+		Task<ReturnMessage> AddAddressToBill(ShippingAddressInfoModel model);
+		Task<ReturnMessage> EditAddress(Guid Id, ShippingAddressInfoModel model);
 
-		Task DeleteAddress(Guid Id);
+		Task<ReturnMessage> DeleteAddress(Guid Id);
 
 		//PaymentHistory
-		Task<bool> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId);
-		Task<bool> DeletePaymentById(Guid id, bool confirmDelete);
+		Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId);
+		Task<ReturnMessage> CancelPaymentById(Guid id);
 
 		//BillDetails
-		Task<bool> AddToBill(BillDetailInfoModel model);
-		Task<bool> AddQuantity(Guid Id, int Quantity); // Thêm số lượng sản phẩm, vd: +1 hoặc -1
-		Task<bool> ChangeQuantityFor(Guid Id, int Quantity); // Đổi số lượng sản phẩm bằng với Quantity nhập vào
+		Task<ReturnMessage> AddToBill(BillDetailInfoModel model);
+		Task<ReturnMessage> AddQuantity(Guid Id, int Quantity); // Thêm số lượng sản phẩm, vd: +1 hoặc -1
+		Task<ReturnMessage> ChangeQuantityFor(Guid Id, int Quantity); // Đổi số lượng sản phẩm bằng với Quantity nhập vào
 		Task<List<ListBillDetailViewModel>> listBillDetails(Guid id);
 		Task<(bool k, string msg)> DeleteBillDetail(Guid Id);
 		
-		//MomoAPI
+		//Momo API
 		Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model);
 		Task<MomoExecuteResponseModel> PaymentExecuteAsync(IQueryCollection collection);
+
+		//PayOS API
+		Task<CreatePaymentResult> CreatePayOSRequestAsync(OrderInfoModel model);
 	}
 }
