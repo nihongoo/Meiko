@@ -1009,13 +1009,6 @@ namespace API.Services
 			var bill = await _dbcontext.Bills.FindAsync(BillId);
 
 			bill.Total = bill.BillDetails == null ? 0 : bill.BillDetails.Sum(bd => bd.Price);
-			if (bill.VoucherId != null) 
-			{
-				var voucher = await _dbcontext.Vouchers.FindAsync(bill.VoucherId);
-				bill.Total -= (bill.Total * (decimal)voucher.Value) / 100;
-			}
-
-			bill.Total += bill.ShippingFee;
 
 			_dbcontext.Bills.Update(bill);
 
@@ -1091,7 +1084,8 @@ namespace API.Services
 					return (false, "Không tìm thấy sản phẩm cần xóa");
 				}
 				var bill = await _dbcontext.Bills.FirstOrDefaultAsync(k => k.Id == item.BillId);
-
+				bill.Total -= item.Price;
+				_dbcontext.Bills.Update(bill);
 				_dbcontext.BillDetails.Remove(item);
 				await _dbcontext.SaveChangesAsync();
 				return (true, "Xóa thành công");
