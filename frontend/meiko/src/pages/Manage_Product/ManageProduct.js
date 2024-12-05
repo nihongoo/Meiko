@@ -9,7 +9,7 @@ import useFetchData from '../../customHook/useFetchData';
 
 function ManageProduct() {
     const [searchType, setSearchType] = useState('isSearchWithName=true');
-
+    const paginationModel = { page: 0, pageSize: 10 };
     const formatProductData = (data) =>
         data.map((item, index) => ({
             id: item.id,
@@ -86,10 +86,10 @@ function ManageProduct() {
                 autoHeight
                 rows={product}
                 columns={columns}
-                pageSizeOptions={[5, 10, 15, 20]}
-                pagination
+                initialState={{ pagination: { paginationModel } }}
+                pageSizeOptions={[10,20]}
                 disableRowSelectionOnClick
-                rowHeight={80} // Tăng chiều cao của mỗi hàng
+                rowHeight={80}
                 sx={{
                     border: 'none',
                     '& .MuiDataGrid-cell': {

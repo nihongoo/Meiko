@@ -4,8 +4,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Category/get-all',
         getbyid :'https://localhost:7172/api/Category/Get/{id}',
         create: 'https://localhost:7172/api/Category/add-category',
-        edit: 'https://localhost:7172/api/Category/Update/{id}',
-        delete: 'https://localhost:7172/api/Category/Delete/{id}',
+        edit: 'https://localhost:7172/api/Category/Update/',
+        delete: 'https://localhost:7172/api/Category/Delete/',
         search: 'https://localhost:7265/Category/Search'
     },
     brand: {
@@ -13,8 +13,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Brand/get-all',
         getbyid :'https://localhost:7172/api/Brand/Get/{id}',
         create: 'https://localhost:7172/api/Brand/add-brand',
-        edit: 'https://localhost:7172/api/Brand/Update/{id}',
-        delete: 'https://localhost:7172/api/Brand/Delete/{id}',
+        edit: 'https://localhost:7172/api/Brand/Update/',
+        delete: 'https://localhost:7172/api/Brand/Delete/',
         search: 'https://localhost:7265/Brand/Search'
     },
     target: {
@@ -22,8 +22,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Target/get-all',
         getbyid :'https://localhost:7172/api/Target/Get/{id}',
         create: 'https://localhost:7172/api/Target/add-target',
-        edit: 'https://localhost:7172/api/Target/Update/{id}',
-        delete: 'https://localhost:7172/api/Target/Delete/{id}',
+        edit: 'https://localhost:7172/api/Target/Update/',
+        delete: 'https://localhost:7172/api/Target/Delete/',
         search: 'https://localhost:7265/TagetCustomers/Search'
     },
     meterial: {
@@ -31,8 +31,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Material/get-all',
         getbyid :'https://localhost:7172/api/Material/Get/{id}',
         create: 'https://localhost:7172/api/Material/add-material',
-        edit: 'https://localhost:7172/api/Material/Update/{id}',
-        delete: 'https://localhost:7172/api/Material/Delete/{id}',
+        edit: 'https://localhost:7172/api/Material/Update/',
+        delete: 'https://localhost:7172/api/Material/Delete/',
         search: 'https://localhost:7265/Meterial/Search'
     },
     color: {
