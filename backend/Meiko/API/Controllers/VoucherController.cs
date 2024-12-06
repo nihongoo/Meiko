@@ -56,5 +56,12 @@ namespace API.Controllers
             await _voucherServices.DeleteVoucherAsync(id);
             return NoContent();
         }
+        [HttpGet("Filter")]
+        public async Task<IActionResult> Filter (DateTime startDate, DateTime endDate)
+        {
+            var result = await _voucherServices.Filter(startDate, endDate);
+            return Ok(result);
+        }
     }
+
 }

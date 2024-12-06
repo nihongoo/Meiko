@@ -10,5 +10,6 @@ namespace API.IServices
         public Task<List<Vouchers>> GetAllVouchersAsync();
         public Task<bool> UseVoucherAsync(Guid voucherId, Guid customerId, double billAmount);
         public Task DeleteVoucherAsync(Guid id);
+        public Task<List<Vouchers>> Filter(DateTime startDate, DateTime endDate);
     }
 }

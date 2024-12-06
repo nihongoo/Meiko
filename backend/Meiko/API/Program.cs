@@ -89,18 +89,18 @@ namespace Meiko
 			builder.Services.AddControllers();
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
-            // Cấu hình CORS
-            builder.Services.AddCors(options =>
-            {
+			// Cấu hình CORS
+			builder.Services.AddCors(options =>
+			{
                 options.AddPolicy("AllowLocalhost3000", policy =>
-                {
-                    policy.WithOrigins("http://localhost:3000")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
-            });
+				{
+                    policy.WithOrigins("http://localhost:3000", "https://69xxw3zf-3000.asse.devtunnels.ms")
+						  .AllowAnyHeader()
+						  .AllowAnyMethod();
+				});
+			});
 
-            builder.Services.AddControllers();
+			builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
@@ -111,7 +111,6 @@ namespace Meiko
 				(sender, cert, chain, sslPolicyErrors) => true;
 
 
-			app.UseCors("AllowLocalhost3000");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -121,6 +120,7 @@ namespace Meiko
 			}
 
 			app.UseHttpsRedirection();
+			app.UseCors("AllowLocalhost3000");
 
 			app.UseAuthentication();
 

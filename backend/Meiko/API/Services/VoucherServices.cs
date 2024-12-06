@@ -71,7 +71,12 @@ namespace API.Services
             }
         }
 
-        public async Task<List<Vouchers>> GetAllVouchersAsync()
+		public async Task<List<Vouchers>> Filter(DateTime startDate, DateTime endDate)
+		{
+            return await _context.Vouchers.Where(v => v.StartDay >= startDate && v.EndDay <= endDate).ToListAsync();
+		}
+
+		public async Task<List<Vouchers>> GetAllVouchersAsync()
         {
             return await _context.Vouchers.ToListAsync();
         }

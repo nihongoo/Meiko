@@ -5,8 +5,7 @@ import apiURL from "../../routes/API/index";
 import useFetchData from "../../customHook/useFetchData";
 import UpdateDetailDialog from './UpdateDetailDialog';
 import { DataGrid } from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
-import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button, Box, Typography, Link } from '@mui/material';
+import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button, Box, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 
@@ -37,16 +36,16 @@ function ListProductDetail() {
     }));
 
     const columns = [
-        { field: 'name', headerName: 'Tên sản phẩm', width: 110 },
-        { field: 'code', headerName: 'Mã chi tiết', width: 110 },
-        { field: 'color', headerName: 'Màu', width: 70 },
-        { field: 'size', headerName: 'Kích thước', width: 110 },
-        { field: 'weight', headerName: 'Cân nặng', width: 110 },
-        { field: 'importPrice', headerName: 'Giá nhập', width: 130 },
-        { field: 'price', headerName: 'Giá bán', width: 110 },
-        { field: 'quantity', headerName: 'Số lượng', width: 110 },
-        { field: 'createTime', headerName: 'Ngày tạo', width: 110 },
-        { field: 'tt', headerName: 'Trạng thái', width: 110 },
+        { field: 'name', headerName: 'Tên sản phẩm', flex:1 },
+        { field: 'code', headerName: 'Mã chi tiết', flex:1 },
+        { field: 'color', headerName: 'Màu', flex:1 },
+        { field: 'size', headerName: 'Kích thước', flex:1 },
+        { field: 'weight', headerName: 'Cân nặng', flex:1 },
+        { field: 'importPrice', headerName: 'Giá nhập', flex:1 },
+        { field: 'price', headerName: 'Giá bán', flex:1 },
+        { field: 'quantity', headerName: 'Số lượng', flex:1 },
+        { field: 'createTime', headerName: 'Ngày tạo', flex:1 },
+        { field: 'tt', headerName: 'Trạng thái', flex:1 },
         {
             field: 'action',
             headerName: 'Thao tác',
