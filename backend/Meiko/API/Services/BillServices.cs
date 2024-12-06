@@ -111,6 +111,82 @@ namespace API.Services
 				return bills;
 			}
 		}
+		public async Task<BillDto?> GetBillByStatus(int status)
+		{
+			using (var context = _dbcontext)
+			{
+				// Truy vấn hóa đơn kèm bảng phụ
+				var bills = await context.Bills.Where(b => b.Status == (StatusType)status)
+					.Include(b => b.BillDetails)
+					.Include(b => b.ShippingAddresses)
+					.Include(b => b.StatusHistories)
+					.Include(b => b.PaymentHistories)
+					.Select(b => new BillDto
+					{
+						Id = b.Id,
+						BillCode = b.BillCode,
+						IsShipping = b.IsShipping,
+						Total = b.Total,
+						CreatedDate = b.CreatedDate,
+						DeliveryDate = b.DeliveryDate,
+						DateOfRecept = b.DateOfRecept,
+						PaymentDate = b.PaymentDate,
+						Status = b.Status.GetDisplayName(),
+						PaymentAmount = b.PaymentAmount,
+						ShippingFee = b.ShippingFee,
+						ReasonForCancellation = b.ReasonForCancellation,
+
+						CustomerId = b.CustomerId,
+						VoucherId = b.VoucherId,
+						StaffId = b.StaffId,
+
+						// Ánh xạ bảng con
+						BillDetails = b.BillDetails.Select(d => new BillDetailDto
+						{
+							Id = d.Id,
+							BillId = d.BillId,
+							ProductDetailId = d.ProductDetailId,
+							Quantity = d.Quantity,
+							Price = d.Price,
+							Status = d.Status
+						}).ToList(),
+
+						ShippingAddresses = b.ShippingAddresses.Select(a => new ShippingAddressDto
+						{
+							Id = a.Id,
+							BillId = a.BillId,
+							RecipientName = a.RecipientName,
+							AddressDetail = a.RecipientName,
+							PhoneNumber = a.PhoneNumber,
+							City = a.City,
+							District = a.District,
+							Ward = a.Ward,
+							Status = a.Status
+						}).ToList(),
+
+						PaymentHistories = b.PaymentHistories.Select(c => new PaymentHistoryDto
+						{
+							Id = c.Id,
+							Amount = c.Amount,
+							PaymentMethod = c.PaymentMethod.GetDisplayName(),
+							Status = c.Status.GetDisplayName(),
+							BillId = c.BillId
+						}).ToList(),
+
+						StatusHistories = b.StatusHistories.Select(c => new StatusHistoryDto
+						{
+							Id = c.Id,
+							CreatedDate = c.CreatedDate,
+							StatusType = c.StatusType.GetDisplayName(),
+							Note = c.Note,
+							WhoCreatedThis = c.WhoCreatedThis,
+							BillId = c.BillId
+						}).ToList()
+					}).FirstOrDefaultAsync();
+
+				return bills;
+			}
+		}
 
 		public async Task<BillDetailDto?> GetBillDetailById(Guid Id)
 		{

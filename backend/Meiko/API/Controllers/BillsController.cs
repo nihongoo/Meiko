@@ -52,6 +52,11 @@ namespace API.Controllers
 		{
 			return await _IBillServices.GetBillById(id);
 		}
+		[HttpGet("get-bill-by-status/{status}")]
+		public async Task<BillDto> GetBillById(int status)
+		{
+			return await _IBillServices.GetBillByStatus(status);
+		}
 
 		[HttpGet("get-billDetails")]
 		public async Task<List<BillDetailDto>> GetBillDetails()

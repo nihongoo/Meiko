@@ -12,6 +12,7 @@ namespace API.IServices
 		Task<List<BillDto>> GetBills();
 		Task<List<BillDto>> GetBillsByCustomerId(Guid CustomerId);
 		Task<BillDto> GetBillById(Guid BillId);
+		Task<BillDto> GetBillByStatus(int status);
 
 		Task<List<BillDetailDto>> GetBillDetails();
 		Task<List<BillDetailDto>> GetBillDetailsByBillId(Guid BillId);
