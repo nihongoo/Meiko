@@ -36,9 +36,6 @@ function ManageProduct() {
 
     const columns = [
         { field: 'stt', headerName: 'STT', flex: 0.5 },
-        { field: 'name', headerName: 'Tên sản phẩm', flex: 1 },
-        { field: 'productCode', headerName: 'Mã sản phẩm', flex: 1 },
-        { field: 'createTime', headerName: 'Ngày thêm', flex: 1 },
         {
             field: 'image',
             headerName: 'Ảnh',
@@ -47,6 +44,10 @@ function ManageProduct() {
                 <img src={params.value} alt="Product" style={{ width: '50px', height: '50px' }} />
             ),
         },
+        { field: 'name', headerName: 'Tên sản phẩm', flex: 1 },
+        { field: 'productCode', headerName: 'Mã sản phẩm', flex: 1 },
+        { field: 'createTime', headerName: 'Ngày thêm', flex: 1 },
+        
         { field: 'status', headerName: 'Trạng thái', flex: 1 },
         {
             field: 'action', headerName: 'Thao tác', flex: 1,

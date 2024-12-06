@@ -25,7 +25,6 @@ function Header({ setCollapsed, collapsed }) {
                     <MenuIcon />
                 </IconButton>
                 <Typography variant="h6" component="div">
-                    aaaaa
                 </Typography>
             </Toolbar>
         </AppBar>

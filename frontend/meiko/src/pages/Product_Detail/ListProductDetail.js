@@ -134,6 +134,8 @@ function ListProductDetail() {
                 },
                 body: JSON.stringify(imgInfo),
             });
+            console.log(imgInfo);
+            
 
             console.log("Image update response:", r2);
             const response = await fetch(`${apiURL.productDetail.edit}${selectedUser.id}`, {

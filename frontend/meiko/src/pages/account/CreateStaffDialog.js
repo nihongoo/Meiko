@@ -1,7 +1,11 @@
-import React from 'react';
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from '@mui/material';
-
+import React, { useState } from 'react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button,InputAdornment, IconButton } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 function UpdateStaffDialog({ open, onClose, setSelectedUser, newStaff, onCreate}) {
+    const [showPassword, setShowPassword] = useState(false);
+    const handleClickShowPassword = () => {
+        setShowPassword((prev) => !prev);
+    };
     return (
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>Tạo mới nhân viên</DialogTitle>
@@ -17,10 +21,19 @@ function UpdateStaffDialog({ open, onClose, setSelectedUser, newStaff, onCreate}
                 <TextField
                     margin="dense"
                     label="PassWord"
-                    type="text"
+                    type={showPassword ? "text" : "password"}
                     fullWidth
                     variant="outlined"
                     onChange={(e) => setSelectedUser({ ...newStaff, password: e.target.value })}
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton onClick={handleClickShowPassword} edge="end">
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
                 />
                 <TextField
                     margin="dense"

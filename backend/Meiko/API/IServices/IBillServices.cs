@@ -29,6 +29,8 @@ namespace API.IServices
 		Task<List<PaymentHistoryDto>> GetPaymentHistoriesByBillId(Guid BillId);
 		Task<PaymentHistoryDto> GetPaymentHistoryById(Guid Id); 
 
+		Task<List<BillDto>> Filter (DateTime StartDay, DateTime EndDay);
+
 		// Xử lý
 		//Bill
 		Task<ReturnMessage> Delete(Guid Id);

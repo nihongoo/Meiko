@@ -802,7 +802,7 @@ namespace API.Services
 					List<ProductDetails> productDetails = new List<ProductDetails>();
 					for (int i = 0; i < billDetails.Count; i++)
 					{
-						ProductDetails productDetail = await _dbcontext.ProductDetails.FirstOrDefaultAsync(k=>k.Id == billDetails[i].ProductDetailId);
+						ProductDetails productDetail = await _dbcontext.ProductDetails.FirstOrDefaultAsync(k => k.Id == billDetails[i].ProductDetailId);
 						if (billDetails[i].Quantity > productDetail.Quantity)
 							return new ReturnMessage()
 							{
@@ -1177,7 +1177,7 @@ namespace API.Services
 		{
 			var bill = await _dbcontext.Bills.FindAsync(BillId);
 
-			bill.Total = bill.BillDetails == null ? 0 : bill.BillDetails.Sum(bd => bd.Price);
+			bill.Total = bill.BillDetails == null ? 0 : bill.Total + bill.BillDetails.Sum(bd => bd.Price);
 
 			_dbcontext.Bills.Update(bill);
 
@@ -1263,6 +1263,81 @@ namespace API.Services
 			{
 				return (false, ex.Message);
 			}
+		}
+
+
+		public async Task<List<BillDto>> Filter(DateTime startDate, DateTime endDate)
+		{
+			var bills = await _dbcontext.Bills
+				.Where(b => b.CreatedDate >= startDate && b.CreatedDate <= endDate)
+				.Include(b => b.BillDetails)
+				.Include(b => b.ShippingAddresses)
+				.Include(b => b.StatusHistories)
+				.Include(b => b.PaymentHistories)
+				.Select(b => new BillDto
+				{
+					Id = b.Id,
+					BillCode = b.BillCode,
+					IsShipping = b.IsShipping,
+					Total = b.Total,
+					CreatedDate = b.CreatedDate,
+					DeliveryDate = b.DeliveryDate,
+					DateOfRecept = b.DateOfRecept,
+					PaymentDate = b.PaymentDate,
+					Status = b.Status.GetDisplayName(),
+					PaymentAmount = b.PaymentAmount,
+					ShippingFee = b.ShippingFee,
+					ReasonForCancellation = b.ReasonForCancellation,
+
+					CustomerId = b.CustomerId,
+					VoucherId = b.VoucherId,
+					StaffId = b.StaffId,
+
+					// Ánh xạ bảng con
+					BillDetails = b.BillDetails.Select(d => new BillDetailDto
+					{
+						Id = d.Id,
+						BillId = d.BillId,
+						ProductDetailId = d.ProductDetailId,
+						Quantity = d.Quantity,
+						Price = d.Price,
+						Status = d.Status
+					}).ToList(),
+
+					ShippingAddresses = b.ShippingAddresses.Select(a => new ShippingAddressDto
+					{
+						Id = a.Id,
+						BillId = a.BillId,
+						RecipientName = a.RecipientName,
+						AddressDetail = a.AddressDetail,
+						PhoneNumber = a.PhoneNumber,
+						City = a.City,
+						District = a.District,
+						Ward = a.Ward,
+						Status = a.Status
+					}).ToList(),
+
+					PaymentHistories = b.PaymentHistories.Select(c => new PaymentHistoryDto
+					{
+						Id = c.Id,
+						Amount = c.Amount,
+						PaymentMethod = c.PaymentMethod.GetDisplayName(),
+						Status = c.Status.GetDisplayName(),
+						BillId = c.BillId
+					}).ToList(),
+
+					StatusHistories = b.StatusHistories.Select(c => new StatusHistoryDto
+					{
+						Id = c.Id,
+						CreatedDate = c.CreatedDate,
+						StatusType = c.StatusType.GetDisplayName(),
+						Note = c.Note,
+						WhoCreatedThis = c.WhoCreatedThis,
+						BillId = c.BillId
+					}).ToList()
+				})
+				.ToListAsync();
+			return bills;
 		}
 
 	}

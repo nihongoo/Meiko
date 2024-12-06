@@ -113,6 +113,8 @@ const apiURL = {
         addToBill: 'https://localhost:7172/api/Bills/add-to-bill',
         deleteDetail: 'https://localhost:7172/api/Bills/Delete-Bill-Detail?id=',
         billId:'https://localhost:7172/api/Bills/get-bill-by-id/',
+        all:'https://localhost:7172/api/Bills/get-bills',
+        filter: 'https://localhost:7172/api/Bills/Filter',
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',

@@ -9,7 +9,7 @@ namespace API.ViewModel
         public string VoucherCode { get; set; }
 
         [Required(ErrorMessage = "Giá trị không được để trống.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Giá trị phải lớn hơn hoặc bằng 0.")]
+        [Range(0, 100, ErrorMessage = "Giá trị phải nằm trong khoảng từ 0 đến 100%.")]
         public double Value { get; set; }
 
         [Required]

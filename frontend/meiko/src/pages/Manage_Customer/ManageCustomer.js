@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import {
   Box,
   Button,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -18,7 +19,7 @@ import useFetchData from '../../customHook/useFetchData.js';
 import UpdateUserDialog from './UpdateUserDialog.js';
 
 function ManageCustomer() {
-  const { data: customers, refetch } = useFetchData(apiURL.user.all, (rawData) =>
+  const { data: customers, refetch, loading, error } = useFetchData(apiURL.user.all, (rawData) =>
     rawData.map((item) => ({
       ...item,
       birthDay: moment(item.birthDay).format('DD-MM-YYYY'),
@@ -76,6 +77,9 @@ function ManageCustomer() {
     }
     handleClose();
   };
+
+  if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
+  if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;
 
   return (
     <Box p={3} bgcolor="#fff" borderRadius={2}>

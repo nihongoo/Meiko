@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import {
   Box,
   Button,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -20,7 +21,7 @@ import CreateStaffDialog from './CreateStaffDialog.js';
 import generateSerialCode from '../../customHook/useRandom.js';
 
 function Account() {
-  const { data: staff, refetch } = useFetchData(apiURL.staff.all, (rawData) =>
+  const { data: staff, refetch, loading, error } = useFetchData(apiURL.staff.all, (rawData) =>
     rawData.map((item) => ({
       ...item,
       dateJoin: moment(item.dateJoin).format('DD-MM-YYYY'),
@@ -144,6 +145,8 @@ function Account() {
       console.log(error);
     }
   };
+  if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
+  if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;
   return (
     <Box p={3} bgcolor="#fff" borderRadius={2}>
       <Typography variant="h5" align="center" gutterBottom>Danh sách nhân viên</Typography>

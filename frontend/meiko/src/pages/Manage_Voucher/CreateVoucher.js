@@ -27,6 +27,7 @@ function CreateVoucher({ item, setItem, open, onClose, onCreate }) {
         { field: "phoneNumber", headerName: "Số điện thoại", width: 150 },
         { field: "email", headerName: "Email", width: 200 },
     ];
+console.log(item);
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
@@ -54,7 +55,7 @@ function CreateVoucher({ item, setItem, open, onClose, onCreate }) {
                                     setItem({ ...item, value: e.target.value })
                                 }
                                 InputProps={{
-                                    endAdornment: <InputAdornment position="start">VND</InputAdornment>,
+                                    endAdornment: <InputAdornment position="start">%</InputAdornment>,
                                 }}
                             />
                             <TextField

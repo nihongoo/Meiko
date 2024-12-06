@@ -87,9 +87,8 @@ function ManageMeterial() {
         }
     };
 
-    if (loading) return <CircularProgress />;
-    if (error) return <div>Error: {error}</div>;
-
+    if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
+    if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;
     const columns = [
         { field: 'serialNumber', headerName: 'STT', width: 90 },
         { field: 'name', headerName: 'Tên', width: 150 },

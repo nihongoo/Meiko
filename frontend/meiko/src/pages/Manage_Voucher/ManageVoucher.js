@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import CreateVoucher from './CreateVoucher';
 import apiURL from '../../routes/API';
@@ -16,7 +16,7 @@ function ManageVoucher() {
         startDate: "",
         endDate: ""
     })
-    const { data: rows, refetch } = useFetchData(api, (r) => {
+    const { data: rows, refetch, loading, error } = useFetchData(api, (r) => {
         return r.map((item) => ({
             ...item,
             isPublic: item.isPublic ? 'Công khai' : 'Cá nhân',
@@ -118,6 +118,8 @@ function ManageVoucher() {
             console.log(error);
         }
     }
+    if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
+    if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;  
 
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2}>
@@ -160,11 +162,11 @@ function ManageVoucher() {
             <DataGrid
                 rows={rows}
                 columns={columns}
+                initialState={{ pagination: { paginationModel } }}
                 pageSize={5}
                 pageSizeOptions={[5, 10]}
                 autoHeight
                 disableSelectionOnClick
-                initialState={{ pagination: { paginationModel } }}
                 rowHeight={80}
                 sx={{
                     border: 'none',
