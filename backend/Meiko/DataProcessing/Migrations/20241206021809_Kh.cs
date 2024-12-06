@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataProcessing.Migrations
 {
-    public partial class _1st : Migration
+    public partial class Kh : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -136,6 +136,28 @@ namespace DataProcessing.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_otps", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CustomerAvatar = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ParentReviewId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    HelpfulCount = table.Column<int>(type: "int", nullable: false),
+                    UnhelpfulCount = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -410,6 +432,7 @@ namespace DataProcessing.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RecipientName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PhoneNumber = table.Column<string>(type: "varchar(15)", unicode: false, maxLength: 15, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AddressDetail = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     City = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     District = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -590,7 +613,7 @@ namespace DataProcessing.Migrations
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, comment: "Ngày tạo ra trạng thái"),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false, comment: "Số tiền khách đã giao dịch"),
                     PaymentMethod = table.Column<int>(type: "int", nullable: false, defaultValue: 0, comment: "Phương thức thanh toán được sử dụng khi giao dịch"),
-                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0, comment: "Trạng thái của 1 lần thanh toán"),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1, comment: "Trạng thái của 1 lần thanh toán"),
                     BillId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -969,6 +992,9 @@ namespace DataProcessing.Migrations
 
             migrationBuilder.DropTable(
                 name: "PaymentHistories");
+
+            migrationBuilder.DropTable(
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "SaleProducts");

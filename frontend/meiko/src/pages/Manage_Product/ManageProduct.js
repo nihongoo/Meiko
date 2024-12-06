@@ -6,6 +6,7 @@ import moment from 'moment';
 import SearchInput from '../../component/Search';
 import apiURL from '../../routes/API';
 import useFetchData from '../../customHook/useFetchData';
+import InfoIcon from '@mui/icons-material/Info';
 
 function ManageProduct() {
     const [searchType, setSearchType] = useState('isSearchWithName=true');
@@ -47,6 +48,19 @@ function ManageProduct() {
             ),
         },
         { field: 'status', headerName: 'Trạng thái', flex: 1 },
+        {
+            field: 'action', headerName: 'Thao tác', flex: 1,
+            renderCell: (params) => (
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    to={`/listproductdetail/${params.id}`}
+                    component={Link}
+                >
+                    <InfoIcon/>
+                </Button>
+            )
+        }
     ];
 
     return (
@@ -87,7 +101,7 @@ function ManageProduct() {
                 rows={product}
                 columns={columns}
                 initialState={{ pagination: { paginationModel } }}
-                pageSizeOptions={[10,20]}
+                pageSizeOptions={[10, 20]}
                 disableRowSelectionOnClick
                 rowHeight={80}
                 sx={{

@@ -6,7 +6,7 @@ import useFetchData from "../../customHook/useFetchData";
 import UpdateDetailDialog from './UpdateDetailDialog';
 import { DataGrid } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
-import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button } from '@mui/material';
+import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button, Box, Typography, Link } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 
@@ -21,146 +21,7 @@ function ListProductDetail() {
     const [preview, setPreview] = useState(null);
     const [apiImg, setApiImg] = useState('POST');
 
-    useEffect(() => {
-        const fetchProductById = async () => {
-            if (!id) return;
-
-            try {
-                const response = await fetch(`https://localhost:7172/api/Product/Get/${id}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setProductName(data.name);
-                } else {
-                    toast.error('Không thể tải thông tin sản phẩm');
-                }
-            } catch (error) {
-                toast.error('Lỗi khi tải thông tin sản phẩm');
-                console.error(error);
-            }
-        };
-
-        fetchProductById();
-    }, [id]); 
-
-    const handleClickOpen = (item) => {
-        const formatUser = {
-            id: item.id,
-            weight: item.weight,
-            importPrice: item.importPrice,
-            price: item.price,
-            quantity: item.quantity,
-            status: item.status,
-        };
-        const findImg = previewImg.find(k => k.productDetailId === item.id);
-        setApiImg(findImg ? 'PUT' : 'POST');
-        setPreview(findImg ? findImg.imgUrl : 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png');
-        setSelectedUser(formatUser);
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-        setSelectedUser(null);
-    };
-
-    const handleUpdate = async () => {
-        console.log("Selected User before update:", selectedUser);  // In ra selectedUser trước khi gửi yêu cầu
-    
-        try {
-            const fileName = image.name.split('.').slice(0, -1).join('.');
-            const imgInfo = {
-                publicId: fileName,
-                productDetailId: selectedUser.id
-            };
-            const formData = new FormData();
-            formData.append('file', image);
-            formData.append('upload_preset', 'datnMeiko');
-            
-            // Tải ảnh lên Cloudinary
-            const r1 = await fetch(
-                `https://api.cloudinary.com/v1_1/dtsqxauba/image/upload`,
-                {
-                    method: 'POST',
-                    body: formData,
-                }
-            );
-    
-            console.log("Cloudinary response:", r1);  // Kiểm tra phản hồi từ Cloudinary
-    
-            // Cập nhật ảnh vào hệ thống của bạn
-            const r2 = await fetch(apiURL.image.create, {
-                method: apiImg,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(imgInfo),
-            });
-    
-            console.log("Image update response:", r2);  // Kiểm tra phản hồi từ API cập nhật ảnh
-    
-            // Cập nhật thông tin sản phẩm
-            const response = await fetch(`${apiURL.productDetail.edit}${selectedUser.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(selectedUser),  // Truyền selectedUser
-            });
-    
-            console.log("Product update response:", response);  // Kiểm tra phản hồi từ API cập nhật sản phẩm
-    
-            if (response.ok && r1.ok && r2.ok) {
-                toast.success('Sửa thành công');
-                refetch();
-                loadImg();
-            } else {
-                toast.error('Sửa thất bại');
-                throw new Error("Lỗi");
-            }
-        } catch (error) {
-            toast.error('Sửa thất bại');
-            console.error("Error during update:", error);  // Log lỗi nếu có
-        }
-        handleClose();
-    };
-    
-
-    return (
-        <div className="border bg-light rounded-3">
-            <div className='d-flex justify-content-center m-2'>
-                <h2>Danh sách sản phẩm chi tiết</h2>
-            </div>
-            <div className='p-3'>
-                <div className='d-flex mb-2 justify-content-between'>
-                    <div className="d-flex align-items-center">
-                        <SearchInput />
-                    </div>
-                    <FormControl component="fieldset">
-                        <FormLabel component="legend" className="m-0">Tìm kiếm theo:</FormLabel>
-                        <RadioGroup row>
-                            <FormControlLabel value="isSearchEmail=false" control={<Radio />} label="Số điện thoại" />
-                            <FormControlLabel value="isSearchEmail=true" control={<Radio />} label="Email" />
-                        </RadioGroup>
-                    </FormControl>
-                </div>
-                <TableUser rows={initialData} onEdit={handleClickOpen} productName={productName} />
-            </div>
-            <UpdateDetailDialog
-                open={open}
-                selectedUser={selectedUser}
-                onClose={handleClose}
-                setSelectedUser={setSelectedUser}
-                onUpdate={handleUpdate}
-                setImage={setImage}
-                preview={preview}
-                setPreview={setPreview}
-            />
-        </div>
-    );
-}
-
-function TableUser({ rows, onEdit, productName }) {
-    const formattedRows = rows.map((item) => ({
+    const formattedRows = initialData.map((item) => ({
         id: item.id,
         name: productName,
         code: item.productDetailCode,
@@ -195,7 +56,7 @@ function TableUser({ rows, onEdit, productName }) {
                     <Button
                         variant="contained"
                         color="secondary"
-                        onClick={() => onEdit(params.row)}
+                        onClick={() => handleClickOpen(params.row)}
                     >
                         <i className="fa-solid fa-pen"></i>
                     </Button>
@@ -206,19 +67,149 @@ function TableUser({ rows, onEdit, productName }) {
 
     const paginationModel = { page: 0, pageSize: 5 };
 
+    useEffect(() => {
+        const fetchProductById = async () => {
+            if (!id) return;
+
+            try {
+                const response = await fetch(`https://localhost:7172/api/Product/Get/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setProductName(data.name);
+                } else {
+                    toast.error('Không thể tải thông tin sản phẩm');
+                }
+            } catch (error) {
+                toast.error('Lỗi khi tải thông tin sản phẩm');
+                console.error(error);
+            }
+        };
+
+        fetchProductById();
+    }, [id]);
+
+    const handleClickOpen = (item) => {
+        const formatUser = {
+            id: item.id,
+            weight: item.weight,
+            importPrice: item.importPrice,
+            price: item.price,
+            quantity: item.quantity,
+            status: item.status,
+        };
+        const findImg = previewImg.find(k => k.productDetailId === item.id);
+        setApiImg(findImg ? 'PUT' : 'POST');
+        setPreview(findImg ? findImg.imgUrl : 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png');
+        setSelectedUser(formatUser);
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setSelectedUser(null);
+    };
+
+    const handleUpdate = async () => {
+        console.log("Selected User before update:", selectedUser); 
+
+        try {
+            const fileName = image.name.split('.').slice(0, -1).join('.');
+            const imgInfo = {
+                publicId: fileName,
+                productDetailId: selectedUser.id
+            };
+            const formData = new FormData();
+            formData.append('file', image);
+            formData.append('upload_preset', 'datnMeiko');
+            const r1 = await fetch(
+                `https://api.cloudinary.com/v1_1/dtsqxauba/image/upload`,
+                {
+                    method: 'POST',
+                    body: formData,
+                }
+            );
+            const r2 = await fetch(apiURL.image.create, {
+                method: apiImg,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(imgInfo),
+            });
+
+            console.log("Image update response:", r2);
+            const response = await fetch(`${apiURL.productDetail.edit}${selectedUser.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedUser),  
+            });
+
+            console.log("Product update response:", response); 
+
+            if (response.ok && r1.ok && r2.ok) {
+                toast.success('Sửa thành công');
+                refetch();
+                loadImg();
+            } else {
+                toast.error('Sửa thất bại');
+                throw new Error("Lỗi");
+            }
+        } catch (error) {
+            toast.error('Sửa thất bại');
+            console.error("Error during update:", error);
+        }
+        handleClose();
+    };
+
     return (
-        <div>
-            <Paper sx={{ minWidth: '705px', width: 'auto', maxWidth: '1558px' }}>
-                <DataGrid
-                    columns={columns}
-                    rows={formattedRows}
-                    initialState={{ pagination: { paginationModel } }}
-                    pageSizeOptions={[5, 10]}
-                    disableRowSelectionOnClick
+        <Box p={3} bgcolor="#fff" borderRadius={2}>
+            <Typography variant="h5" align="center" gutterBottom>Thông tin sản phẩm</Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <SearchInput
+                    ApiURL={apiURL.product.search}
                 />
-            </Paper>
-        </div>
+                <FormControl>
+                    <FormLabel>Tìm kiếm theo:</FormLabel>
+                    <RadioGroup
+                        row
+                    >
+                        <FormControlLabel value="isSearchWithName=true" control={<Radio />} label="Tên sản phẩm" />
+                        <FormControlLabel value="isSearchWithName=false" control={<Radio />} label="Mã sản phẩm" />
+                    </RadioGroup>
+                </FormControl>
+            </Box>
+            <DataGrid
+                columns={columns}
+                rows={formattedRows}
+                initialState={{ pagination: { paginationModel } }}
+                pageSizeOptions={[5, 10]}
+                disableRowSelectionOnClick
+                rowHeight={80}
+                sx={{
+                    border: 'none',
+                    '& .MuiDataGrid-cell': {
+                        borderBottom: 'none',
+                    },
+                    '& .MuiDataGrid-columnHeaders': {
+                        borderBottom: 'none',
+                    },
+                    backgroundColor: '#fff',
+                    minHeight: 550,
+                    maxHeight: 'calc(100vh - 200px)',
+                }}
+            />
+            <UpdateDetailDialog
+                open={open}
+                selectedUser={selectedUser}
+                onClose={handleClose}
+                setSelectedUser={setSelectedUser}
+                onUpdate={handleUpdate}
+                setImage={setImage}
+                preview={preview}
+                setPreview={setPreview}
+            />
+        </Box>
     );
 }
-
 export default ListProductDetail;

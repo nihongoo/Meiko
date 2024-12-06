@@ -8,7 +8,7 @@ function ProductCart() {
   const [cartId, setCartId] = useState(null);
   const [coupons, setCoupons] = useState([]);
   const [userCoupons, setUserCoupons] = useState([]);
-  const [cartDetails, setCartDetails] = useState([]); 
+  const [cartDetails, setCartDetails] = useState([]);
   const [products, setProducts] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
   const customerId = localStorage.getItem("customerId");
@@ -58,6 +58,8 @@ function ProductCart() {
         console.error('Error fetching cart details:', error);
       });
   };
+  console.log(products);
+
   const fetchProduct = (productId) => {
     fetch(`https://localhost:7172/api/Product/Get/${productId}`)
       .then((response) => response.json())
@@ -117,7 +119,7 @@ function ProductCart() {
   };
   const calculateTotal = () => {
     let total = 0;
-    let discount = 0; 
+    let discount = 0;
     cartDetails.forEach((item) => {
       if (item.selected) {
         const price = item.productDetails.sale_products.length > 0
@@ -149,8 +151,8 @@ function ProductCart() {
       .then((response) => response.text())
       .then((data) => {
         if (data.includes("Đã thêm")) {
-          setCartDetails(prevCartDetails => 
-            prevCartDetails.map(item => 
+          setCartDetails(prevCartDetails =>
+            prevCartDetails.map(item =>
               item.id === cartDetailId ? { ...item, quantity: quantity } : item
             )
           );
@@ -171,7 +173,7 @@ function ProductCart() {
         fetchCartDetails(cartId);
       })
       .catch((error) => console.error('Error removing from cart:', error));
-      window.location.reload();
+    window.location.reload();
   };
   const increaseQuantity = (cartDetailId, productDetailId, quantity) => {
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
@@ -185,8 +187,8 @@ function ProductCart() {
       alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
-    setCartDetails(prevCartDetails => 
-      prevCartDetails.map(cartItem => 
+    setCartDetails(prevCartDetails =>
+      prevCartDetails.map(cartItem =>
         cartItem.id === cartDetailId ? { ...cartItem, quantity: newQuantity } : cartItem
       )
     );
@@ -199,7 +201,7 @@ function ProductCart() {
       alert("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
-    if (item.quantity > 1) { 
+    if (item.quantity > 1) {
       const newQuantity = item.quantity - 1;
       updateQuantity(cartDetailId, productDetailId, newQuantity);
     } else {
@@ -222,8 +224,8 @@ function ProductCart() {
       alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
-    setCartDetails(prevCartDetails => 
-      prevCartDetails.map(cartItem => 
+    setCartDetails(prevCartDetails =>
+      prevCartDetails.map(cartItem =>
         cartItem.id === cartDetailId ? { ...cartItem, quantity: newQuantity } : cartItem
       )
     );
@@ -233,22 +235,22 @@ function ProductCart() {
   const handlePayment = () => {
     const selectedItems = cartDetails.filter(item => item.selected);
     const productDetailsInfo = selectedItems.map(item => {
-        const productName = products[item.productDetails.productId]?.name || 'Không có tên sản phẩm';
-        const size = item.productDetails.sizes?.name || 'Không có kích thước';
-        const color = item.productDetails.colors?.name || 'Không có màu sắc';
-        return `${productName} - ${color}, ${size}`;
+      const productName = products[item.productDetails.productId]?.name || 'Không có tên sản phẩm';
+      const size = item.productDetails.sizes?.name || 'Không có kích thước';
+      const color = item.productDetails.colors?.name || 'Không có màu sắc';
+      return `${productName} - ${color}, ${size}`;
     });
     const paymentData = {
-        cartId,
-        selectedItems,
-        total: total - discount,
-        coupon: selectedCoupon,
-        productDetailsInfo,
+      cartId,
+      selectedItems,
+      total: total - discount,
+      coupon: selectedCoupon,
+      productDetailsInfo,
     };
 
     console.log(productDetailsInfo);
     navigate('/checkout', { state: { paymentData } });
-};
+  };
 
 
   return (
@@ -269,18 +271,21 @@ function ProductCart() {
               {cartDetails.map((item) => (
                 <tr key={item.id}>
                   <td>
-                  <Checkbox
-                    checked={item.selected}
-                    onChange={() => handleCheckboxChange(item.id)}
-                  />
+                    <Checkbox
+                      checked={item.selected}
+                      onChange={() => handleCheckboxChange(item.id)}
+                    />
                   </td>
                   <td>
                     <div className={styles.productInfo}>
                       {products[item.productDetails.productId] ? (
                         <>
                           <img
-                            src={item.productDetails.images?.[0]?.imgUrl}
-                            alt="Sản phẩm"
+                            src={
+                              item.productDetails.images?.length > 0
+                                ? item.productDetails.images[0].imgUrl // Nếu có ảnh trong productDetails
+                                : products[item.productDetails.productId].imageUrl // Fallback về ảnh từ products
+                            } alt="Sản phẩm"
                             className={styles.productImage}
                           />
                           <div className={styles.productDetails}>
@@ -368,13 +373,13 @@ function ProductCart() {
           <div className={styles.summary}>
             {selectedCoupon && (
               <div className={styles.couponForm}>
-              <b>Thông tin mã giảm giá</b>
-              <p><strong>Mã giảm giá:</strong> {selectedCoupon.voucherCode}</p>
-              <p><strong>Giảm giá:</strong> {selectedCoupon.value}%</p>
-              <p><strong>Giá trị đơn hàng tối thiểu:</strong> {formatCurrency(selectedCoupon.minimumOrderAmount)}</p>
-              <p><strong>Hạn sử dụng:</strong> {new Date(selectedCoupon.startDay).toLocaleDateString()} - {new Date(selectedCoupon.endDay).toLocaleDateString()}</p>
-              <p><strong>Trạng thái:</strong> {selectedCoupon.status === 0 ? "Đang áp dụng" : "Không áp dụng"}</p>
-            </div>
+                <b>Thông tin mã giảm giá</b>
+                <p><strong>Mã giảm giá:</strong> {selectedCoupon.voucherCode}</p>
+                <p><strong>Giảm giá:</strong> {selectedCoupon.value}%</p>
+                <p><strong>Giá trị đơn hàng tối thiểu:</strong> {formatCurrency(selectedCoupon.minimumOrderAmount)}</p>
+                <p><strong>Hạn sử dụng:</strong> {new Date(selectedCoupon.startDay).toLocaleDateString()} - {new Date(selectedCoupon.endDay).toLocaleDateString()}</p>
+                <p><strong>Trạng thái:</strong> {selectedCoupon.status === 0 ? "Đang áp dụng" : "Không áp dụng"}</p>
+              </div>
             )}
             {errorMessage && (
               <div className={styles.errorMessage}>
@@ -384,23 +389,23 @@ function ProductCart() {
           </div>
           <hr />
           <div className={styles.summary}>
-          <b>Tổng đơn hàng</b>
-          <div className={styles.summaryRow}>
-            <span>Tổng tiền</span>
-            <p>{formatCurrency(total)}</p>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>Giảm giá</span>
-            <p>{formatCurrency(discount)}</p>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>Tổng thanh toán</span>
-            <p>{formatCurrency(total - discount)}</p>
-          </div>
+            <b>Tổng đơn hàng</b>
+            <div className={styles.summaryRow}>
+              <span>Tổng tiền</span>
+              <p>{formatCurrency(total)}</p>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Giảm giá</span>
+              <p>{formatCurrency(discount)}</p>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Tổng thanh toán</span>
+              <p>{formatCurrency(total - discount)}</p>
+            </div>
             {selectedCoupon && (
               <div className={styles.voucherValidationMessage}>
                 {coupons.concat(userCoupons).map((coupon) => {
-                  if (coupon.code === selectedCoupon.voucherCode) { 
+                  if (coupon.code === selectedCoupon.voucherCode) {
                     const validationMessage = validateVoucher(coupon, total);
                     return validationMessage ? (
                       <p className={styles.validationError}>{validationMessage}</p>

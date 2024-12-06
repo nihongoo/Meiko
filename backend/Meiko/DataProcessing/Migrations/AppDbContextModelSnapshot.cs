@@ -604,7 +604,7 @@ namespace DataProcessing.Migrations
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
+                        .HasDefaultValue(1)
                         .HasComment("Trạng thái của 1 lần thanh toán");
 
                     b.HasKey("Id");

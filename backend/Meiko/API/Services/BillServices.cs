@@ -802,7 +802,7 @@ namespace API.Services
 					List<ProductDetails> productDetails = new List<ProductDetails>();
 					for (int i = 0; i < billDetails.Count; i++)
 					{
-						ProductDetails productDetail = await _dbcontext.ProductDetails.FindAsync(billDetails[i].ProductDetails.Id);
+						ProductDetails productDetail = await _dbcontext.ProductDetails.FirstOrDefaultAsync(k=>k.Id == billDetails[i].ProductDetailId);
 						if (billDetails[i].Quantity > productDetail.Quantity)
 							return new ReturnMessage()
 							{

@@ -4,6 +4,8 @@ import styles from './ProductDetail.module.css';
 import ProductReviews from './ProductReview';
 import RelatedProducts from './RelatedProducts';
 import { CircularProgress } from '@mui/material';
+import useFetchData from '../../../../../customHook/useFetchData';
+import apiURL from '../../../../../routes/API';
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -23,6 +25,9 @@ const ProductDetail = () => {
 
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [discountPercentage, setDiscountPercentage] = useState(null);
+
+  const {data: products, refetch} = useFetchData(apiURL.product.getbyid, null, true)
+
 
   // Lấy dữ liệu sản phẩm từ API
   useEffect(() => {
@@ -137,9 +142,15 @@ const ProductDetail = () => {
       const selectedProductDetail = product.Product_detail?.find(
         (detail) => detail.sizes.name === selectedSize && detail.colors.name === selectedColor
       );
-  
-      if (!selectedProductDetail || !selectedProductDetail.images || selectedProductDetail.images.length === 0) {
-        alert("Sản phẩm không hợp lệ hoặc không có hình ảnh.");
+      let imageUrlToUse = '';
+      if (selectedProductDetail) {
+        if (selectedProductDetail.images && selectedProductDetail.images.length > 0) {
+          imageUrlToUse = selectedProductDetail.images[0].imgUrl;
+        } else {
+          imageUrlToUse = product.imageUrl; // Sử dụng ảnh mặc định của sản phẩm
+        }
+      } else {
+        alert("Sản phẩm không hợp lệ hoặc không tồn tại.");
         return;
       }
   

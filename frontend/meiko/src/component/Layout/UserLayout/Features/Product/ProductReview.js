@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Rating } from '@mui/material';
+import { Avatar, Rating } from '@mui/material';
 import { Button, Form, Alert, Image } from 'react-bootstrap';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
@@ -50,11 +50,12 @@ const ProductReviews = ({ productId }) => {
     fetchUserData();
     fetchReviews();
   }, [productId, customerId]);
+console.log(reviews);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!customerId) {
-      toast.error('Bạn cần đăng nhập để gửi đánh giá'); // Sử dụng toast thay cho alert
+      toast.error('Bạn cần đăng nhập để gửi đánh giá');
       return;
     }
 
@@ -69,7 +70,7 @@ const ProductReviews = ({ productId }) => {
     }
 
     const reviewWithCustomerId = {
-      id: "1caa17b9-bfa7-4ea7-9dff-83319ed864f5", // Static UUID for testing
+      id: "1caa17b9-bfa7-4ea7-9dff-83319ed864f5", 
       productId: productId,
       customerId: customerId,
       comment: newReview.comment,
@@ -78,7 +79,7 @@ const ProductReviews = ({ productId }) => {
       customerName: userData?.name || 'Người dùng chưa xác định',
       customerAvatar: userData?.avatar || 'default-avatar-url',
       parentReviewId: null,
-      status: 0, // Initial status
+      status: 0, 
       helpfulCount: 0,
       unhelpfulCount: 0,
       userInteractions: {},
@@ -193,12 +194,7 @@ const ProductReviews = ({ productId }) => {
             {reviews.map((review, index) => (
               <li key={index} className={`${styles.reviewItem} mb-3`}>
                 <div className="d-flex align-items-center">
-                  <Image
-                    src={review.customerAvatar || 'default-avatar-url'}
-                    roundedCircle
-                    className={styles.reviewAvatar}
-                    alt="User Avatar"
-                  />
+                <Avatar {...stringAvatar(review.customerName)} />
                   <div className={styles.reviewContent}>
                     <div className="d-flex justify-content-between">
                       <strong className={styles.reviewName}>
@@ -282,5 +278,34 @@ const ProductReviews = ({ productId }) => {
     </div>
   );
 };
+
+function stringAvatar(name) {
+  const initials = name.split(' ').map(word => word[0]).join('');
+  return {
+    sx: {
+      bgcolor: stringToColor(name),
+    },
+    children: initials.length === 1 ? initials : initials.substring(0, 2),
+  };
+}
+function stringToColor(string) {
+  let hash = 0;
+  let i;
+
+  /* eslint-disable no-bitwise */
+  for (i = 0; i < string.length; i += 1) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  let color = '#';
+
+  for (i = 0; i < 3; i += 1) {
+    const value = (hash >> (i * 8)) & 0xff;
+    color += `00${value.toString(16)}`.slice(-2);
+  }
+  /* eslint-enable no-bitwise */
+
+  return color;
+}
 
 export default ProductReviews;
