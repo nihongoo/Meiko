@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Checkbox } from '@mui/material';
 import styles from './Order.module.css';
 
-function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, setLoading, selectedAddress }) {
+function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsInfo, shippingFee, setLoading, selectedAddress, voucherId }) {
     const [selectedPayment, setSelectedPayment] = useState(null);
-    const cartId = localStorage.getItem('cartId');
     const handlePaymentChange = (option) => {
         setSelectedPayment(selectedPayment === option ? null : option);
     };
@@ -50,10 +49,11 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
                     shippingFee: shippingFee,
                     cartId: localStorage.getItem("cartId"), 
                     customerId: localStorage.getItem("customerId"), 
-                    voucherId: coupon ? coupon.voucherId : null, 
+                    voucherId: voucherId,
                     staffId: null
                 }),
             });
+            console.log(total);
             const createBillData = await createBillResponse.json();
             console.log("Create Bill Response:", createBillData); 
             const billId = createBillData.id;
@@ -86,6 +86,9 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
             }
     
             const addProductPromises = selectedItems.map((item) => {
+                console.log("Selected items before sending to API:", selectedItems);
+                console.log("Sending product to add to bill:", item.productDetails.id, item.quantity);
+            
                 return fetch("https://localhost:7172/api/Bills/add-to-bill", {
                     method: "POST",
                     headers: {
@@ -95,19 +98,51 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
                         billId: billId,
                         productDetailId: item.productDetails.id,
                         quantity: item.quantity,
-                        status: 2,
+                        status: 0, 
                     }),
+                })
+                .then(response => {
+                    console.log("Response for product ID:", item.productDetails.id, response);
+                    if (!response.ok) {
+                        console.error("Error adding product to bill:", response.status, response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Product added successfully to bill for product ID:", item.productDetails.id, data); 
+                    return data; 
+                })
+                .catch(error => {
+                    console.error("Error with product ID:", item.productDetails.id, error); 
+                    return null; 
                 });
             });
-    
-            await Promise.all(addProductPromises);
+
+            const addProductData = await Promise.all(addProductPromises);
+            console.log("All Product Add Responses:", addProductData); 
+
+            if (voucherDetailIdd) {
+                const updateVoucherResponse = await fetch(`https://localhost:7172/api/Voucher/UpdateVoucherStatus/${voucherDetailIdd}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                const updateVoucherData = await updateVoucherResponse.text();
+                console.log("Update Voucher Response:", updateVoucherData);
+                if (updateVoucherData) {
+                    console.log("Voucher đã được cập nhật trạng thái.");
+                } else {
+                    alert("Không thể cập nhật trạng thái voucher.");
+                }
+            }
     
             setLoading(false);
             alert("Đặt hàng thành công!");
     
         } catch (error) {
             setLoading(false); 
-            console.error("Error placing order:", error);  // In lỗi ra console để debug
+            console.error("Error placing order:", error);
             alert("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.");
         }
     };

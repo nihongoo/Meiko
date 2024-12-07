@@ -891,7 +891,12 @@ namespace API.Services
 
 						billDetail.Price = billDetail.Quantity * productDetail.Price;
 
-						await _dbcontext.BillDetails.AddAsync(billDetail);
+                        if (productDetail.Quantity < billDetail.Quantity)
+                            throw new Exception("Không đủ số lượng sản phẩm trong kho");
+
+                        productDetail.Quantity -= billDetail.Quantity;
+
+                        await _dbcontext.BillDetails.AddAsync(billDetail);
 
 					}
 					else
@@ -900,12 +905,20 @@ namespace API.Services
 						if (billDetail.Quantity >= productDetail.Quantity)
 							billDetail.Quantity = productDetail.Quantity;
 
-						billDetail.Price = billDetail.Quantity * productDetail.Price;
+                        var quantityToReduce = model.Quantity;
+                        if (productDetail.Quantity < quantityToReduce)
+                            throw new Exception("Không đủ số lượng sản phẩm trong kho");
+
+                        productDetail.Quantity -= quantityToReduce;
+
+                        billDetail.Price = billDetail.Quantity * productDetail.Price;
 
 						_dbcontext.BillDetails.Update(billDetail);
 					}
 
-					await _dbcontext.SaveChangesAsync();
+                    _dbcontext.ProductDetails.Update(productDetail);
+
+                    await _dbcontext.SaveChangesAsync();
 
 					await UpdatePrice(model.BillId);
 
