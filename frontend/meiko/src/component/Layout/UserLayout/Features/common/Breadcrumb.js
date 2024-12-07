@@ -1,57 +1,80 @@
 import styled from "styled-components";
-import { PropTypes } from "prop-types";
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import { FaChevronRight } from "react-icons/fa"; 
 import { defaultTheme } from "../../styles/themes/default";
 
 const BreadcrumbWrapper = styled.nav`
   margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
 
   .breadcrumb-separator {
-    margin-left: 8px;
-    margin-right: 8px;
+    margin: 0 8px;
+    color: ${defaultTheme.color_gray};
+    font-size: 14px;
+    display: flex;
+    align-items: center;
   }
 
   .breadcrumb-item {
-    transition: ${defaultTheme.default_transition};
+    color: ${defaultTheme.color_gray};
+    font-size: 16px;
+    font-weight: 400;
+    text-decoration: none;
+    transition: color 0.3s;
+
     &:hover {
       color: ${defaultTheme.color_outerspace};
+    }
+
+    &.active {
+      color: ${defaultTheme.color_outerspace};
+      font-weight: 600;
+      pointer-events: none; /* Không cho phép nhấn vào mục cuối cùng */
     }
   }
 `;
 
 const Breadcrumb = ({ items }) => {
+  if (!items || items.length === 0) return null;
+
   return (
-    <BreadcrumbWrapper className="flex items-center flex-wrap">
-      {items?.map((item, index) => (
+    <BreadcrumbWrapper aria-label="breadcrumb">
+      {items.map((item, index) => (
         <BreadcrumbItem
           key={index}
           item={item}
-          isLast={items.length - 1 === index}
+          isLast={index === items.length - 1}
         />
       ))}
     </BreadcrumbWrapper>
   );
 };
 
-export default Breadcrumb;
 Breadcrumb.propTypes = {
-  items: PropTypes.array,
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      link: PropTypes.string,
+    })
+  ),
 };
 
 const BreadcrumbItem = ({ item, isLast }) => {
   return (
     <>
-      <Link
-        to={item.link}
-        className={`breadcrumb-item text-base ${
-          isLast ? "text-outerspace font-semibold" : "text-gray font-medium"
-        }`}
-      >
-        {item.label}
-      </Link>
+      {!isLast ? (
+        <Link to={item.link} className="breadcrumb-item">
+          {item.label}
+        </Link>
+      ) : (
+        <span className="breadcrumb-item active">{item.label}</span>
+      )}
       {!isLast && (
-        <span className="breadcrumb-separator inline-flex text-xs">
-          <i className="bi bi-chevron-right"></i>
+        <span className="breadcrumb-separator">
+          <FaChevronRight />
         </span>
       )}
     </>
@@ -59,6 +82,11 @@ const BreadcrumbItem = ({ item, isLast }) => {
 };
 
 BreadcrumbItem.propTypes = {
-  item: PropTypes.object,
-  isLast: PropTypes.bool,
+  item: PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    link: PropTypes.string,
+  }).isRequired,
+  isLast: PropTypes.bool.isRequired,
 };
+
+export default Breadcrumb;

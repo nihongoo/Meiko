@@ -345,16 +345,29 @@ function ChangePassword() {
     );
   }
 
-
-function stringAvatar(name) {
-    const initials = name.split(' ').map(word => word[0]).join('');
-    return {
+  function stringAvatar(name) {
+    if (!name || typeof name !== 'string') {
+      return {
         sx: {
-            bgcolor: stringToColor(name),
+          bgcolor: '#ccc',
         },
-        children: initials.length === 1 ? initials : initials.substring(0, 2),
+        children: '?',
+      };
+    }
+
+    const initials = name
+      .split(' ')
+      .map(word => word[0])
+      .join('');
+  
+    return {
+      sx: {
+        bgcolor: stringToColor(name),
+      },
+      children: initials.length === 1 ? initials : initials.substring(0, 2),
     };
-}
+  }
+  
 function stringToColor(string) {
     let hash = 0;
     let i;
