@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from './Header/index'
 import SideBar from './Sidebar/index';
+import { useNavigate } from 'react-router-dom';
 
 function AdminLayout({ children }) {
-
     const [collapsed, setCollapsed] = useState(false)
-
+    const nav = useNavigate()
+    const [isAuthorized, setIsAuthorized] = useState(null);
+    useEffect(() => {
+        const userRole = localStorage.getItem('userRole');
+        if (userRole !== 'Staff') {
+            nav('/SignIn');
+        } else {
+            setIsAuthorized(true);
+        }
+    }, []);
     return (
         <div className='d-flex' style={{ height: '100vh', overflow: 'hidden' }}>
             <div className='bg-light' style={{ width: collapsed ? '60px' : '250px', transition: 'width 0.3s' }}>

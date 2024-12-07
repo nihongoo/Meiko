@@ -72,5 +72,15 @@ namespace API.Controllers
 
 			}
 		}
+		[HttpGet("Get-By-AccID")]
+		public async Task<IActionResult> GetByAccID(Guid id)
+		{
+			var result = await _staffServices.GetStaffByAccID(id);
+			if(result == null)
+			{
+				return NotFound(new {message = "Không tìm thấy nhân viên này"});
+			}
+			return Ok(result);
+		}
 	}
 }

@@ -8,5 +8,6 @@ namespace API.IServices
         public Task<IEnumerable<Staffs>> GetAllStaffsAsync();
         public Task<Staffs> GetStaffByIdAsync(Guid staffId);
         public Task<bool> UpdateStaffAsync(StaffViewModel staff);
+        public Task<Staffs> GetStaffByAccID(Guid id);
     }
 }
