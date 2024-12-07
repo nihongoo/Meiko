@@ -17,7 +17,7 @@ function Checkout () {
         return <p>Không có dữ liệu thanh toán.</p>;
     }
 
-    const { selectedItems, total, discount, coupon, productDetailsInfo } = paymentData;
+    const { selectedItems, voucherId, voucherDetailIdd, total, discount, coupon, productDetailsInfo } = paymentData;
 
     const handleSelectAddress = (address) => {
         setSelectedAddress(address);
@@ -38,6 +38,8 @@ function Checkout () {
                     <div className={`col-md-4`}>
                         <Order
                             selectedItems={selectedItems}
+                            voucherId={voucherId}
+                            voucherDetailIdd={voucherDetailIdd}
                             total={total}
                             discount={discount}
                             coupon={coupon}

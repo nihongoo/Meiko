@@ -25,7 +25,6 @@ const ProductDetail = () => {
 
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [discountPercentage, setDiscountPercentage] = useState(null);
-
   const {data: products, refetch} = useFetchData(apiURL.product.getbyid, null, true)
 
 
@@ -78,14 +77,11 @@ const ProductDetail = () => {
       }
     }
   }, [selectedSize, selectedColor, product]);
-
   // Nếu đang tải dữ liệu
   if (loading) return <div className='d-flex justify-content-center'><CircularProgress/></div>;
 
   // Nếu có lỗi khi tải dữ liệu
   if (error) return <div className={styles.error}>{error}</div>;
-
-  // Nếu không tìm thấy sản phẩm
   if (!product) return <div className={styles.notFound}>Không tìm thấy sản phẩm</div>;
 
   const productDetails = product.Product_detail || [];

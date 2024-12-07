@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import 'font-awesome/css/font-awesome.min.css';
 import styles from './FeaturedProducts.module.css';
 import CircularProgress from '@mui/material/CircularProgress';
+import { Link } from 'react-router-dom';
+
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState([]);
@@ -164,8 +166,9 @@ const FeaturedProducts = () => {
         {/* Các icon yêu thích, giỏ hàng, chi tiết */}
         <div className={styles.iconWrapper}>
           <i className="fa fa-heart" title="Yêu thích"></i>
-          <i className="fa fa-shopping-cart" title="Giỏ hàng"></i>
-          <i className="fa fa-eye" title="Chi tiết"></i>
+          <Link to={`/productdetail/${product.id}`}>
+            <i className="fa fa-eye" title="Chi tiết"></i>
+          </Link>
         </div>
       </div>
     );

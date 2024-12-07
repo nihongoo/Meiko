@@ -21,6 +21,7 @@ import ForgotPassword from '../component/Layout/loginLayout/Account/forgotPasswo
 import ShopCart from '../component/Layout/UserLayout/Pages/ShopCart'
 import ListProductDetail from '../pages/Product_Detail/ListProductDetail'
 import Checkout from '../component/Layout/UserLayout/Pages/Checkout'
+import AccountUser from '../component/Layout/UserLayout/Pages/AccountUser'
 
 const publicRoutes = [
     { path: '/', component: Home , layout: 'admin'},
@@ -46,6 +47,7 @@ const publicRoutes = [
     { path: '/ShopCart', component: ShopCart, layout: 'user'},
     { path: '/listproductdetail/:id', component: ListProductDetail, layout: 'admin' },
     { path: '/checkout', component: Checkout, layout: 'user'},
+    { path: 'accountUser', component: AccountUser, layout: 'user'},
 ]
 const privateRoutes = [
     {path: '/', component: Home, layout: 'admin'},

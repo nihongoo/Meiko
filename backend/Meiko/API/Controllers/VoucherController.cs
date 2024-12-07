@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.Services;
 using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -40,15 +41,16 @@ namespace API.Controllers
             var vouchers = await _voucherServices.GetAllVouchersAsync();
             return Ok(vouchers);
         }
-        [HttpPost("Use")]
-        public async Task<IActionResult> UseVoucher([FromQuery] Guid voucherId, [FromQuery] Guid customerId, [FromQuery] double billAmount)
+        [HttpPut("UpdateVoucherStatus/{id}")]
+        public async Task<IActionResult> UpdateVoucherStatus(Guid id)
         {
-            var success = await _voucherServices.UseVoucherAsync(voucherId, customerId, billAmount);
-            if (!success)
+            var result = await _voucherServices.UpdateVoucherStatus(id);
+            if (result.status == 0)
             {
-                return BadRequest("Không thể sử dụng voucher: không đáp ứng yêu cầu.");
+                return Ok(result.message);
             }
-            return Ok(success);
+
+            return BadRequest(result.message);
         }
         [HttpDelete("Delete/{id}")]
         public async Task<IActionResult> DeleteVoucher(Guid id)
