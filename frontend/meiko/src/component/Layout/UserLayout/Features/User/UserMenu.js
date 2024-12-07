@@ -99,7 +99,7 @@ const UserMenu = () => {
               to="/orderlistscreen"
               className={`nav-menu-link ${
                 location.pathname === "/orderlistscreen" ||
-                location.pathname === "/order_detail"
+                location.pathname === "/orderdetailscreen"
                   ? "active"
                   : ""
               }`}
@@ -107,7 +107,7 @@ const UserMenu = () => {
               <span className="nav-link-icon">
                 <FaBox />
               </span>
-              <span className="nav-link-text">My orders</span>
+              <span className="nav-link-text">Đơn hàng</span>
             </Link>
           </li>
           <li className="nav-menu-item">
@@ -123,7 +123,7 @@ const UserMenu = () => {
               <span className="nav-link-icon">
                 <FaHeart />
               </span>
-              <span className="nav-link-text">Wishlist</span>
+              <span className="nav-link-text">Yêu thích</span>
             </Link>
           </li>
           <li className="nav-menu-item">
@@ -139,7 +139,7 @@ const UserMenu = () => {
               <span className="nav-link-icon">
                 <FaUser />
               </span>
-              <span className="nav-link-text">My Account</span>
+              <span className="nav-link-text">Tài khoản</span>
             </Link>
           </li>
           <li className="nav-menu-item">
@@ -147,7 +147,7 @@ const UserMenu = () => {
               <span className="nav-link-icon">
                 <FaSignOutAlt />
               </span>
-              <span className="nav-link-text">Sign out</span>
+              <span className="nav-link-text">Đăng xuất</span>
             </Link>
           </li>
         </ul>

@@ -1,4 +1,6 @@
 import { Container } from "react-bootstrap";
+import Header from "../Header/index";
+import Footer from "../Footer/index";
 import Breadcrumb from "../Features/common/Breadcrumb";
 import { UserContent, UserDashboardWrapper } from "../styles/user";
 import UserMenu from "../Features/User/UserMenu";
@@ -64,7 +66,9 @@ const OrderDetailScreen = () => {
   const visibleStatusSteps = orderStatusSteps.slice(0, currentStatusIndex + 1);
 
   return (
-    <Container>
+    <div>
+        <Header/>
+        <Container style={{ paddingTop: "220px" }}>
       <Breadcrumb items={breadcrumbItems} />
       <UserDashboardWrapper>
         <UserMenu />
@@ -137,6 +141,8 @@ const OrderDetailScreen = () => {
         </UserContent>
       </UserDashboardWrapper>
     </Container>
+    <Footer/>
+    </div>
   );
 };
 

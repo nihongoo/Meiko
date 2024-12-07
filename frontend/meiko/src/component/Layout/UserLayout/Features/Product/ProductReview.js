@@ -6,8 +6,8 @@ import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import DeleteIcon from '@mui/icons-material/Delete';
 import styles from './ProductReviews.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { ToastContainer, toast } from 'react-toastify'; // Import react-toastify
-import 'react-toastify/dist/ReactToastify.css'; // Import styles for Toastify
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; 
 
 const ProductReviews = ({ productId }) => {
   const [reviews, setReviews] = useState([]);

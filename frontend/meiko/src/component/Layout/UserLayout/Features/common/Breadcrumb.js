@@ -5,10 +5,14 @@ import { FaChevronRight } from "react-icons/fa";
 import { defaultTheme } from "../../styles/themes/default";
 
 const BreadcrumbWrapper = styled.nav`
+
   margin-bottom: 24px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  height: 180px;
+  padding-left: 200px;
+  background: #f5f5f5 url("//dorno-demo.myshopify.com/cdn/shop/files/testi_bg_2_3c8502bd-60a4-403a-9378-a39ac074dd01.jpg?v=1652605155") no-repeat center center / cover;
 
   .breadcrumb-separator {
     margin: 0 8px;
@@ -24,6 +28,7 @@ const BreadcrumbWrapper = styled.nav`
     font-weight: 400;
     text-decoration: none;
     transition: color 0.3s;
+    containers: flex;
 
     &:hover {
       color: ${defaultTheme.color_outerspace};
@@ -41,7 +46,8 @@ const Breadcrumb = ({ items }) => {
   if (!items || items.length === 0) return null;
 
   return (
-    <BreadcrumbWrapper aria-label="breadcrumb">
+    <div>
+      <BreadcrumbWrapper aria-label="breadcrumb">
       {items.map((item, index) => (
         <BreadcrumbItem
           key={index}
@@ -50,6 +56,7 @@ const Breadcrumb = ({ items }) => {
         />
       ))}
     </BreadcrumbWrapper>
+    </div>
   );
 };
 
