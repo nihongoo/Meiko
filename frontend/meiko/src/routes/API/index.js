@@ -116,6 +116,7 @@ const apiURL = {
         billId:'https://localhost:7172/api/Bills/get-bill-by-id/',
         all:'https://localhost:7172/api/Bills/get-bills',
         filter: 'https://localhost:7172/api/Bills/Filter',
+        search: 'https://localhost:7172/api/Bills/Search'
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',
