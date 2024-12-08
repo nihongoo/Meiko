@@ -1,0 +1,164 @@
+/* Timeline Wrapper */
+.timelineWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin: 2rem 0;
+    padding: 0 2rem;
+    width: 100%;
+}
+
+/* Timeline Step */
+.timelineStep {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+    text-align: center;
+    transition: all 0.3s ease;
+    width: 25%; /* Mỗi bước chiếm 25% */
+}
+
+/* Thanh ngang giữa icon và status */
+.stepLine {
+    width: 2px;
+    height: 50px; /* Điều chỉnh chiều dài của thanh ngang tùy vào số lượng trạng thái */
+    background-color: #e0e0e0;
+    margin: 0.5rem 0; /* Khoảng cách giữa icon và status */
+}
+
+/* Icon bước */
+.stepCircle {
+    width: 3rem;
+    height: 3rem;
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+/* Status text */
+.stepText {
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Hoàn thành */
+.completed .stepCircle {
+    background-color: #4caf50; /* Màu xanh lá cho hoàn thành */
+}
+
+.completed .stepText {
+    color: #4caf50;
+}
+
+/* Đang xử lý */
+.current .stepCircle {
+    background-color: #ff9800; /* Màu cam cho đang xử lý */
+}
+
+.current .stepText {
+    color: #ff9800;
+}
+
+/* Các bước đang chờ */
+.pending .stepCircle {
+    background-color: #e0e0e0; /* Màu xám cho đang chờ */
+}
+
+.pending .stepText {
+    color: #e0e0e0;
+}
+
+/* Line giữa các bước */
+.timelineStep::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #e0e0e0;
+    transform: translateX(-50%);
+    z-index: -1;
+}
+
+.timelineStep:last-child::after {
+    display: none; /* Ẩn line sau bước cuối cùng */
+}
+
+/* Hover effect */
+.stepCircle:hover {
+    background-color: #ff9800; /* Thay đổi màu khi hover */
+}
+
+.stepText:hover {
+    color: #ff9800;
+}
+
+  /* Order Item */
+  .orderItemWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1rem;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+  
+  .orderItemImage {
+    flex-shrink: 0;
+    margin-right: 1rem;
+  }
+  
+  .orderItemImage img {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .orderItemInfo {
+    flex-grow: 1;
+    flex-basis: 0;
+  }
+  
+  .orderItemInfo p {
+    margin: 0;
+  }
+  
+  .orderItemInfo .color-size {
+    margin-bottom: 0.5rem;
+  }
+  
+  .orderItemCalc {
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    gap: 1rem;
+    padding-right: 60px;
+  }
+  
+  .orderItemCalc p {
+    margin: 0;
+    font-weight: bold;
+  }
+  
+  .deleteIcon {
+    cursor: pointer;
+    margin-left: 1rem;
+    color: #ff4d4d;
+    font-size: 1.5rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .deleteIcon:hover {
+    color: #ff0000;
+    transform: scale(1.1); /* Slightly enlarge the icon on hover */
+  }

@@ -17,7 +17,20 @@ namespace API.Services
             return await _context.Staffs.ToListAsync();
         }
 
-        public async Task<Staffs> GetStaffByIdAsync(Guid staffId)
+		public async Task<Staffs> GetStaffByAccID(Guid id)
+		{
+            try
+            {
+                var item = await _context.Staffs.FirstOrDefaultAsync(k => k.ApplicationUserId == id.ToString());
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+		}
+
+		public async Task<Staffs> GetStaffByIdAsync(Guid staffId)
         {
             return await _context.Staffs.FindAsync(staffId);
         }

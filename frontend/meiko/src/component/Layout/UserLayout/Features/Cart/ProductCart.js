@@ -5,46 +5,42 @@ import styles from "./ProductCart.module.css";
 
 function ProductCart() {
   const [selectedCoupon, setSelectedCoupon] = useState("");
+  const [voucherDetailId, setVoucherDetailId] = useState(null);
+  const [listVoucherDetail, setListVoucherDetail] = useState(null);
   const [cartId, setCartId] = useState(null);
   const [coupons, setCoupons] = useState([]);
   const [userCoupons, setUserCoupons] = useState([]);
-  const [cartDetails, setCartDetails] = useState([]); 
+  const [cartDetails, setCartDetails] = useState([]);
   const [products, setProducts] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
+  const [checked, setChecked] = useState(false);
   const customerId = localStorage.getItem("customerId");
   const navigate = useNavigate();
 
   useEffect(() => {
     if (customerId) {
-      fetch('https://localhost:7172/api/Voucher/GetAll')
-        .then((response) => response.json())
-        .then((data) => {
-          const publicCoupons = data.filter(voucher => voucher.isPublic === true);
-          setCoupons(publicCoupons);
-          fetch(`https://localhost:7172/api/Customer/Get/${customerId}`)
-            .then((response) => response.json())
-            .then((userData) => {
-              const userVoucherIds = userData.voucherDetails.map(voucher => voucher.voucherId);
-              const privateCoupons = data.filter(voucher => userVoucherIds.includes(voucher.id) && voucher.isPublic === false);
-              setUserCoupons(privateCoupons);
-            })
-            .catch((error) => console.error('Lỗi khi lấy thông tin người dùng:', error));
-        })
-        .catch((error) => {
-          console.error('Lỗi khi lấy tất cả các voucher:', error);
-        });
-      fetch(`https://localhost:7172/api/Carts/${customerId}`)
-        .then((response) => response.json())
-        .then((data) => {
-          setCartId(data.id);
-          fetchCartDetails(data.id);
-        })
-        .catch((error) => {
-          console.error('Lỗi khi lấy giỏ hàng:', error);
-        });
+      Promise.all([
+        fetch('https://localhost:7172/api/Voucher/GetAll').then(res => res.json()),
+        fetch(`https://localhost:7172/api/Customer/Get/${customerId}`).then(res => res.json()),
+        fetch(`https://localhost:7172/api/Carts/${customerId}`).then(res => res.json())
+      ])
+      .then(([couponsData, userData, cartData]) => {
+        setCoupons(couponsData);
+        
+        const userVoucherDetails = userData.voucherDetails.filter(voucherDetail => voucherDetail.status === 0);
+        const userVoucherIds = userVoucherDetails.map(voucherDetail => voucherDetail.voucherId);
+        const filteredUserCoupons = couponsData.filter(coupon => userVoucherIds.includes(coupon.id));
+        
+        setListVoucherDetail(userVoucherDetails)
+        setUserCoupons(filteredUserCoupons);
+        setCartId(cartData.id);
+        fetchCartDetails(cartData.id);
+      })
+      .catch((error) => {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+      });
     }
-    // eslint-disable-next-line
-  }, [customerId]);
+  }, [customerId]);  
   const fetchCartDetails = (cartId) => {
     localStorage.setItem('cartId', cartId);
     fetch(`https://localhost:7172/api/CartDetails/get-all-cartdetail-by/${cartId}`)
@@ -59,6 +55,7 @@ function ProductCart() {
         console.error('Error fetching cart details:', error);
       });
   };
+
   const fetchProduct = (productId) => {
     fetch(`https://localhost:7172/api/Product/Get/${productId}`)
       .then((response) => response.json())
@@ -71,6 +68,7 @@ function ProductCart() {
       .catch((error) => console.error('Error fetching product:', error));
   };
   const handleCheckboxChange = (cartDetailId) => {
+    setChecked((prevChecked) => !prevChecked);
     setCartDetails(prevCartDetails =>
       prevCartDetails.map(item =>
         item.id === cartDetailId
@@ -88,13 +86,29 @@ function ProductCart() {
   const handleCouponChange = (e) => {
     const selectedId = e.target.value;
     if (selectedId === "") {
-      setSelectedCoupon("");
+      setSelectedCoupon(null);
+      setVoucherDetailId(null);
       setErrorMessage(null);
       return;
     }
+  
     const selectedCouponObj = [...coupons, ...userCoupons].find(coupon => coupon.id === selectedId);
     setSelectedCoupon(selectedCouponObj);
+  
+    if (selectedCouponObj) {
+      const userVoucher = userCoupons.find(userCoupons => userCoupons.id === selectedCouponObj.id);
+      console.log(userVoucher);
+      if (userVoucher) {
+        const voucherDetail = listVoucherDetail.find(listVoucherDetail => listVoucherDetail.voucherId === userVoucher.id);
+        setVoucherDetailId(voucherDetail.id);
+      } else {
+        setVoucherDetailId(null);
+      }
+    } else {
+      setVoucherDetailId(null);
+    }
   };
+  
   const validateVoucher = (coupon, total) => {
     const { minimumOrderAmount, startDay, endDay } = coupon;
     const totalAmount = total;
@@ -118,7 +132,7 @@ function ProductCart() {
   };
   const calculateTotal = () => {
     let total = 0;
-    let discount = 0; 
+    let discount = 0;
     cartDetails.forEach((item) => {
       if (item.selected) {
         const price = item.productDetails.sale_products.length > 0
@@ -150,8 +164,8 @@ function ProductCart() {
       .then((response) => response.text())
       .then((data) => {
         if (data.includes("Đã thêm")) {
-          setCartDetails(prevCartDetails => 
-            prevCartDetails.map(item => 
+          setCartDetails(prevCartDetails =>
+            prevCartDetails.map(item =>
               item.id === cartDetailId ? { ...item, quantity: quantity } : item
             )
           );
@@ -172,7 +186,7 @@ function ProductCart() {
         fetchCartDetails(cartId);
       })
       .catch((error) => console.error('Error removing from cart:', error));
-      window.location.reload();
+    window.location.reload();
   };
   const increaseQuantity = (cartDetailId, productDetailId, quantity) => {
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
@@ -180,14 +194,14 @@ function ProductCart() {
       alert("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
-    const stockQuantity = item.productDetails.stockQuantity;
+    const stockQuantity = item.productDetails.quantity;
     const newQuantity = item.quantity + 1;
     if (newQuantity > stockQuantity) {
       alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
-    setCartDetails(prevCartDetails => 
-      prevCartDetails.map(cartItem => 
+    setCartDetails(prevCartDetails =>
+      prevCartDetails.map(cartItem =>
         cartItem.id === cartDetailId ? { ...cartItem, quantity: newQuantity } : cartItem
       )
     );
@@ -200,7 +214,7 @@ function ProductCart() {
       alert("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
-    if (item.quantity > 1) { 
+    if (item.quantity > 1) {
       const newQuantity = item.quantity - 1;
       updateQuantity(cartDetailId, productDetailId, newQuantity);
     } else {
@@ -223,8 +237,8 @@ function ProductCart() {
       alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
-    setCartDetails(prevCartDetails => 
-      prevCartDetails.map(cartItem => 
+    setCartDetails(prevCartDetails =>
+      prevCartDetails.map(cartItem =>
         cartItem.id === cartDetailId ? { ...cartItem, quantity: newQuantity } : cartItem
       )
     );
@@ -233,23 +247,25 @@ function ProductCart() {
 
   const handlePayment = () => {
     const selectedItems = cartDetails.filter(item => item.selected);
+    const voucherId = selectedCoupon ? selectedCoupon.id : null;
+    const voucherDetailIdd = voucherDetailId;
     const productDetailsInfo = selectedItems.map(item => {
-        const productName = products[item.productDetails.productId]?.name || 'Không có tên sản phẩm';
-        const size = item.productDetails.sizes?.name || 'Không có kích thước';
-        const color = item.productDetails.colors?.name || 'Không có màu sắc';
-        return `${productName} - ${color}, ${size}`;
+      const productName = products[item.productDetails.productId]?.name || 'Không có tên sản phẩm';
+      const size = item.productDetails.sizes?.name || 'Không có kích thước';
+      const color = item.productDetails.colors?.name || 'Không có màu sắc';
+      return `${productName} - ${color}, ${size}`;
     });
     const paymentData = {
         cartId,
         selectedItems,
+        voucherId,
+        voucherDetailIdd,
         total: total - discount,
         coupon: selectedCoupon,
         productDetailsInfo,
     };
-
-    console.log(productDetailsInfo);
     navigate('/checkout', { state: { paymentData } });
-};
+  };
 
 
   return (
@@ -270,18 +286,21 @@ function ProductCart() {
               {cartDetails.map((item) => (
                 <tr key={item.id}>
                   <td>
-                  <Checkbox
-                    checked={item.selected}
-                    onChange={() => handleCheckboxChange(item.id)}
-                  />
+                    <Checkbox
+                      checked={item.selected}
+                      onChange={() => handleCheckboxChange(item.id)}
+                    />
                   </td>
                   <td>
                     <div className={styles.productInfo}>
                       {products[item.productDetails.productId] ? (
                         <>
                           <img
-                            src={item.productDetails.images?.[0]?.imgUrl}
-                            alt="Sản phẩm"
+                            src={
+                              item.productDetails.images?.length > 0
+                                ? item.productDetails.images[0].imgUrl // Nếu có ảnh trong productDetails
+                                : products[item.productDetails.productId].imageUrl // Fallback về ảnh từ products
+                            } alt="Sản phẩm"
                             className={styles.productImage}
                           />
                           <div className={styles.productDetails}>
@@ -314,7 +333,7 @@ function ProductCart() {
                         type="number"
                         min="1"
                         max={item.productDetails.quantity}
-                        value={item.quantity}
+                        value={item.quantity || 1}
                         onChange={(e) => handleQuantityChange(e, item.id)}
                         className={styles.quantityInput}
                       />
@@ -355,11 +374,6 @@ function ProductCart() {
             onChange={handleCouponChange}
           >
             <option value="">Chọn mã giảm giá</option>
-            {coupons.map((coupon) => (
-              <option key={coupon.id} value={coupon.id}>
-                {coupon.voucherCode} - {coupon.value}% giảm
-              </option>
-            ))}
             {userCoupons.map((coupon) => (
               <option key={coupon.id} value={coupon.id}>
                 {coupon.voucherCode} - {coupon.value}% giảm
@@ -369,13 +383,13 @@ function ProductCart() {
           <div className={styles.summary}>
             {selectedCoupon && (
               <div className={styles.couponForm}>
-              <b>Thông tin mã giảm giá</b>
-              <p><strong>Mã giảm giá:</strong> {selectedCoupon.voucherCode}</p>
-              <p><strong>Giảm giá:</strong> {selectedCoupon.value}%</p>
-              <p><strong>Giá trị đơn hàng tối thiểu:</strong> {formatCurrency(selectedCoupon.minimumOrderAmount)}</p>
-              <p><strong>Hạn sử dụng:</strong> {new Date(selectedCoupon.startDay).toLocaleDateString()} - {new Date(selectedCoupon.endDay).toLocaleDateString()}</p>
-              <p><strong>Trạng thái:</strong> {selectedCoupon.status === 0 ? "Đang áp dụng" : "Không áp dụng"}</p>
-            </div>
+                <b>Thông tin mã giảm giá</b>
+                <p><strong>Mã giảm giá:</strong> {selectedCoupon.voucherCode}</p>
+                <p><strong>Giảm giá:</strong> {selectedCoupon.value}%</p>
+                <p><strong>Giá trị đơn hàng tối thiểu:</strong> {formatCurrency(selectedCoupon.minimumOrderAmount)}</p>
+                <p><strong>Hạn sử dụng:</strong> {new Date(selectedCoupon.startDay).toLocaleDateString()} - {new Date(selectedCoupon.endDay).toLocaleDateString()}</p>
+                <p><strong>Trạng thái:</strong> {selectedCoupon.status === 0 ? "Đang áp dụng" : "Không áp dụng"}</p>
+              </div>
             )}
             {errorMessage && (
               <div className={styles.errorMessage}>
@@ -385,23 +399,23 @@ function ProductCart() {
           </div>
           <hr />
           <div className={styles.summary}>
-          <b>Tổng đơn hàng</b>
-          <div className={styles.summaryRow}>
-            <span>Tổng tiền</span>
-            <p>{formatCurrency(total)}</p>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>Giảm giá</span>
-            <p>{formatCurrency(discount)}</p>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>Tổng thanh toán</span>
-            <p>{formatCurrency(total - discount)}</p>
-          </div>
+            <b>Tổng đơn hàng</b>
+            <div className={styles.summaryRow}>
+              <span>Tổng tiền</span>
+              <p>{formatCurrency(total)}</p>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Giảm giá</span>
+              <p>{formatCurrency(discount)}</p>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>Tổng thanh toán</span>
+              <p>{formatCurrency(total - discount)}</p>
+            </div>
             {selectedCoupon && (
               <div className={styles.voucherValidationMessage}>
                 {coupons.concat(userCoupons).map((coupon) => {
-                  if (coupon.code === selectedCoupon.voucherCode) { 
+                  if (coupon.code === selectedCoupon.voucherCode) {
                     const validationMessage = validateVoucher(coupon, total);
                     return validationMessage ? (
                       <p className={styles.validationError}>{validationMessage}</p>

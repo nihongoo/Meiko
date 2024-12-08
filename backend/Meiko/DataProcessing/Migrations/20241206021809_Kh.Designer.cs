@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataProcessing.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241203075632_khoang")]
-    partial class khoang
+    [Migration("20241206021809_Kh")]
+    partial class Kh
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -47,6 +47,10 @@ namespace DataProcessing.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -602,7 +606,7 @@ namespace DataProcessing.Migrations
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(0)
+                        .HasDefaultValue(1)
                         .HasComment("Trạng thái của 1 lần thanh toán");
 
                     b.HasKey("Id");
@@ -723,6 +727,54 @@ namespace DataProcessing.Migrations
                     b.HasIndex("TargretCustomerId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.Review", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerAvatar")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HelpfulCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ParentReviewId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnhelpfulCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.SaleProducts", b =>

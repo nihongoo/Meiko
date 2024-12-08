@@ -58,10 +58,8 @@ function Recipient({ setShippingFee, onSelectAddress }) {
             return null;
         }
     };
-    
-    
     const calculateDistance = (store, user) => {
-        const R = 6371; 
+        const R = 6371;
         const dLat = (user.lat - store.lat) * Math.PI / 180;
         const dLon = (user.lng - store.lng) * Math.PI / 180;
         const a =
@@ -69,12 +67,13 @@ function Recipient({ setShippingFee, onSelectAddress }) {
             Math.cos(store.lat * Math.PI / 180) * Math.cos(user.lat * Math.PI / 180) *
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c; 
+        let distance = R * c;
+        distance *= 0.55; 
+    
         return distance;
     };
-
     const calculateShippingFee = async (address) => {
-        setLoading(true); // Bắt đầu quá trình tải
+        setLoading(true);
         const userLocation = await getCoordinatesFromAddress(address);
 
         if (userLocation) {
@@ -84,7 +83,7 @@ function Recipient({ setShippingFee, onSelectAddress }) {
 
             if (shippingDistance < 12) {
                 setShippingFee(0); 
-                setLoading(false); // Kết thúc quá trình tải
+                setLoading(false);
                 return 0; 
             }
 
@@ -96,11 +95,11 @@ function Recipient({ setShippingFee, onSelectAddress }) {
             const roundedFee = Math.round(fee); 
 
             setShippingFee(roundedFee); 
-            setLoading(false); // Kết thúc quá trình tải
+            setLoading(false);
             return roundedFee;
         } else {
             setShippingFee(0); 
-            setLoading(false); // Kết thúc quá trình tải
+            setLoading(false);
             return 0;
         }
     };

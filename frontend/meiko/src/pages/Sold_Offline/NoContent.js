@@ -6,13 +6,13 @@ function NoContent() {
         <div>
             <Box
             sx={{
-                height: "100vh",
+                height: "auto",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
                 textAlign: "center",
-                bgcolor: "#f8f9fa",
+                bgcolor: "#fff",
                 padding: 3,
             }}
         >

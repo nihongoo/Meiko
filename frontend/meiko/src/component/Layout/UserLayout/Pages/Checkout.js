@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import Header from "../Header";
-import Footer from "../Footer";
 import Order from "../Features/Cart/Order";
 import Recipient from "../Features/Cart/Recipient";
 import { ToastContainer } from 'react-toastify';
@@ -17,7 +15,7 @@ function Checkout () {
         return <p>Không có dữ liệu thanh toán.</p>;
     }
 
-    const { selectedItems, total, discount, coupon, productDetailsInfo } = paymentData;
+    const { selectedItems, voucherId, voucherDetailIdd, total, discount, coupon, productDetailsInfo } = paymentData;
 
     const handleSelectAddress = (address) => {
         setSelectedAddress(address);
@@ -25,7 +23,6 @@ function Checkout () {
 
     return (
         <div>
-            <Header />
             <div style={{paddingTop: "190px", paddingLeft: "100px"}}>
                 <ToastContainer />
                 <div className={`row container`}>
@@ -38,6 +35,8 @@ function Checkout () {
                     <div className={`col-md-4`}>
                         <Order
                             selectedItems={selectedItems}
+                            voucherId={voucherId}
+                            voucherDetailIdd={voucherDetailIdd}
                             total={total}
                             discount={discount}
                             coupon={coupon}
@@ -49,7 +48,6 @@ function Checkout () {
                     </div>
                 </div>
             </div>
-            <Footer />
         </div>
     );
 }

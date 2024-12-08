@@ -15,7 +15,6 @@ body {
 .card {
   background-color: #fff;
   padding: 2em;
-  border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   margin-top: 50px;
 }
@@ -195,7 +194,7 @@ body {
 }
 
 .addToCart {
-  background-color: #ff9f1a;
+  background-color: #3c80c9;
   color: white;
   padding: 1em 2em;
   text-transform: uppercase;

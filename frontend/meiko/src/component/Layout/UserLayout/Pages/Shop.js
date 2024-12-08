@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import Header from "../Header/index";
-import Footer from "../Footer/index";
 import Navbar from "../Features/Navbar/index";
 import Filter from "../Features/Navbar/Filter";
 import ListProducts from "../Features/Product/ListProduct";
@@ -21,7 +19,6 @@ function Shop() {
 
   return (
     <div >
-      <Header />
       <Navbar />
       <div className="container mt-4">
         <div className="row">
@@ -33,7 +30,6 @@ function Shop() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

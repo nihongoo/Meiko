@@ -1,4 +1,5 @@
 ﻿using API.IServices;
+using API.Models;
 using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,6 @@ namespace API.Services
             _emailService = emailService;
 
         }
-
         public async Task<Vouchers> CreateVoucherAsync(VoucherViewModel voucherViewModel)
         {
             var voucher = new Vouchers
@@ -33,8 +33,27 @@ namespace API.Services
 
             _context.Vouchers.Add(voucher);
 
-            // Kiểm tra nếu voucher không công khai
-            if (!voucher.IsPublic && voucherViewModel.CustomerIds != null && voucherViewModel.CustomerIds.Count > 0)
+            if (voucher.IsPublic) // Khi là voucher công khai
+            {
+                var allCustomers = await _context.Customers.ToListAsync();
+                var emailTasks = new List<Task>();
+
+                foreach (var customer in allCustomers)
+                {
+                    var voucherDetail = new VoucherDetails
+                    {
+                        Id = Guid.NewGuid(),
+                        VoucherId = voucher.Id,
+                        CustomerId = customer.Id,
+                        Status = 0 
+                    };
+                    _context.VoucherDetails.Add(voucherDetail);
+                    emailTasks.Add(_emailService.SendVoucherEmailAsync(customer.Email, "Thông báo Voucher mới", voucher, customer.Email));
+                }
+
+                await Task.WhenAll(emailTasks);
+            }
+            else if (voucherViewModel.CustomerIds != null && voucherViewModel.CustomerIds.Any())
             {
                 foreach (var customerId in voucherViewModel.CustomerIds)
                 {
@@ -43,11 +62,9 @@ namespace API.Services
                         Id = Guid.NewGuid(),
                         VoucherId = voucher.Id,
                         CustomerId = customerId,
-                        Status = 0 // Chưa sử dụng
+                        Status = 0
                     };
                     _context.VoucherDetails.Add(voucherDetail);
-
-                    // Lấy thông tin khách hàng để gửi email
                     var customer = await _context.Customers.FindAsync(customerId);
                     if (customer != null)
                     {
@@ -57,9 +74,9 @@ namespace API.Services
             }
 
             await _context.SaveChangesAsync();
+
             return voucher;
         }
-
         public async Task DeleteVoucherAsync(Guid id)
         {
             var voucher = await _context.Vouchers.FindAsync(id);
@@ -71,7 +88,12 @@ namespace API.Services
             }
         }
 
-        public async Task<List<Vouchers>> GetAllVouchersAsync()
+		public async Task<List<Vouchers>> Filter(DateTime startDate, DateTime endDate)
+		{
+            return await _context.Vouchers.Where(v => v.StartDay >= startDate && v.EndDay <= endDate).ToListAsync();
+		}
+
+		public async Task<List<Vouchers>> GetAllVouchersAsync()
         {
             return await _context.Vouchers.ToListAsync();
         }
@@ -80,51 +102,59 @@ namespace API.Services
         {
             return await _context.Vouchers.FindAsync(id);
         }
-
-        public async Task<bool> UseVoucherAsync(Guid voucherId, Guid customerId, double billAmount)
+        public async Task<ReturnMessage> UpdateVoucherStatus(Guid id)
         {
-            var voucher = await _context.Vouchers.FindAsync(voucherId);
-            if (voucher == null)
+            using (var dbTransaction = await _context.Database.BeginTransactionAsync())
             {
-                Console.WriteLine("Voucher không tồn tại.");
-                return false;
-            }
-
-            if (voucher.Quantity <= 0)
-            {
-                Console.WriteLine("Voucher không còn lượt sử dụng.");
-                return false;
-            }
-
-            if (DateTime.Now > voucher.EndDay)
-            {
-                Console.WriteLine("Voucher đã hết hạn.");
-                return false;
-            }
-
-            if (billAmount < voucher.MinimumOrderAmount)
-            {
-                Console.WriteLine($"Yêu cầu số tiền hóa đơn tối thiểu là {voucher.MinimumOrderAmount}");
-                return false;
-            }
-
-            if (!voucher.IsPublic)
-            {
-                var voucherDetail = await _context.VoucherDetails
-                    .FirstOrDefaultAsync(vd => vd.VoucherId == voucherId && vd.CustomerId == customerId);
-
-                if (voucherDetail == null)
+                try
                 {
-                    Console.WriteLine("Voucher này không áp dụng cho khách hàng này.");
-                    return false;
+                    // Tìm voucher detail theo ID
+                    var voucherDetail = await _context.VoucherDetails.FindAsync(id);
+                    if (voucherDetail == null)
+                    {
+                        return new ReturnMessage()
+                        {
+                            status = 1,
+                            message = "Voucher không tồn tại."
+                        };
+                    }
+
+                    // Kiểm tra trạng thái hiện tại
+                    if (voucherDetail.Status != 0)
+                    {
+                        return new ReturnMessage()
+                        {
+                            status = 1,
+                            message = "Chỉ có thể cập nhật trạng thái từ 0 (chưa dùng) sang 1 (đã dùng)."
+                        };
+                    }
+
+                    // Cập nhật trạng thái sang 1
+                    voucherDetail.Status = 1;
+
+                    // Lưu thay đổi
+                    _context.VoucherDetails.Update(voucherDetail);
+                    await _context.SaveChangesAsync();
+
+                    await dbTransaction.CommitAsync();
+
+                    return new ReturnMessage()
+                    {
+                        status = 0,
+                        message = "Cập nhật trạng thái voucher thành công."
+                    };
                 }
+                catch (Exception ex)
+                {
+                    await dbTransaction.RollbackAsync();
 
-                voucherDetail.Status = 1; // Đánh dấu voucher đã sử dụng
+                    return new ReturnMessage()
+                    {
+                        status = 2,
+                        message = $"Đã xảy ra lỗi: {ex.Message}"
+                    };
+                }
             }
-
-            voucher.Quantity--; // Giảm số lượng voucher còn lại
-            await _context.SaveChangesAsync();
-            return true;
         }
     }
 }

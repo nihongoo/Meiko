@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Checkbox } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import styles from './Order.module.css';
 
-function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, setLoading, selectedAddress }) {
+function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsInfo, shippingFee, setLoading, selectedAddress, voucherId }) {
     const [selectedPayment, setSelectedPayment] = useState(null);
-    const cartId = localStorage.getItem('cartId');
+    const navigate = useNavigate();
     const handlePaymentChange = (option) => {
         setSelectedPayment(selectedPayment === option ? null : option);
     };
@@ -36,15 +37,6 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
             };
             const billCode = generateBillCode();
     
-            // Debugging: In ra các trường dữ liệu trước khi gửi yêu cầu
-            console.log("Bill Code:", billCode);
-            console.log("Total:", total);
-            console.log("Shipping Fee:", shippingFee);
-            console.log("Coupon:", coupon);
-            console.log("Selected Address:", selectedAddress);
-            console.log("Cart ID:", cartId);
-            console.log("Customer ID:", localStorage.getItem("customerId"));
-    
             const createBillResponse = await fetch("https://localhost:7172/api/Bills/create-bill", {
                 method: "POST",
                 headers: {
@@ -53,20 +45,23 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
                 body: JSON.stringify({
                     billCode: billCode,
                     isShipping: true,
-                    total: total,
+                    total: 0,
                     status: 0, 
-                    paymentAmount: total + shippingFee,
+                    paymentAmount: 0,
                     shippingFee: shippingFee,
                     cartId: localStorage.getItem("cartId"), 
                     customerId: localStorage.getItem("customerId"), 
-                    voucherId: coupon ? coupon.voucherId : null, 
-                    staffId: "staff123", 
+                    voucherId: voucherId,
+                    staffId: null
                 }),
             });
-    
+            console.log(total);
             const createBillData = await createBillResponse.json();
-            console.log("Create Bill Response:", createBillData); // In phản hồi từ server để xem dữ liệu trả về
-            const billId = createBillData.billId;
+            console.log("Create Bill Response:", createBillData); 
+            const billId = createBillData.id;
+
+            console.log("Bill Id:", billId);
+
     
             const addAddressResponse = await fetch("https://localhost:7172/api/Bills/add-address-to-bill", {
                 method: "POST",
@@ -81,18 +76,21 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
                     city: selectedAddress.city,
                     district: selectedAddress.district,
                     ward: selectedAddress.ward,
-                    status: 1, 
+                    status: 1
                 }),
             });
-    
             const addAddressData = await addAddressResponse.json();
-            if (addAddressData.success) {
+            console.log("Add Address Response:", addAddressData); 
+            if (addAddressData) {
                 console.log("Địa chỉ đã được cập nhật vào hóa đơn.");
             } else {
                 alert("Không thể cập nhật địa chỉ vào hóa đơn.");
             }
     
             const addProductPromises = selectedItems.map((item) => {
+                console.log("Selected items before sending to API:", selectedItems);
+                console.log("Sending product to add to bill:", item.productDetails.id, item.quantity);
+            
                 return fetch("https://localhost:7172/api/Bills/add-to-bill", {
                     method: "POST",
                     headers: {
@@ -102,21 +100,60 @@ function Order({ selectedItems, total, coupon, productDetailsInfo, shippingFee, 
                         billId: billId,
                         productDetailId: item.productDetails.id,
                         quantity: item.quantity,
-                        status: 2,
+                        status: 0, 
                     }),
+                })
+                .then(response => {
+                    console.log("Response for product ID:", item.productDetails.id, response);
+                    if (!response.ok) {
+                        console.error("Error adding product to bill:", response.status, response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Product added successfully to bill for product ID:", item.productDetails.id, data); 
+                    return data; 
+                })
+                .catch(error => {
+                    console.error("Error with product ID:", item.productDetails.id, error); 
+                    return null; 
                 });
             });
-    
-            await Promise.all(addProductPromises);
+
+            const addProductData = await Promise.all(addProductPromises);
+            console.log("All Product Add Responses:", addProductData); 
+
+            if (voucherDetailIdd) {
+                const updateVoucherResponse = await fetch(`https://localhost:7172/api/Voucher/UpdateVoucherStatus/${voucherDetailIdd}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                const updateVoucherData = await updateVoucherResponse.text();
+                console.log("Update Voucher Response:", updateVoucherData);
+                if (updateVoucherData) {
+                    console.log("Voucher đã được cập nhật trạng thái.");
+                } else {
+                    alert("Không thể cập nhật trạng thái voucher.");
+                }
+            }
     
             setLoading(false);
             alert("Đặt hàng thành công!");
-    
+            localStorage.setItem("billCode", billCode);
+            resetForm();
+            navigate("/order-success");
+            window.dispatchEvent(new Event('cartUpdated'));
         } catch (error) {
             setLoading(false); 
-            console.error("Error placing order:", error);  // In lỗi ra console để debug
+            console.error("Error placing order:", error);
             alert("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.");
         }
+    };
+
+    const resetForm = () => {
+        setSelectedPayment(null);
     };
 
     return (

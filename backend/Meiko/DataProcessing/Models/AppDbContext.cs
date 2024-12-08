@@ -45,11 +45,11 @@ namespace DataProcessing.Models
         public DbSet<Banners> Banners { get; set; }
         public DbSet<Otp> otps { get; set; }
         public DbSet<SaleProducts> SaleProducts { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=MSI\\MSI;Database =DATN; Trusted_Connection = True; TrustServerCertificate = True");
-        }
-
+			optionsBuilder.UseSqlServer("Server=MSI;Database=DATN;Trusted_Connection=True;TrustServerCertificate=True");
+		}
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 

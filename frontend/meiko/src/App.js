@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { publicRoutes } from './routes/index'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-import { AdminLayout, LoginLayout, UserLayout } from './component/Layout'
+import { AdminLayout, LoginLayout, UserLayout } from './component/Layout/index'
 
 function App() {
   return (

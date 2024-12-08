@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Box,
   Typography,
@@ -10,9 +10,11 @@ import ChooseProduct from "./ChooseProduct";
 import useFetchData from "../../customHook/useFetchData";
 import apiURL from "../../routes/API";
 import { toast } from "react-toastify";
+import {BillInfoContext} from './SoldOfline'
 
 function ListProduct({ bill }) {
   const [open, setOpen] = useState(false);
+  const { handleReloadFromAnother } = useContext(BillInfoContext);
   const { data: Detail, refetch: refetchData } = useFetchData(`${apiURL.bill.list}?id=${bill.id}`);
   const listBill = Detail.map(item => ({
     ...item,
@@ -26,6 +28,7 @@ function ListProduct({ bill }) {
 
       if (res.ok) {
         refetchData()
+        handleReloadFromAnother()
         toast.success('Xóa thành công')
       }
       else {
@@ -41,7 +44,6 @@ function ListProduct({ bill }) {
   for (let item of listBill) {
     totalSum += item.totalPrice;
   }
-  console.log(listBill);
 
   return (
     <Box minHeight={300} maxHeight={630}>

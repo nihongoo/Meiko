@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import moment from 'moment';
 import { toast } from 'react-toastify';
-import { 
-  Box, 
-  Button, 
-  FormControl, 
-  FormControlLabel, 
-  FormLabel, 
-  Paper, 
-  Radio, 
-  RadioGroup, 
-  Typography 
+import {
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  Typography
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import apiURL from '../../routes/API/index.js';
@@ -21,7 +21,7 @@ import CreateStaffDialog from './CreateStaffDialog.js';
 import generateSerialCode from '../../customHook/useRandom.js';
 
 function Account() {
-  const { data: initialData, refetch } = useFetchData(apiURL.staff.all, (rawData) =>
+  const { data: staff, refetch, loading, error } = useFetchData(apiURL.staff.all, (rawData) =>
     rawData.map((item) => ({
       ...item,
       dateJoin: moment(item.dateJoin).format('DD-MM-YYYY'),
@@ -33,6 +33,7 @@ function Account() {
   const [create, setCreate] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchType, setSearchType] = useState('isStaffCode=true');
+  const paginationModel = { page: 0, pageSize: 10 };
   const [newStaff, setNewStaff] = useState({
     username: '',
     password: '',
@@ -42,10 +43,34 @@ function Account() {
     dateJoin: new Date().toISOString(),
     address: '',
   });
+  const formattedRows = staff.map((item) => ({
+    ...item,
+    tt: item.status === 1 ? 'Đang hoạt động' : 'Không hoạt động',
+  }));
 
-  const handleSearchTypeChange = (event) => {
-    setSearchType(event.target.value);
-  };
+  const columns = [
+    { field: 'staffName', headerName: 'Tên nhân viên', flex: 1 },
+    { field: 'staffCode', headerName: 'Mã nhân viên', flex: 1 },
+    { field: 'dateJoin', headerName: 'Ngày vào làm', flex: 1 },
+    { field: 'address', headerName: 'Địa chỉ', flex: 1 },
+    { field: 'phoneNumber', headerName: 'Số điện thoại', flex: 1 },
+    { field: 'email', headerName: 'Email', flex: 1 },
+    { field: 'tt', headerName: 'Trạng thái', flex: 1 },
+    {
+      field: 'action',
+      headerName: 'Thao tác',
+      flex: 1,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => handleClickOpen(params.row)}
+        >
+          <i className="fa-solid fa-pen"></i>
+        </Button>
+      ),
+    },
+  ];
 
   const handleClickOpen = (user) => {
     const formatUser = {
@@ -70,7 +95,7 @@ function Account() {
     const updatedUser = {
       ...selectedUser,
       dateJoin: moment(selectedUser.dateJoin, 'DD-MM-YYYY').format('YYYY-MM-DD'),
-    };
+    }; 
     try {
       const response = await fetch(`${apiURL.staff.edit}${updatedUser.id}`, {
         method: 'PUT',
@@ -99,7 +124,6 @@ function Account() {
       ...newStaff,
       staffCode: `NV${random}`,
     };
-
     try {
       const res = await fetch(apiURL.staff.create, {
         method: 'POST',
@@ -121,53 +145,51 @@ function Account() {
       console.log(error);
     }
   };
-
+  if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
+  if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;
   return (
-    <Box sx={{ padding: 2, backgroundColor: 'background.paper', borderRadius: 2 }}>
-      <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
-        <Typography variant="h5" fontWeight="bold">
-          Danh sách nhân viên
-        </Typography>
-      </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
-        <Button variant="contained" color="success" onClick={() => setCreate(true)}>
+    <Box p={3} bgcolor="#fff" borderRadius={2}>
+      <Typography variant="h5" align="center" gutterBottom>Danh sách nhân viên</Typography>
+
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <SearchInput ApiURL={apiURL.staff.search} optional={searchType} />
+        <FormControl>
+          <FormLabel>Tìm kiếm theo:</FormLabel>
+          <RadioGroup
+            row
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+          >
+            <FormControlLabel value="isStaffCode=true" control={<Radio />} label="Mã nhân viên" />
+            <FormControlLabel value="isStaffCode=false" control={<Radio />} label="Tên nhân viên" />
+          </RadioGroup>
+        </FormControl>
+        <Button variant="outlined" color="success" onClick={() => setCreate(true)}>
           Thêm mới +
         </Button>
       </Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <SearchInput ApiURL={apiURL.staff.search} optional={searchType} />
-          <FormControl component="fieldset">
-            <FormLabel component="legend">Tìm kiếm theo:</FormLabel>
-            <RadioGroup
-              row
-              value={searchType}
-              onChange={handleSearchTypeChange}
-            >
-              <FormControlLabel
-                value="isStaffCode=true"
-                control={<Radio />}
-                label="Mã nhân viên"
-              />
-              <FormControlLabel
-                value="isStaffCode=false"
-                control={<Radio />}
-                label="Tên nhân viên"
-              />
-            </RadioGroup>
-          </FormControl>
-        </Box>
-        <Box>
-          <TableStaff rows={initialData} onEdit={handleClickOpen} />
-        </Box>
-      </Box>
+
+      <DataGrid
+        autoHeight
+        rows={formattedRows}
+        columns={columns}
+        initialState={{ pagination: { paginationModel } }}
+        pageSizeOptions={[10,20]}
+        disableRowSelectionOnClick
+        rowHeight={80}
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-cell': {
+            borderBottom: 'none',
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            borderBottom: 'none',
+          },
+          backgroundColor: '#fff',
+          minHeight: 550,
+          maxHeight: 'calc(100vh - 200px)',
+        }}
+      />
       <UpdateStaffDialog
         open={open}
         onClose={handleClose}
@@ -183,49 +205,6 @@ function Account() {
         onCreate={handleCreateStaff}
       />
     </Box>
-  );
-}
-
-function TableStaff({ rows, onEdit }) {
-  const formattedRows = rows.map((item) => ({
-    ...item,
-    tt: item.status === 1 ? 'Đang hoạt động' : 'Không hoạt động',
-  }));
-
-  const columns = [
-    { field: 'staffName', headerName: 'Tên nhân viên', flex: 1 },
-    { field: 'staffCode', headerName: 'Mã nhân viên', flex: 1 },
-    { field: 'dateJoin', headerName: 'Ngày vào làm', flex: 1 },
-    { field: 'address', headerName: 'Địa chỉ', flex: 1 },
-    { field: 'phoneNumber', headerName: 'Số điện thoại', flex: 1 },
-    { field: 'email', headerName: 'Email', flex: 1 },
-    { field: 'tt', headerName: 'Trạng thái', flex: 1 },
-    {
-      field: 'action',
-      headerName: 'Thao tác',
-      flex: 1,
-      renderCell: (params) => (
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => onEdit(params.row)}
-        >
-          <i className="fa-solid fa-pen"></i>
-        </Button>
-      ),
-    },
-  ];
-
-  return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <DataGrid
-        autoHeight
-        rows={formattedRows}
-        columns={columns}
-        pageSizeOptions={[5, 10]}
-        disableRowSelectionOnClick
-      />
-    </Paper>
   );
 }
 

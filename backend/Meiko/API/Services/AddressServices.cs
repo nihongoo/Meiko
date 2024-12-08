@@ -35,7 +35,8 @@ namespace API.Services
             address.CustomerId = customerId;
             address.Id = Guid.NewGuid();
             await _context.Address.AddAsync(address);
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> DeleteAddressAsync(Guid addressId)

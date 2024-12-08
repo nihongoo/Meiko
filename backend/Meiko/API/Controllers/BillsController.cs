@@ -2,6 +2,7 @@
 using API.Extention;
 using API.IServices;
 using API.Models;
+using API.Services;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -329,6 +330,12 @@ namespace API.Controllers
 			{
 				return BadRequest(new { success = result.k, msg = result.msg });
 			}
+		}
+		[HttpGet("Filter")]
+		public async Task<IActionResult> Filter(DateTime startDate, DateTime endDate)
+		{
+			var result = await _IBillServices.Filter(startDate, endDate);
+			return Ok(result);
 		}
 	}
 }

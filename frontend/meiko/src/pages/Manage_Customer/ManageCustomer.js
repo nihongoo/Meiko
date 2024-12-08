@@ -1,180 +1,169 @@
 import React, { useState } from 'react';
 import moment from 'moment';
-import SearchInput from "../../component/Search";
-import apiURL from '../../routes/API/index';
-import useFetchData from "../../customHook/useFetchData";
-import { DataGrid } from '@mui/x-data-grid';
-import {
-    Paper,
-    Radio,
-    RadioGroup,
-    FormControlLabel,
-    FormControl,
-    FormLabel,
-    Button,
-    Box,
-    Typography,
-} from '@mui/material';
-import UpdateUserDialog from './UpdateUserDialog';
 import { toast } from 'react-toastify';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  Typography,
+} from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+import apiURL from '../../routes/API/index.js';
+import SearchInput from '../../component/Search/index.js';
+import useFetchData from '../../customHook/useFetchData.js';
+import UpdateUserDialog from './UpdateUserDialog.js';
 
 function ManageCustomer() {
-    const { data: initialData, refetch } = useFetchData(apiURL.user.all, (rawData) =>
-        rawData.map((item) => ({
-            ...item,
-            birthDay: moment(item.birthDay).format('DD-MM-YYYY'),
-            status: item.status
-        }))
-    );
+  const { data: customers, refetch, loading, error } = useFetchData(apiURL.user.all, (rawData) =>
+    rawData.map((item) => ({
+      ...item,
+      birthDay: moment(item.birthDay).format('DD-MM-YYYY'),
+      status: item.status,
+    }))
+  );
 
-    const [open, setOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [searchType, setSearchType] = useState('isSearchEmail=true');
+  const [open, setOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const paginationModel = { page: 0, pageSize: 10 };
+  const [searchType, setSearchType] = useState('isSearchEmail=true');
 
-    const handleSearchTypeChange = (event) => {
-        setSearchType(event.target.value);
+  const handleClickOpen = (user) => {
+    const formattedUser = {
+      id: user.id,
+      name: user.name,
+      sex: user.sex,
+      birthDay: user.birthDay,
+      phoneNumber: user.phoneNumber,
+      email: user.email,
+      status: user.status,
     };
+    setSelectedUser(formattedUser);
+    setOpen(true);
+  };
 
-    const handleClickOpen = (user) => {
-        const formatUser = {
-            id: user.id,
-            name: user.name,
-            sex: user.sex,
-            birthDay: user.birthDay,
-            phoneNumber: user.phoneNumber,
-            email: user.email,
-            status: user.status
-        }
-        setSelectedUser(formatUser);
-        setOpen(true);
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleUpdate = async () => {
+    const updatedUser = {
+      ...selectedUser,
+      birthDay: moment(selectedUser.birthDay, 'DD-MM-YYYY').format('YYYY-MM-DD'),
     };
+    try {
+      const response = await fetch(`${apiURL.user.edit}${updatedUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedUser),
+      });
+      if (response.ok) {
+        toast.success('Sửa thành công');
+        refetch();
+      } else {
+        toast.error('Sửa thất bại');
+        throw new Error('Lỗi');
+      }
+    } catch (error) {
+      toast.error('Sửa thất bại');
+      console.error(error);
+    }
+    handleClose();
+  };
 
-    const handleClose = () => {
-        setOpen(false);
-        setSelectedUser(null);
-    };
+  if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
+  if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;
 
-    const handleUpdate = async () => {
-        const updatedUser = {
-            ...selectedUser,
-            birthDay: moment(selectedUser.birthDay, 'DD-MM-YYYY').format('YYYY-MM-DD'),
-        };
-        try {
-            const response = await fetch(`${apiURL.user.edit}${updatedUser.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(updatedUser),
-            });
-            if (response.ok) {
-                toast.success('Sửa thành công');
-                refetch()
-            } else {
-                toast.error('Sửa thất bại');
-                throw new Error("Lỗi");
-            }
-        } catch (error) {
-            toast.error('Sửa thất bại');
-            console.log(error);
-        }
-        handleClose();
-    };
-
-    return (
-        <Box sx={{ padding: 2, backgroundColor: 'background.paper', borderRadius: 2 }}>
-            <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
-                <Typography variant="h5" fontWeight="bold">
-                    Danh sách khách hàng
-                </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: 2,
-                    }}
-                >
-                    <SearchInput ApiURL={apiURL.user.search} optional={searchType} />
-                    <FormControl component="fieldset">
-                        <FormLabel component="legend">Tìm kiếm theo:</FormLabel>
-                        <RadioGroup
-                            row
-                            value={searchType}
-                            onChange={handleSearchTypeChange}
-                        >
-                            <FormControlLabel
-                                value="isSearchEmail=false"
-                                control={<Radio />}
-                                label="Số điện thoại"
-                            />
-                            <FormControlLabel
-                                value="isSearchEmail=true"
-                                control={<Radio />}
-                                label="Email"
-                            />
-                        </RadioGroup>
-                    </FormControl>
-                </Box>
-
-                <TableUser rows={initialData} onEdit={handleClickOpen} />
-            </Box>
-
-            <UpdateUserDialog
-                open={open}
-                onClose={handleClose}
-                selectedUser={selectedUser}
-                setSelectedUser={setSelectedUser}
-                onUpdate={handleUpdate}
+  return (
+    <Box p={3} bgcolor="#fff" borderRadius={2}>
+      <Typography variant="h5" align="center" gutterBottom>
+        Danh sách khách hàng
+      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <SearchInput ApiURL={apiURL.user.search} optional={searchType} />
+        <FormControl>
+          <FormLabel>Tìm kiếm theo:</FormLabel>
+          <RadioGroup
+            row
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value)}
+          >
+            <FormControlLabel
+              value="isSearchEmail=true"
+              control={<Radio />}
+              label="Email"
             />
-        </Box>
-    );
-}
+            <FormControlLabel
+              value="isSearchEmail=false"
+              control={<Radio />}
+              label="Số điện thoại"
+            />
+          </RadioGroup>
+        </FormControl>
+      </Box>
 
-function TableUser({ rows, onEdit }) {
-    const formattedRows = rows.map((item) => ({
-        ...item,
-        gt: item.sex ? 'Nam' : 'Nữ',
-        tt: item.status === 1 ? 'Đang hoạt động' : 'Không hoạt động',
-    }));
-
-    const columns = [
-        { field: 'name', headerName: 'Tên', flex: 1 },
-        { field: 'gt', headerName: 'Giới tính', flex: 1 },
-        { field: 'phoneNumber', headerName: 'Số điện thoại', flex: 1 },
-        { field: 'email', headerName: 'Email', flex: 1 },
-        { field: 'tt', headerName: 'Trạng thái', flex: 1 },
-        {
+      <DataGrid
+        autoHeight
+        rows={customers.map((item) => ({
+          ...item,
+          gt: item.sex ? 'Nam' : 'Nữ',
+          tt: item.status === 1 ? 'Đang hoạt động' : 'Không hoạt động',
+        }))}
+        columns={[
+          { field: 'name', headerName: 'Tên', flex: 1 },
+          { field: 'gt', headerName: 'Giới tính', flex: 1 },
+          { field: 'phoneNumber', headerName: 'Số điện thoại', flex: 1 },
+          { field: 'email', headerName: 'Email', flex: 1 },
+          { field: 'tt', headerName: 'Trạng thái', flex: 1 },
+          {
             field: 'action',
             headerName: 'Thao tác',
             flex: 1,
             renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => onEdit(params.row)}
-                >
-                    <i className="fa-solid fa-pen"></i>
-                </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => handleClickOpen(params.row)}
+              >
+                <i className="fa-solid fa-pen"></i>
+              </Button>
             ),
-        },
-    ];
+          },
+        ]}
+        initialState={{ pagination: { paginationModel } }}
+        pageSizeOptions={[10,20]}
+        rowHeight={80}
+        disableRowSelectionOnClick
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-cell': {
+            borderBottom: 'none',
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            borderBottom: 'none',
+          },
+          backgroundColor: '#fff',
+          minHeight: 550,
+          maxHeight: 'calc(100vh - 200px)',
+        }}
+      />
 
-    return (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <DataGrid
-                autoHeight
-                rows={formattedRows}
-                columns={columns}
-                pageSizeOptions={[5, 10]}
-                disableRowSelectionOnClick
-            />
-        </Paper>
-    );
+      <UpdateUserDialog
+        open={open}
+        onClose={handleClose}
+        selectedUser={selectedUser}
+        setSelectedUser={setSelectedUser}
+        onUpdate={handleUpdate}
+      />
+    </Box>
+  );
 }
 
 export default ManageCustomer;

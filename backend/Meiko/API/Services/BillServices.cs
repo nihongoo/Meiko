@@ -637,8 +637,8 @@ namespace API.Services
 						}
 
 						bill.Total = _dbcontext.Carts.First(c => c.Id == CartId).Total;
-
-						check = true;
+                        bill.PaymentAmount = bill.Total + bill.ShippingFee;
+                        check = true;
 					}
 
 					await _dbcontext.SaveChangesAsync();
@@ -943,7 +943,7 @@ namespace API.Services
 					List<ProductDetails> productDetails = new List<ProductDetails>();
 					for (int i = 0; i < billDetails.Count; i++)
 					{
-						ProductDetails productDetail = await _dbcontext.ProductDetails.FindAsync(billDetails[i].ProductDetails.Id);
+						ProductDetails productDetail = await _dbcontext.ProductDetails.FirstOrDefaultAsync(k => k.Id == billDetails[i].ProductDetailId);
 						if (billDetails[i].Quantity > productDetail.Quantity)
 							return new ReturnMessage()
 							{
@@ -1029,7 +1029,8 @@ namespace API.Services
 				try
 				{
 					var productDetail = await _dbcontext.ProductDetails.FindAsync(model.ProductDetailId);
-					var billDetail = await _dbcontext.BillDetails.FirstOrDefaultAsync(bd => bd.BillId == model.BillId && bd.ProductDetailId == model.ProductDetailId);
+                    var saleProduct = await _dbcontext.SaleProducts.FirstOrDefaultAsync(sp => sp.ProductDetailId == model.ProductDetailId); 
+                    var billDetail = await _dbcontext.BillDetails.FirstOrDefaultAsync(bd => bd.BillId == model.BillId && bd.ProductDetailId == model.ProductDetailId);
 
 					if (billDetail == null)
 					{
@@ -1043,9 +1044,17 @@ namespace API.Services
 							ProductDetailId = model.ProductDetailId
 						};
 
-						billDetail.Price = billDetail.Quantity * productDetail.Price;
+                        decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
+						? saleProduct.DiscountedPrice.Value
+						: productDetail.Price;
+                        billDetail.Price = billDetail.Quantity * unitPrice;
 
-						await _dbcontext.BillDetails.AddAsync(billDetail);
+                        if (productDetail.Quantity < billDetail.Quantity)
+                            throw new Exception("Không đủ số lượng sản phẩm trong kho");
+
+                        productDetail.Quantity -= billDetail.Quantity;
+
+                        await _dbcontext.BillDetails.AddAsync(billDetail);
 
 					}
 					else
@@ -1054,12 +1063,23 @@ namespace API.Services
 						if (billDetail.Quantity >= productDetail.Quantity)
 							billDetail.Quantity = productDetail.Quantity;
 
-						billDetail.Price = billDetail.Quantity * productDetail.Price;
+                        var quantityToReduce = model.Quantity;
+                        if (productDetail.Quantity < quantityToReduce)
+                            throw new Exception("Không đủ số lượng sản phẩm trong kho");
+
+                        productDetail.Quantity -= quantityToReduce;
+
+                        decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
+						? saleProduct.DiscountedPrice.Value
+						: productDetail.Price;
+                        billDetail.Price = billDetail.Quantity * unitPrice;
 
 						_dbcontext.BillDetails.Update(billDetail);
 					}
 
-					await _dbcontext.SaveChangesAsync();
+                    _dbcontext.ProductDetails.Update(productDetail);
+
+                    await _dbcontext.SaveChangesAsync();
 
 					await UpdatePrice(model.BillId);
 
@@ -1420,7 +1440,9 @@ namespace API.Services
 				{
 					return (false, "Không tìm thấy sản phẩm cần xóa");
 				}
-
+				var bill = await _dbcontext.Bills.FirstOrDefaultAsync(k => k.Id == item.BillId);
+				bill.Total -= item.Price;
+				_dbcontext.Bills.Update(bill);
 				_dbcontext.BillDetails.Remove(item);
 				await _dbcontext.SaveChangesAsync();
 				return (true, "Xóa thành công");
@@ -1429,6 +1451,81 @@ namespace API.Services
 			{
 				return (false, ex.Message);
 			}
+		}
+
+
+		public async Task<List<BillDto>> Filter(DateTime startDate, DateTime endDate)
+		{
+			var bills = await _dbcontext.Bills
+				.Where(b => b.CreatedDate >= startDate && b.CreatedDate <= endDate)
+				.Include(b => b.BillDetails)
+				.Include(b => b.ShippingAddresses)
+				.Include(b => b.StatusHistories)
+				.Include(b => b.PaymentHistories)
+				.Select(b => new BillDto
+				{
+					Id = b.Id,
+					BillCode = b.BillCode,
+					IsShipping = b.IsShipping,
+					Total = b.Total,
+					CreatedDate = b.CreatedDate,
+					DeliveryDate = b.DeliveryDate,
+					DateOfRecept = b.DateOfRecept,
+					PaymentDate = b.PaymentDate,
+					Status = b.Status.GetDisplayName(),
+					PaymentAmount = b.PaymentAmount,
+					ShippingFee = b.ShippingFee,
+					ReasonForCancellation = b.ReasonForCancellation,
+
+					CustomerId = b.CustomerId,
+					VoucherId = b.VoucherId,
+					StaffId = b.StaffId,
+
+					// Ánh xạ bảng con
+					BillDetails = b.BillDetails.Select(d => new BillDetailDto
+					{
+						Id = d.Id,
+						BillId = d.BillId,
+						ProductDetailId = d.ProductDetailId,
+						Quantity = d.Quantity,
+						Price = d.Price,
+						Status = d.Status
+					}).ToList(),
+
+					ShippingAddresses = b.ShippingAddresses.Select(a => new ShippingAddressDto
+					{
+						Id = a.Id,
+						BillId = a.BillId,
+						RecipientName = a.RecipientName,
+						AddressDetail = a.AddressDetail,
+						PhoneNumber = a.PhoneNumber,
+						City = a.City,
+						District = a.District,
+						Ward = a.Ward,
+						Status = a.Status
+					}).ToList(),
+
+					PaymentHistories = b.PaymentHistories.Select(c => new PaymentHistoryDto
+					{
+						Id = c.Id,
+						Amount = c.Amount,
+						PaymentMethod = c.PaymentMethod.GetDisplayName(),
+						Status = c.Status.GetDisplayName(),
+						BillId = c.BillId
+					}).ToList(),
+
+					StatusHistories = b.StatusHistories.Select(c => new StatusHistoryDto
+					{
+						Id = c.Id,
+						CreatedDate = c.CreatedDate,
+						StatusType = c.StatusType.GetDisplayName(),
+						Note = c.Note,
+						WhoCreatedThis = c.WhoCreatedThis,
+						BillId = c.BillId
+					}).ToList()
+				})
+				.ToListAsync();
+			return bills;
 		}
 
 	}

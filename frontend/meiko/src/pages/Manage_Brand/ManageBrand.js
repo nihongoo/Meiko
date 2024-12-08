@@ -1,133 +1,184 @@
-import DataTable from '../../component/Table/Table.js';
-import SearchInput from '../../component/Search/index.js';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+import { useState } from 'react';
+import SearchInput from '../../component/Search';
 import apiURL from '../../routes/API/index.js';
-import { useState, useEffect } from 'react';
-import Create from '../../component/CRUD/CreateSM.js';
-import generateSerialCode from '../../customHook/useRandom.js'
+import useFetchData from '../../customHook/useFetchData.js';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { toast } from 'react-toastify';
+import EditDialog from '../../component/CRUD/EditDialog.js';
+import CreateDialog from '../../component/CRUD/CreateDialog.js';
+import generateSerialCode from '../../customHook/useRandom.js';
 
 function ManageBrand() {
-    const [brand, setbrand] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [create, setCreate] = useState(false);
-    const [dataChange, setDataChange] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
-  
-    useEffect(() => {
-      const fetchCategories = async () => {
-        try {
-          const response = await fetch(apiURL.brand.all);
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          const data = await response.json();
-          setbrand(data);
-          setDataChange(false);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchCategories();
-    }, [dataChange]);
-  
-    const handleSearch = (data) => {
-      setbrand(data);
-    };
-  
-    const handleChangeData = () => {
-      setDataChange(true);
-    };
-  
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = brand.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(brand.length / itemsPerPage);
-  
-    const handlePageChange = (pageNumber) => {
-      setCurrentPage(pageNumber);
-    };
-  
-    const handleItemsPerPageChange = (event) => {
-      setItemsPerPage(Number(event.target.value));
-      setCurrentPage(1);
-    };
-  
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-  
-    const columns = [
-      { Header: 'STT', accessor: 'serialNumber' }, 
-      { Header: 'BrandCode', accessor: 'brandCode' }, 
-      { Header: 'Name', accessor: 'name' },
-      { Header: 'Status', accessor: 'status' }
-    ];
-    const code = generateSerialCode()
-    const brandCode = {
-        brandCode: code
+  const [create, setCreate] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [newItem, setNewItem] = useState(null);
+  const paginationModel = { page: 0, pageSize: 10 };
+  const currentPage = 1;
+  const { data: brand, loading, error, refetch } = useFetchData(apiURL.brand.all);
+
+  const handleSearch = () => {
+    refetch();
+  };
+
+  const handleOpen = (item) => {
+    setSelectedItem(item);
+    setOpen(true);
+  };
+
+  const handleCreate = async () => {
+    try {
+      const res = await fetch(apiURL.brand.create, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...newItem, brandCode: generateSerialCode() }),
+      });
+      if (res.ok) {
+        refetch();
+        toast.success('Tạo mới thành công');
+      } else {
+        toast.error('Tạo mới thất bại');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra');
     }
-  
-    return (
-      <div className='border bg-light rounded-3'>
-        <div className='p-3'>
-          <div className='d-flex mb-2 justify-content-between'>
-            <SearchInput ApiURL={apiURL.brand.search} onSearch={handleSearch} />
-            <div>
-              <button
-                className='btn btn-outline-success'
-                onClick={() => setCreate(true)}
-              >
-                + Thêm mới
-              </button>
-              {create && (
-                <Create
-                  apiURL={apiURL.brand.create}
-                  pageName={'thương hiệu'}
-                  onClose={() => setCreate(false)}
-                  onChangeData={handleChangeData}
-                  moreField={brandCode}
-                />
-              )}
-            </div>
-          </div>
-          <DataTable 
-            columns={columns} 
-            data={currentItems.map((item, index) => ({
-              ...item,
-              serialNumber: index + 1 + (currentPage - 1) * itemsPerPage
-            }))}
-            onChangeData={handleChangeData}
-            apiURLDel={apiURL.brand.delete}
-            apiURLEdit={apiURL.brand.edit}
-          />
-          <div className="d-flex justify-content-between mt-3">
-            <div>
-              <label>Số lượng mục trên trang:</label>
-              <select value={itemsPerPage} onChange={handleItemsPerPageChange}>
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={15}>15</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
-            <div>
-              {Array.from({ length: totalPages }, (_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`btn ${currentPage === index + 1 ? 'btn-primary' : 'btn-secondary'} mx-1`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  };
+
+  const handleUpdate = async (updatedItem) => {
+    try {
+      const res = await fetch(`${apiURL.brand.edit}${updatedItem.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedItem),
+      });
+
+      if (res.ok) {
+        refetch();
+        toast.success('Cập nhật thành công');
+      } else {
+        toast.error('Cập nhật thất bại');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra');
+    }
+  };
+
+  const handleDelete = async (data) => {
+    try {
+      const res = await fetch(`${apiURL.brand.delete}${data.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        refetch();
+        toast.success('Xóa thành công');
+      } else {
+        toast.error('Xóa thất bại');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Có lỗi xảy ra');
+    }
+  };
+
+  if (loading) return <div className="d-flex justify-content-center align-items-center"><CircularProgress /></div>;
+  if (error) return <div className="d-flex justify-content-center align-items-center">Error: {error}</div>;
+
+  const columns = [
+    { field: 'serialNumber', headerName: 'STT', width: 90 },
+    { field: 'brandCode', headerName: 'Mã thương hiệu', width: 150 },
+    { field: 'name', headerName: 'Tên thương hiệu', width: 150 },
+    { field: 'status', headerName: 'Trạng thái', width: 150 },
+    {
+      field: 'action',
+      headerName: 'Thao tác',
+      flex: 1,
+      renderCell: (params) => (
+        <Box>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => handleOpen(params.row)}
+          >
+            <EditIcon />
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => handleDelete(params.row)}
+          >
+            <DeleteIcon />
+          </Button>
+        </Box>
+      ),
+    },
+  ];
+
+  // Prepare data with serial number
+  const rows = brand.map((item, index) => ({
+    id: item.id,
+    serialNumber: index + 1 + (currentPage - 1) * 10,
+    brandCode: item.brandCode,
+    name: item.name,
+    status: item.status,
+  }));
+
+  return (
+    <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 2 }}>
+      <Typography variant="h5" align="center" gutterBottom>
+        Danh sách thương hiệu
+      </Typography>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <SearchInput ApiURL={apiURL.brand.search} onSearch={handleSearch} />
+        <Box>
+          <Button variant="outlined" color="success" onClick={() => setCreate(true)}>
+            + Thêm mới
+          </Button>
+        </Box>
+      </Box>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        pageSize={10}
+        pageSizeOptions={[10, 20]}
+        initialState={{ pagination: { paginationModel } }}
+        rowHeight={80}
+        sx={{
+          border: 'none',
+          '& .MuiDataGrid-cell': {
+            borderBottom: 'none',
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            borderBottom: 'none',
+          },
+          backgroundColor: '#fff',
+          minHeight: 550,
+          maxHeight: 'calc(100vh - 200px)',
+        }}
+        loading={loading}
+      />
+      <EditDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        item={selectedItem}
+        onUpdate={handleUpdate}
+        disableField="brandCode"
+      />
+      <CreateDialog
+        open={create}
+        onClose={() => setCreate(false)}
+        setItem={setNewItem}
+        onCreate={handleCreate}
+      />
+    </Box>
+  );
 }
 
 export default ManageBrand;

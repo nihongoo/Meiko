@@ -21,6 +21,11 @@ import ForgotPassword from '../component/Layout/loginLayout/Account/forgotPasswo
 import ShopCart from '../component/Layout/UserLayout/Pages/ShopCart'
 import ListProductDetail from '../pages/Product_Detail/ListProductDetail'
 import Checkout from '../component/Layout/UserLayout/Pages/Checkout'
+import AccountUser from '../component/Layout/UserLayout/Pages/AccountUser'
+import AddressScreen from '../component/Layout/UserLayout/Pages/AddressScreen'
+import OrderListScreen from '../component/Layout/UserLayout/Pages/OrderListScreen'
+import OrderDetailScreen from '../component/Layout/UserLayout/Pages/OrderDetailScreen'
+import OrderSuccess from '../component/Layout/UserLayout/Pages/OrderSuccess'
 
 const publicRoutes = [
     { path: '/', component: Home , layout: 'admin'},
@@ -46,6 +51,11 @@ const publicRoutes = [
     { path: '/ShopCart', component: ShopCart, layout: 'user'},
     { path: '/listproductdetail/:id', component: ListProductDetail, layout: 'admin' },
     { path: '/checkout', component: Checkout, layout: 'user'},
+    { path: '/accountUser', component: AccountUser, layout: 'user'},
+    { path: '/addressScreen', component: AddressScreen, layout: 'user'},
+    { path: '/orderlistscreen', component: OrderListScreen, layout: 'user'},
+    { path: '/orderdetailscreen', component: OrderDetailScreen, layout: 'user'},
+    { path: '/order-success', component: OrderSuccess, layout: 'user'},
 ]
 const privateRoutes = [
     {path: '/', component: Home, layout: 'admin'},

@@ -1,4 +1,5 @@
-﻿using API.ViewModel;
+﻿using API.Models;
+using API.ViewModel;
 using DataProcessing.Models;
 
 namespace API.IServices
@@ -8,7 +9,8 @@ namespace API.IServices
         public Task<Vouchers> CreateVoucherAsync (VoucherViewModel voucherViewModel);
         public Task<Vouchers?> GetVoucherByIdAsync(Guid id);
         public Task<List<Vouchers>> GetAllVouchersAsync();
-        public Task<bool> UseVoucherAsync(Guid voucherId, Guid customerId, double billAmount);
+        public Task<ReturnMessage> UpdateVoucherStatus(Guid id);
         public Task DeleteVoucherAsync(Guid id);
+        public Task<List<Vouchers>> Filter(DateTime startDate, DateTime endDate);
     }
 }

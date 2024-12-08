@@ -70,7 +70,7 @@ function LoginForm() {
         // Sau khi có customerId, điều hướng đến trang homeUser
         navigate("/homeUser");
       } else {
-        navigate("/user-dashboard");
+        navigate("/");
       }
     } catch (err) {
       console.error("Login error:", err);

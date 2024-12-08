@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './ProductDetail.module.css';
+import ProductReviews from './ProductReview';
+import RelatedProducts from './RelatedProducts';
+import { CircularProgress } from '@mui/material';
+import useFetchData from '../../../../../customHook/useFetchData';
+import apiURL from '../../../../../routes/API';
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -17,10 +22,11 @@ const ProductDetail = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [availableQuantity, setAvailableQuantity] = useState(0);
-console.log(productId);
 
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [discountPercentage, setDiscountPercentage] = useState(null);
+  const {data: products, refetch} = useFetchData(apiURL.product.getbyid, null, true)
+
 
   // Lấy dữ liệu sản phẩm từ API
   useEffect(() => {
@@ -71,14 +77,11 @@ console.log(productId);
       }
     }
   }, [selectedSize, selectedColor, product]);
-
   // Nếu đang tải dữ liệu
-  if (loading) return <div className={styles.loading}>Đang tải dữ liệu...</div>;
+  if (loading) return <div className='d-flex justify-content-center'><CircularProgress/></div>;
 
   // Nếu có lỗi khi tải dữ liệu
   if (error) return <div className={styles.error}>{error}</div>;
-
-  // Nếu không tìm thấy sản phẩm
   if (!product) return <div className={styles.notFound}>Không tìm thấy sản phẩm</div>;
 
   const productDetails = product.Product_detail || [];
@@ -135,9 +138,15 @@ console.log(productId);
       const selectedProductDetail = product.Product_detail?.find(
         (detail) => detail.sizes.name === selectedSize && detail.colors.name === selectedColor
       );
-  
-      if (!selectedProductDetail || !selectedProductDetail.images || selectedProductDetail.images.length === 0) {
-        alert("Sản phẩm không hợp lệ hoặc không có hình ảnh.");
+      let imageUrlToUse = '';
+      if (selectedProductDetail) {
+        if (selectedProductDetail.images && selectedProductDetail.images.length > 0) {
+          imageUrlToUse = selectedProductDetail.images[0].imgUrl;
+        } else {
+          imageUrlToUse = product.imageUrl; // Sử dụng ảnh mặc định của sản phẩm
+        }
+      } else {
+        alert("Sản phẩm không hợp lệ hoặc không tồn tại.");
         return;
       }
   
@@ -331,6 +340,9 @@ console.log(productId);
           </div>
         </div>
       </div>
+      <ProductReviews productId={productId} />
+      
+      <RelatedProducts productId={productId} />
     </div>
   );
 };

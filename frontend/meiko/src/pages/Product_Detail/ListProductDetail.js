@@ -5,8 +5,7 @@ import apiURL from "../../routes/API/index";
 import useFetchData from "../../customHook/useFetchData";
 import UpdateDetailDialog from './UpdateDetailDialog';
 import { DataGrid } from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
-import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button } from '@mui/material';
+import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button, Box, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 
@@ -20,6 +19,52 @@ function ListProductDetail() {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [apiImg, setApiImg] = useState('POST');
+
+    const formattedRows = initialData.map((item) => ({
+        id: item.id,
+        name: productName,
+        code: item.productDetailCode,
+        color: item.colors.name,
+        size: item.sizes.name,
+        weight: item.weight,
+        importPrice: item.importPrice,
+        price: item.price,
+        quantity: item.quantity,
+        createTime: moment(item.createTime).format('DD-MM-YYYY'),
+        status: item.status,
+        tt: item.status === 1 ? 'Đang bán' : 'Ngừng bán'
+    }));
+
+    const columns = [
+        { field: 'name', headerName: 'Tên sản phẩm', flex:1 },
+        { field: 'code', headerName: 'Mã chi tiết', flex:1 },
+        { field: 'color', headerName: 'Màu', flex:1 },
+        { field: 'size', headerName: 'Kích thước', flex:1 },
+        { field: 'weight', headerName: 'Cân nặng', flex:1 },
+        { field: 'importPrice', headerName: 'Giá nhập', flex:1 },
+        { field: 'price', headerName: 'Giá bán', flex:1 },
+        { field: 'quantity', headerName: 'Số lượng', flex:1 },
+        { field: 'createTime', headerName: 'Ngày tạo', flex:1 },
+        { field: 'tt', headerName: 'Trạng thái', flex:1 },
+        {
+            field: 'action',
+            headerName: 'Thao tác',
+            width: 130,
+            renderCell: (params) => (
+                <div>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => handleClickOpen(params.row)}
+                    >
+                        <i className="fa-solid fa-pen"></i>
+                    </Button>
+                </div>
+            ),
+        },
+    ];
+
+    const paginationModel = { page: 0, pageSize: 5 };
 
     useEffect(() => {
         const fetchProductById = async () => {
@@ -40,7 +85,7 @@ function ListProductDetail() {
         };
 
         fetchProductById();
-    }, [id]); 
+    }, [id]);
 
     const handleClickOpen = (item) => {
         const formatUser = {
@@ -64,8 +109,8 @@ function ListProductDetail() {
     };
 
     const handleUpdate = async () => {
-        console.log("Selected User before update:", selectedUser);  // In ra selectedUser trước khi gửi yêu cầu
-    
+        console.log("Selected User before update:", selectedUser); 
+
         try {
             const fileName = image.name.split('.').slice(0, -1).join('.');
             const imgInfo = {
@@ -75,8 +120,6 @@ function ListProductDetail() {
             const formData = new FormData();
             formData.append('file', image);
             formData.append('upload_preset', 'datnMeiko');
-            
-            // Tải ảnh lên Cloudinary
             const r1 = await fetch(
                 `https://api.cloudinary.com/v1_1/dtsqxauba/image/upload`,
                 {
@@ -84,10 +127,6 @@ function ListProductDetail() {
                     body: formData,
                 }
             );
-    
-            console.log("Cloudinary response:", r1);  // Kiểm tra phản hồi từ Cloudinary
-    
-            // Cập nhật ảnh vào hệ thống của bạn
             const r2 = await fetch(apiURL.image.create, {
                 method: apiImg,
                 headers: {
@@ -95,20 +134,20 @@ function ListProductDetail() {
                 },
                 body: JSON.stringify(imgInfo),
             });
-    
-            console.log("Image update response:", r2);  // Kiểm tra phản hồi từ API cập nhật ảnh
-    
-            // Cập nhật thông tin sản phẩm
+            console.log(imgInfo);
+            
+
+            console.log("Image update response:", r2);
             const response = await fetch(`${apiURL.productDetail.edit}${selectedUser.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(selectedUser),  // Truyền selectedUser
+                body: JSON.stringify(selectedUser),  
             });
-    
-            console.log("Product update response:", response);  // Kiểm tra phản hồi từ API cập nhật sản phẩm
-    
+
+            console.log("Product update response:", response); 
+
             if (response.ok && r1.ok && r2.ok) {
                 toast.success('Sửa thành công');
                 refetch();
@@ -119,32 +158,48 @@ function ListProductDetail() {
             }
         } catch (error) {
             toast.error('Sửa thất bại');
-            console.error("Error during update:", error);  // Log lỗi nếu có
+            console.error("Error during update:", error);
         }
         handleClose();
     };
-    
 
     return (
-        <div className="border bg-light rounded-3">
-            <div className='d-flex justify-content-center m-2'>
-                <h2>Danh sách sản phẩm chi tiết</h2>
-            </div>
-            <div className='p-3'>
-                <div className='d-flex mb-2 justify-content-between'>
-                    <div className="d-flex align-items-center">
-                        <SearchInput />
-                    </div>
-                    <FormControl component="fieldset">
-                        <FormLabel component="legend" className="m-0">Tìm kiếm theo:</FormLabel>
-                        <RadioGroup row>
-                            <FormControlLabel value="isSearchEmail=false" control={<Radio />} label="Số điện thoại" />
-                            <FormControlLabel value="isSearchEmail=true" control={<Radio />} label="Email" />
-                        </RadioGroup>
-                    </FormControl>
-                </div>
-                <TableUser rows={initialData} onEdit={handleClickOpen} productName={productName} />
-            </div>
+        <Box p={3} bgcolor="#fff" borderRadius={2}>
+            <Typography variant="h5" align="center" gutterBottom>Thông tin sản phẩm</Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <SearchInput
+                    ApiURL={apiURL.product.search}
+                />
+                <FormControl>
+                    <FormLabel>Tìm kiếm theo:</FormLabel>
+                    <RadioGroup
+                        row
+                    >
+                        <FormControlLabel value="isSearchWithName=true" control={<Radio />} label="Tên sản phẩm" />
+                        <FormControlLabel value="isSearchWithName=false" control={<Radio />} label="Mã sản phẩm" />
+                    </RadioGroup>
+                </FormControl>
+            </Box>
+            <DataGrid
+                columns={columns}
+                rows={formattedRows}
+                initialState={{ pagination: { paginationModel } }}
+                pageSizeOptions={[5, 10]}
+                disableRowSelectionOnClick
+                rowHeight={80}
+                sx={{
+                    border: 'none',
+                    '& .MuiDataGrid-cell': {
+                        borderBottom: 'none',
+                    },
+                    '& .MuiDataGrid-columnHeaders': {
+                        borderBottom: 'none',
+                    },
+                    backgroundColor: '#fff',
+                    minHeight: 550,
+                    maxHeight: 'calc(100vh - 200px)',
+                }}
+            />
             <UpdateDetailDialog
                 open={open}
                 selectedUser={selectedUser}
@@ -155,70 +210,7 @@ function ListProductDetail() {
                 preview={preview}
                 setPreview={setPreview}
             />
-        </div>
+        </Box>
     );
 }
-
-function TableUser({ rows, onEdit, productName }) {
-    const formattedRows = rows.map((item) => ({
-        id: item.id,
-        name: productName,
-        code: item.productDetailCode,
-        color: item.colors.name,
-        size: item.sizes.name,
-        weight: item.weight,
-        importPrice: item.importPrice,
-        price: item.price,
-        quantity: item.quantity,
-        createTime: moment(item.createTime).format('DD-MM-YYYY'),
-        status: item.status,
-        tt: item.status === 1 ? 'Đang bán' : 'Ngừng bán'
-    }));
-
-    const columns = [
-        { field: 'name', headerName: 'Tên sản phẩm', width: 110 },
-        { field: 'code', headerName: 'Mã chi tiết', width: 110 },
-        { field: 'color', headerName: 'Màu', width: 70 },
-        { field: 'size', headerName: 'Kích thước', width: 110 },
-        { field: 'weight', headerName: 'Cân nặng', width: 110 },
-        { field: 'importPrice', headerName: 'Giá nhập', width: 130 },
-        { field: 'price', headerName: 'Giá bán', width: 110 },
-        { field: 'quantity', headerName: 'Số lượng', width: 110 },
-        { field: 'createTime', headerName: 'Ngày tạo', width: 110 },
-        { field: 'tt', headerName: 'Trạng thái', width: 110 },
-        {
-            field: 'action',
-            headerName: 'Thao tác',
-            width: 130,
-            renderCell: (params) => (
-                <div>
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => onEdit(params.row)}
-                    >
-                        <i className="fa-solid fa-pen"></i>
-                    </Button>
-                </div>
-            ),
-        },
-    ];
-
-    const paginationModel = { page: 0, pageSize: 5 };
-
-    return (
-        <div>
-            <Paper sx={{ minWidth: '705px', width: 'auto', maxWidth: '1558px' }}>
-                <DataGrid
-                    columns={columns}
-                    rows={formattedRows}
-                    initialState={{ pagination: { paginationModel } }}
-                    pageSizeOptions={[5, 10]}
-                    disableRowSelectionOnClick
-                />
-            </Paper>
-        </div>
-    );
-}
-
 export default ListProductDetail;

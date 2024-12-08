@@ -4,8 +4,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Category/get-all',
         getbyid :'https://localhost:7172/api/Category/Get/{id}',
         create: 'https://localhost:7172/api/Category/add-category',
-        edit: 'https://localhost:7172/api/Category/Update/{id}',
-        delete: 'https://localhost:7172/api/Category/Delete/{id}',
+        edit: 'https://localhost:7172/api/Category/Update/',
+        delete: 'https://localhost:7172/api/Category/Delete/',
         search: 'https://localhost:7265/Category/Search'
     },
     brand: {
@@ -13,8 +13,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Brand/get-all',
         getbyid :'https://localhost:7172/api/Brand/Get/{id}',
         create: 'https://localhost:7172/api/Brand/add-brand',
-        edit: 'https://localhost:7172/api/Brand/Update/{id}',
-        delete: 'https://localhost:7172/api/Brand/Delete/{id}',
+        edit: 'https://localhost:7172/api/Brand/Update/',
+        delete: 'https://localhost:7172/api/Brand/Delete/',
         search: 'https://localhost:7265/Brand/Search'
     },
     target: {
@@ -22,8 +22,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Target/get-all',
         getbyid :'https://localhost:7172/api/Target/Get/{id}',
         create: 'https://localhost:7172/api/Target/add-target',
-        edit: 'https://localhost:7172/api/Target/Update/{id}',
-        delete: 'https://localhost:7172/api/Target/Delete/{id}',
+        edit: 'https://localhost:7172/api/Target/Update/',
+        delete: 'https://localhost:7172/api/Target/Delete/',
         search: 'https://localhost:7265/TagetCustomers/Search'
     },
     meterial: {
@@ -31,8 +31,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Material/get-all',
         getbyid :'https://localhost:7172/api/Material/Get/{id}',
         create: 'https://localhost:7172/api/Material/add-material',
-        edit: 'https://localhost:7172/api/Material/Update/{id}',
-        delete: 'https://localhost:7172/api/Material/Delete/{id}',
+        edit: 'https://localhost:7172/api/Material/Update/',
+        delete: 'https://localhost:7172/api/Material/Delete/',
         search: 'https://localhost:7265/Meterial/Search'
     },
     color: {
@@ -86,6 +86,7 @@ const apiURL = {
         edit: 'https://localhost:7172/api/Staff/Update/',
         search: 'https://localhost:7265/Staff/Search/',
         delete: 'https://localhost:7265/Staff/Delete-Staff/',
+        getbyid: 'https://localhost:7172/api/Staff/Get-By-AccID',
     },
     account:{
         base: 'https://localhost:7172/api/Account/Account/',
@@ -112,6 +113,16 @@ const apiURL = {
         list: 'https://localhost:7172/api/Bills/List-Bill-Detail',
         addToBill: 'https://localhost:7172/api/Bills/add-to-bill',
         deleteDetail: 'https://localhost:7172/api/Bills/Delete-Bill-Detail?id=',
+        billId:'https://localhost:7172/api/Bills/get-bill-by-id/',
+        all:'https://localhost:7172/api/Bills/get-bills',
+        filter: 'https://localhost:7172/api/Bills/Filter',
+        search: 'https://localhost:7172/api/Bills/Search'
+    },
+    voucher:{
+        create: 'https://localhost:7172/api/Voucher/Create',
+        all: 'https://localhost:7172/api/Voucher/GetAll',
+        delete: 'https://localhost:7172/api/Voucher/Delete/',
+        filter: 'https://localhost:7172/api/Voucher/Filter'
     }
     
 };

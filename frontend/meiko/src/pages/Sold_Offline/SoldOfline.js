@@ -1,5 +1,5 @@
-import { Box, Tab, Tabs, Button, IconButton } from "@mui/material";
-import { useState } from "react";
+import { Box, Tab, Tabs, Button, IconButton, Typography, Paper } from "@mui/material";
+import { useState, useRef, createContext, useEffect } from "react";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import NoContent from "./NoContent";
@@ -8,15 +8,47 @@ import generateSerialCode from '../../customHook/useRandom';
 import apiURL from "../../routes/API";
 import BillInfo from "./BillInfo";
 
+// Tạo context trực tiếp trong file
+export const BillInfoContext = createContext();
+
 function SoldOfline() {
     const [index, setIndex] = useState(0);
     const [tabs, setTabs] = useState([]);
     const [bills, setBills] = useState([]);
+    const billInfoRef = useRef();
+
+    // Khôi phục dữ liệu từ localStorage khi component mount
+    useEffect(() => {
+        const storedBills = localStorage.getItem('bills');
+        const storedTabs = localStorage.getItem('tabs');
+        if (storedBills) {
+            setBills(JSON.parse(storedBills));
+        }
+        if (storedTabs) {
+            setTabs(JSON.parse(storedTabs));
+        }
+    }, []);
+
+    // Lưu dữ liệu vào localStorage khi các state thay đổi
+    useEffect(() => {
+        if (bills.length > 0) {
+            localStorage.setItem('bills', JSON.stringify(bills));
+        }
+        if (tabs.length > 0) {
+            localStorage.setItem('tabs', JSON.stringify(tabs));
+        }
+    }, [bills, tabs]);
 
     const handleChangeTab = (e, newValue) => {
         setIndex(newValue);
     };
-    
+
+    const handleReloadFromAnother = () => {
+        if (billInfoRef.current) {
+            billInfoRef.current.reload();
+        }
+    };
+
     const handleAddTab = async () => {
         if (tabs.length >= 5) {
             toast.warning("Chỉ có thể thêm tối đa 5 hóa đơn");
@@ -47,8 +79,18 @@ function SoldOfline() {
             }
 
             const createdBill = await res.json();
-            setBills([...bills, createdBill]); // Lưu bill vào danh sách
-            setTabs([...tabs, `Hóa đơn ${newBill.billCode}`]); // Tạo tab mới
+            setBills((prevBills) => {
+                const newBills = [...prevBills, createdBill];
+                localStorage.setItem('bills', JSON.stringify(newBills));
+                return newBills;
+            });
+
+            setTabs((prevTabs) => {
+                const newTabs = [...prevTabs, `Hóa đơn ${newBill.billCode}`];
+                localStorage.setItem('tabs', JSON.stringify(newTabs));
+                return newTabs;
+            });
+
             setIndex(tabs.length);
             toast.success('Tạo hóa đơn thành công!');
         } catch (error) {
@@ -60,16 +102,24 @@ function SoldOfline() {
     const handleCloseTab = async (tabIndex) => {
         const billToDelete = bills[tabIndex];
         if (!billToDelete) return;
+
         try {
             const res = await fetch(`${apiURL.bill.delete}${billToDelete.id}`, { method: 'DELETE' });
             if (!res.ok) {
                 throw new Error('Xóa hóa đơn thất bại');
             }
-            const newTabs = tabs.filter((_, i) => i !== tabIndex);
-            const newBills = bills.filter((_, i) => i !== tabIndex);
 
-            setTabs(newTabs);
-            setBills(newBills);
+            setTabs((prevTabs) => {
+                const newTabs = prevTabs.filter((_, i) => i !== tabIndex);
+                localStorage.setItem('tabs', JSON.stringify(newTabs));
+                return newTabs;
+            });
+
+            setBills((prevBills) => {
+                const newBills = prevBills.filter((_, i) => i !== tabIndex);
+                localStorage.setItem('bills', JSON.stringify(newBills));
+                return newBills;
+            });
 
             // Điều chỉnh index nếu tab hiện tại bị đóng
             if (tabIndex === index) {
@@ -86,67 +136,75 @@ function SoldOfline() {
     };
 
     return (
-        <div>
-            <div className="border bg-light rounded-3">
-                <div className="d-flex justify-content-center m-2">
-                    <h2>Bán hàng</h2>
-                </div>
-                <div className="p-3">
-                    <Box sx={{ width: "100%" }}>
-                        <div className="d-flex justify-content-end">
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleAddTab}
-                            >
-                                Thêm hóa đơn
-                            </Button>
-                        </div>
-                        <Tabs
-                            value={index}
-                            onChange={handleChangeTab}
-                            variant="scrollable"
-                            scrollButtons="auto"
-                        >
-                            {tabs.map((tab, i) => (
-                                <Tab
-                                    key={i}
-                                    label={
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 1,
-                                            }}
-                                        >
-                                            {tab}
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCloseTab(i);
-                                                }}
-                                            >
-                                                <CloseIcon fontSize="small" />
-                                            </IconButton>
-                                        </Box>
-                                    }
-                                />
-                            ))}
-                        </Tabs>
-                    </Box>
+        <BillInfoContext.Provider value={{ handleReloadFromAnother }}>
+            <Paper elevation={3} sx={{ padding: 3, borderRadius: 2 }}>
+                <Box textAlign="center" mb={2}>
+                    <Typography variant="h4">Bán hàng</Typography>
+                </Box>
+
+                <Box textAlign="right" mb={2}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleAddTab}
+                    >
+                        Thêm hóa đơn
+                    </Button>
+                </Box>
+
+                <Tabs
+                    value={index}
+                    onChange={handleChangeTab}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                >
+                    {tabs.map((tab, i) => (
+                        <Tab
+                            key={i}
+                            label={
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    {tab}
+                                    <IconButton
+                                        size="small"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCloseTab(i);
+                                        }}
+                                    >
+                                        <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
+                            }
+                        />
+                    ))}
+                </Tabs>
+
+                <Box
+                    mt={2}
+                    sx={{
+                        minHeight: 500,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        border: "1px dashed #ccc",
+                        borderRadius: 2,
+                    }}
+                >
                     {tabs.length === 0 ? (
                         <NoContent />
                     ) : (
-                        <div className="mt-2">
-                            <h4>Thông tin của {tabs[index]}</h4>
-                            <ListProduct bill={bills[index]} /> {/* Truyền bill vào ListProduct */}
-                            <BillInfo />
-                        </div>
+                        <Box width="100%" p={2}>
+                            <Typography variant="h6" gutterBottom>
+                                Thông tin của {tabs[index]}
+                            </Typography>
+                            <ListProduct bill={bills[index]} />
+                            <BillInfo bill={bills[index]} ref={billInfoRef} />
+                        </Box>
                     )}
-                </div>
-            </div>
-        </div>
+                </Box>
+            </Paper>
+        </BillInfoContext.Provider>
     );
 }
 
