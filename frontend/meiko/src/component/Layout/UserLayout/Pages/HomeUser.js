@@ -1,14 +1,12 @@
 import 'font-awesome/css/font-awesome.min.css'
-import Header from '../Header/index'
 import Hero from "../Features/Banner/index";
 import FeaturedProducts from '../Features/Product/FeaturedProducts';
 import BestSellingProducts from '../Features/Product/BestSellingProducts';
-import Footer from '../Footer/index';
-
+import Promotion from '../Features/Home/promotion';
+import Feedback from '../Features/Home/Feedback';
 function HomeUser() {
     return (
         <div >
-            <Header/>
             <div style={{marginTop: "160px"}}>
                 <Hero />
                 <div style={{ marginTop: '80px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -36,8 +34,10 @@ function HomeUser() {
                     </div>
                 </div>
                 <FeaturedProducts/>
+                <Promotion/>
+                <BestSellingProducts/>
+                <Feedback/>
             </div>
-            <Footer />
         </div>
     );
 }

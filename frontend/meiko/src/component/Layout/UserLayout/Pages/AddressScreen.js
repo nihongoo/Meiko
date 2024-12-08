@@ -7,7 +7,6 @@ import Title from "../Features/common/Title";
 import { FormElement, Input, Textarea } from "../styles/form";
 import { BaseButtonGreen, BaseButtonWhitesmoke } from "../styles/button";
 import { defaultTheme } from "../styles/themes/default";
-import Header from "../Header/index";
 
 const AddressScreenWrapper = styled.main`
   padding: 20px 0;
@@ -89,7 +88,6 @@ const breadcrumbItems = [
 const AddressScreen = () => {
   return (
     <div>
-        <Header />
     <AddressScreenWrapper style={{ paddingTop: "220px" }}>
       <Container>
         <Breadcrumb items={breadcrumbItems} />

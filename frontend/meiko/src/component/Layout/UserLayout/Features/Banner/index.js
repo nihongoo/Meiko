@@ -7,6 +7,7 @@ import { BaseLinkWhite } from "../../styles/button";
 import { breakpoints, defaultTheme } from "../../styles/themes/default";
 import CustomNextArrow from "../common/CustomNextArrow";
 import CustomPrevArrow from "../common/CustomPrevArrow";
+import { colors } from "@mui/material";
 
 const SectionHeroWrapper = styled.section`
   background-color: #f2f2f2;
@@ -103,6 +104,7 @@ const HeroSlideContent = styled.div`
   }
 
   .hero-text-large {
+    color: #ffffff;
     font-size: 78px;
     letter-spacing: 0.315px;
     line-height: 1.2;

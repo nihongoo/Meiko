@@ -55,7 +55,6 @@ function ProductCart() {
         console.error('Error fetching cart details:', error);
       });
   };
-  console.log(products);
 
   const fetchProduct = (productId) => {
     fetch(`https://localhost:7172/api/Product/Get/${productId}`)
@@ -265,7 +264,6 @@ function ProductCart() {
         coupon: selectedCoupon,
         productDetailsInfo,
     };
-    console.log(productDetailsInfo);
     navigate('/checkout', { state: { paymentData } });
   };
 

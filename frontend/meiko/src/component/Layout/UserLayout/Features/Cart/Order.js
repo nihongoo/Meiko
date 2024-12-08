@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Checkbox } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import styles from './Order.module.css';
 
 function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsInfo, shippingFee, setLoading, selectedAddress, voucherId }) {
     const [selectedPayment, setSelectedPayment] = useState(null);
+    const navigate = useNavigate();
     const handlePaymentChange = (option) => {
         setSelectedPayment(selectedPayment === option ? null : option);
     };
@@ -139,12 +141,19 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
     
             setLoading(false);
             alert("Đặt hàng thành công!");
-    
+            localStorage.setItem("billCode", billCode);
+            resetForm();
+            navigate("/order-success");
+            window.dispatchEvent(new Event('cartUpdated'));
         } catch (error) {
             setLoading(false); 
             console.error("Error placing order:", error);
             alert("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.");
         }
+    };
+
+    const resetForm = () => {
+        setSelectedPayment(null);
     };
 
     return (

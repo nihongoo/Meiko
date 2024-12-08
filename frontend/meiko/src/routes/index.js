@@ -25,6 +25,7 @@ import AccountUser from '../component/Layout/UserLayout/Pages/AccountUser'
 import AddressScreen from '../component/Layout/UserLayout/Pages/AddressScreen'
 import OrderListScreen from '../component/Layout/UserLayout/Pages/OrderListScreen'
 import OrderDetailScreen from '../component/Layout/UserLayout/Pages/OrderDetailScreen'
+import OrderSuccess from '../component/Layout/UserLayout/Pages/OrderSuccess'
 
 const publicRoutes = [
     { path: '/', component: Home , layout: 'admin'},
@@ -54,6 +55,7 @@ const publicRoutes = [
     { path: '/addressScreen', component: AddressScreen, layout: 'user'},
     { path: '/orderlistscreen', component: OrderListScreen, layout: 'user'},
     { path: '/orderdetailscreen', component: OrderDetailScreen, layout: 'user'},
+    { path: '/order-success', component: OrderSuccess, layout: 'user'},
 ]
 const privateRoutes = [
     {path: '/', component: Home, layout: 'admin'},

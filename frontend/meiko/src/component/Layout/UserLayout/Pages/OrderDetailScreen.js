@@ -1,6 +1,4 @@
 import { Container } from "react-bootstrap";
-import Header from "../Header/index";
-import Footer from "../Footer/index";
 import Breadcrumb from "../Features/common/Breadcrumb";
 import { UserContent, UserDashboardWrapper } from "../styles/user";
 import UserMenu from "../Features/User/UserMenu";
@@ -59,15 +57,12 @@ const orderData = [
 const OrderDetailScreen = () => {
   const order = orderData[0];
   
-  // Tìm vị trí trạng thái hiện tại trong mảng
   const currentStatusIndex = orderStatusSteps.findIndex((step) => step.status === order.status);
 
-  // Lọc các trạng thái đã qua hoặc trạng thái hiện tại
   const visibleStatusSteps = orderStatusSteps.slice(0, currentStatusIndex + 1);
 
   return (
     <div>
-        <Header/>
         <Container style={{ paddingTop: "220px" }}>
       <Breadcrumb items={breadcrumbItems} />
       <UserDashboardWrapper>
@@ -141,7 +136,6 @@ const OrderDetailScreen = () => {
         </UserContent>
       </UserDashboardWrapper>
     </Container>
-    <Footer/>
     </div>
   );
 };

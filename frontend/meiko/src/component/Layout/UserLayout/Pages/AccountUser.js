@@ -9,7 +9,6 @@ import { FormElement, Input } from "../styles/form";
 import { BaseLinkGreen } from "../styles/button";
 import { Link } from "react-router-dom";
 import { breakpoints, defaultTheme } from "../styles/themes/default";
-import Header from "../Header/index";
 
 const AccountScreenWrapper = styled.main`
   .address-list {
@@ -107,7 +106,6 @@ const breadcrumbItems = [
 const AccountUser = () => {
   return (
     <div>
-      <Header />
       <AccountScreenWrapper className="page-py-spacing" style={{ paddingTop: "220px" }}>
         <Container>
           <Breadcrumb items={breadcrumbItems} />

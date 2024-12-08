@@ -3,7 +3,7 @@ import 'font-awesome/css/font-awesome.min.css';
 import styles from './FeaturedProducts.module.css';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Link } from 'react-router-dom';
-
+import Title from '../common/Title';
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState([]);
@@ -181,7 +181,7 @@ const FeaturedProducts = () => {
   return (
     <div className={styles.featuredProducts} style={{ marginTop: '70px' }}>
       <div className="container">
-        <h2 className={styles.sectionTitle}>Sản phẩm mới nhất</h2>
+        <Title titleText={"Sản phẩm mới nhất"} />
         <div className="row" style={{ marginTop: '50px' }}>
           {products.slice(0, 4).map((product) => (
             <div key={product.id} className="col-md-3">

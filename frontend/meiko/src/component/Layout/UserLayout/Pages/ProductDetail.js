@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { Container } from "../styles/styles";
-import Header from "../Header/index";
-import Footer from "../Footer/index";
 import Breadcrumb from "../Features/common/Breadcrumb";
 import ProductPreview from "../Features/Product/ProductPreview";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import { currencyFormat } from "../utils/helper";
+import { useParams, useNavigate } from "react-router-dom";
 import ProductDescriptionTab from "../Features/Product/ProductDescriptionTab";
 import styles from "./ProductDetails.module.css";
 
@@ -222,7 +219,6 @@ const ProductDetails = () => {
 
   return (
     <main className="my-4">
-      <Header />
       <div style={{ marginTop: "150px" }}>
         <Breadcrumb items={breadcrumbItems} />
       </div>
@@ -408,7 +404,6 @@ const ProductDetails = () => {
         </div>
         <ProductDescriptionTab />
       </Container>
-      <Footer />
     </main>
   );
 };

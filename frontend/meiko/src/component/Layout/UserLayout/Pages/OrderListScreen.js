@@ -7,7 +7,6 @@ import Title from "../Features/common/Title";
 import { breakpoints, defaultTheme } from "../styles/themes/default";
 import OrderItemList from "../Features/User/OrderItemList";
 import { useState } from "react";
-import Header from "../Header/index";
 
 const OrderListScreenWrapper = styled.div`
   .order-tabs-contents {
@@ -89,7 +88,6 @@ const OrderListScreen = () => {
 
   return (
     <div>
-        <Header />
         <OrderListScreenWrapper className="page-py-spacing" style={{ paddingTop: "220px" }}>
       <Container>
         <Breadcrumb items={breadcrumbItems} />
