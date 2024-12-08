@@ -14,7 +14,7 @@ namespace DataProcessing.Models
         [Required(ErrorMessage = "Id không được để trống.")]
         public Guid Id { get; set; }
 
-        [Required(ErrorMessage = "Tên danh mục không được để trống.")]
+        [Required(ErrorMessage = "Tên kích thước không được để trống.")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Trạng thái không được để trống.")]
