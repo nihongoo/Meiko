@@ -48,7 +48,7 @@ namespace DataProcessing.Models
         public DbSet<Review> Reviews { get; set; }
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-			optionsBuilder.UseSqlServer("Server=MSI;Database=DATN;Trusted_Connection=True;TrustServerCertificate=True");
+			optionsBuilder.UseSqlServer("Server=NIHONGGOO\\SQLEXPRESS;Database=DATN;Trusted_Connection=True;TrustServerCertificate=True");
 		}
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
