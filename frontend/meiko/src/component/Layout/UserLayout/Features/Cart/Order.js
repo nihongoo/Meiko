@@ -45,9 +45,9 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
                 body: JSON.stringify({
                     billCode: billCode,
                     isShipping: true,
-                    total: total,
+                    total: 0,
                     status: 0, 
-                    paymentAmount: total + shippingFee,
+                    paymentAmount: 0,
                     shippingFee: shippingFee,
                     cartId: localStorage.getItem("cartId"), 
                     customerId: localStorage.getItem("customerId"), 

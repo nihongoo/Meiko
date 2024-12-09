@@ -551,8 +551,8 @@ namespace API.Services
 						}
 
 						bill.Total = _dbcontext.Carts.First(c => c.Id == CartId).Total;
-
-						check = true;
+                        bill.PaymentAmount = bill.Total + bill.ShippingFee;
+                        check = true;
 					}
 
 					await _dbcontext.SaveChangesAsync();
@@ -875,7 +875,8 @@ namespace API.Services
 				try
 				{
 					var productDetail = await _dbcontext.ProductDetails.FindAsync(model.ProductDetailId);
-					var billDetail = await _dbcontext.BillDetails.FirstOrDefaultAsync(bd => bd.BillId == model.BillId && bd.ProductDetailId == model.ProductDetailId);
+                    var saleProduct = await _dbcontext.SaleProducts.FirstOrDefaultAsync(sp => sp.ProductDetailId == model.ProductDetailId); 
+                    var billDetail = await _dbcontext.BillDetails.FirstOrDefaultAsync(bd => bd.BillId == model.BillId && bd.ProductDetailId == model.ProductDetailId);
 
 					if (billDetail == null)
 					{
@@ -889,7 +890,10 @@ namespace API.Services
 							ProductDetailId = model.ProductDetailId
 						};
 
-						billDetail.Price = billDetail.Quantity * productDetail.Price;
+                        decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
+						? saleProduct.DiscountedPrice.Value
+						: productDetail.Price;
+                        billDetail.Price = billDetail.Quantity * unitPrice;
 
                         if (productDetail.Quantity < billDetail.Quantity)
                             throw new Exception("Không đủ số lượng sản phẩm trong kho");
@@ -911,7 +915,10 @@ namespace API.Services
 
                         productDetail.Quantity -= quantityToReduce;
 
-                        billDetail.Price = billDetail.Quantity * productDetail.Price;
+                        decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
+						? saleProduct.DiscountedPrice.Value
+						: productDetail.Price;
+                        billDetail.Price = billDetail.Quantity * unitPrice;
 
 						_dbcontext.BillDetails.Update(billDetail);
 					}
