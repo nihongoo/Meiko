@@ -27,8 +27,8 @@ namespace API.Controllers
 		private readonly ToolDB<Bills> _tool;
 
 		public BillsController(IBillServices billServices, IConfiguration configuration, ToolDB<Bills> tool)
-        {
-            _IBillServices = billServices;
+		{
+			_IBillServices = billServices;
 			_apiKey = configuration["PayOS:ApiKey"];
 			_checkSum = configuration["PayOS:CheckSumKey"];
 			_clientId = configuration["PayOS:ClientId"];
@@ -150,13 +150,26 @@ namespace API.Controllers
 
 
 		[HttpDelete("delete-bill/{id}")]
-		public async Task<IActionResult> DeleteBill(Guid id, [FromQuery]string? note, [FromQuery]Guid StaffWhoDothis)
+		public async Task<IActionResult> DeleteBill(Guid id, [FromQuery] string? note, [FromQuery] Guid StaffWhoDothis)
 		{
 			var result = _IBillServices.Delete(id).Result;
 			if (result.status == 0)
-				return Ok(await _IBillServices.ChangeStatusTo(id, 10, note, StaffWhoDothis));
+			{
+				await _IBillServices.ChangeStatusTo(id, 10, note, StaffWhoDothis);
+				return Ok(result);
+			}
 			else
-				return Ok(result.message);
+				return Ok(result);
+		}
+
+		[HttpPost("refund/{id}")]
+		public async Task<IActionResult> Refund(Guid id, [FromQuery] string? note, [FromQuery] Guid CustomerWhoDothis)
+		{
+			var result = _IBillServices.Refund(id, CustomerWhoDothis, note).Result;
+			if (result.status == 0)
+				return Ok(result);
+			else
+				return BadRequest(result);
 		}
 
 		[HttpPost("change-status-from-bill/{id}")]
@@ -166,7 +179,7 @@ namespace API.Controllers
 		}
 
 		[HttpPost("pay-for-bill/{id}")]
-		public async Task<IActionResult> PayForBill(Guid id, [FromQuery]decimal paymentAmount, [FromQuery]Guid staffWhoDoThis)
+		public async Task<IActionResult> PayForBill(Guid id, [FromQuery] decimal paymentAmount, [FromQuery] Guid staffWhoDoThis)
 		{
 			var result = await _IBillServices.Pay(paymentAmount, 0, 0, id);
 			if (result.status == 0)
@@ -174,7 +187,7 @@ namespace API.Controllers
 				await _IBillServices.ChangeStatusTo(id, 11, null, staffWhoDoThis);
 				var bill = _IBillServices.GetBillById(id).Result;
 
-				if(bill.PaymentAmount >= bill.Total && bill.IsShipping == true)
+				if (bill.PaymentAmount >= bill.Total && bill.IsShipping == true)
 					await _IBillServices.ChangeStatusTo(id, 5, null, staffWhoDoThis);
 			}
 			return Ok(result);
@@ -280,7 +293,7 @@ namespace API.Controllers
 				if (status == "CANCELLED")
 				{
 					// Thực hiện các hành động khác nếu cần, như ghi log hoặc thông báo người dùng.
-					return Ok(await _IBillServices.CancelPaymentById(billId ,orderCode));
+					return Ok(await _IBillServices.CancelPaymentById(billId, orderCode));
 				}
 
 				// Xử lý trạng thái khác (nếu có)
@@ -303,7 +316,7 @@ namespace API.Controllers
 		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 		//	}
 		//}
-		
+
 		[HttpGet("Search")]
 		public async Task<IActionResult> Search(string query)
 		{

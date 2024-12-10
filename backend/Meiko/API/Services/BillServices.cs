@@ -20,7 +20,6 @@ namespace API.Services
 	{
 		private readonly AppDbContext _dbcontext;
 		private readonly ICartDetailServices _cartDetailServices;
-		private readonly string _baseUrl;
 		private readonly string _apiKey;
 		private readonly string _checkSum;
 		private readonly string _clientId;
@@ -28,7 +27,6 @@ namespace API.Services
 		{
 			_dbcontext = context;
 			_cartDetailServices = cartDetailServices;
-			_baseUrl = configuration["PayOS:BaseUrl"];
 			_apiKey = configuration["PayOS:ApiKey"];
 			_checkSum = configuration["PayOS:CheckSumKey"];
 			_clientId = configuration["PayOS:ClientId"];
@@ -111,6 +109,7 @@ namespace API.Services
 				return bills;
 			}
 		}
+
 		public async Task<BillDto?> GetBillByStatus(int status)
 		{
 			using (var context = _dbcontext)
@@ -637,7 +636,6 @@ namespace API.Services
 						}
 
 						bill.Total = _dbcontext.Carts.First(c => c.Id == CartId).Total;
-                        bill.PaymentAmount = bill.Total + bill.ShippingFee;
                         check = true;
 					}
 
@@ -722,6 +720,11 @@ namespace API.Services
 							status = 1,
 							message = "Hoá đơn đã xoá hoặc đã huỷ"
 						};
+					
+					var total = bill.PaymentAmount;
+
+					var customer = bill.CustomerId == null ? null : _dbcontext.Customers.Find(bill.CustomerId);
+
 					if (bill.Total > 0)
 					{
 						var billDetails = await _dbcontext.BillDetails.Where(bd => bd.BillId == Id).ToListAsync();
@@ -748,7 +751,8 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 0,
-						message = "Xoá thành công hoá đơn"
+						message = $"Huỷ hoá đơn thành công \n Số tiền cần hoàn trả là {total}VND",
+						data = customer == null ? null : $"{customer.Id} - {customer.Name} - {total}"
 					};
 
 				}
@@ -762,6 +766,58 @@ namespace API.Services
 						message = $"Đã có lỗi xảy ra : {ex.Message}"
 					};
 				}
+			}
+		}
+		public async Task<ReturnMessage> Refund(Guid Id, Guid CustomerWhoDoThis, string? note)
+		{
+			using (var dbtransaction = await _dbcontext.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					var bill = await _dbcontext.Bills.Where(c => c.Id == Id).FirstOrDefaultAsync();
+					if (bill == null || bill.Status == StatusType.DaHuy ||  bill.Status == StatusType.HoanTra)
+						return new ReturnMessage()
+						{
+							status = 1,
+							message = "Hoá đơn đã bị xoá, đã bị huỷ hoặc đang trong quá trình hoàn trả"
+						};
+
+					var customer = _dbcontext.Customers.Find(bill.CustomerId);
+
+					bill.Status = StatusType.HoanTra;
+
+					StatusHistory statusHistory = new StatusHistory()
+					{
+						Id = Guid.NewGuid(),
+						CreatedDate = DateTime.Now,
+						StatusType = StatusType.HoanTra,
+						Note = note,
+						WhoCreatedThis = CustomerWhoDoThis,
+						BillId = Id
+					};
+
+					_dbcontext.Bills.Update(bill);
+					await _dbcontext.StatusHistories.AddAsync(statusHistory);
+
+					await _dbcontext.SaveChangesAsync();
+
+					await dbtransaction.CommitAsync();
+
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Đã yêu cầu hoàn trả!\nQuý khách vui lòng chờ nhân viên xác nhận qua số điện thoại hoặc email!"
+					};
+				}
+				catch(Exception ex)
+				{
+					await dbtransaction.RollbackAsync();
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = "Đã có lỗi xảy ra khi gửi yêu cầu hoàn trả : " + ex.Message
+					};
+				};
 			}
 		}
 
@@ -917,7 +973,7 @@ namespace API.Services
 					var bill = _dbcontext.Bills.FirstOrDefault(b => b.Id == BillId);
 					var billCode = bill.BillCode;
 
-					if (bill.PaymentAmount >= bill.Total)
+					if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
 						return new ReturnMessage()
 						{
 							status = 3,
@@ -1527,7 +1583,6 @@ namespace API.Services
 				.ToListAsync();
 			return bills;
 		}
-
 	}
 
 }
