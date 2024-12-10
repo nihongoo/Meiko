@@ -30,7 +30,6 @@ function SideBar({ collapsed }) {
     const handleClose = () => {
         setAnchorEl(null);
     };
-    const userName = localStorage.getItem('username')
     const handleLogout = () => {
         localStorage.clear();
         nav('/SignIn');

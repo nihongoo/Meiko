@@ -13,31 +13,25 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import apiURL from "../../routes/API";
 import useFetchData from "../../customHook/useFetchData";
+import moment from 'moment'
 
 function StateBill({ open, onClose, item, print, setItem }) {
     const paginationModel = { page: 0, pageSize: 5 };
-    const { data: Detail} = useFetchData(`${apiURL.bill.list}?id=${item?.id}`);
-console.log(Detail);
+    const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${item?.id}`);
+    const sortedStatusHistories = item?.statusHistories
+        ? item.statusHistories.sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
+        : [];
 
+    const steps = sortedStatusHistories.map(history => ({
+        label: history.statusType,
+        description: moment(history.createdDate).format('DD-MM-YYYY HH:mm')
+    }));
+    const totalPaid = item?.paymentHistories?.reduce((acc, item) => acc + item.amount, 0) || 0;
     const paymentColumns = [
         { field: "amount", headerName: "Số tiền", flex: 1 },
-        { field: "time", headerName: "Thời gian", flex: 1 },
-        { field: "transactionType", headerName: "Loại giao dịch", flex: 1 },
+        { field: "createdDate", headerName: "Thời gian", flex: 1 },
         { field: "paymentMethod", headerName: "PTTT", flex: 1 },
         { field: "status", headerName: "Trạng thái", flex: 1 },
-        { field: "confirmedBy", headerName: "Nhân viên xác nhận", flex: 1 },
-    ];
-
-    const paymentRows = [
-        {
-            id: 1,
-            amount: "99,000 VND",
-            time: "16-01-2024 20:00",
-            transactionType: "Thanh toán",
-            paymentMethod: "Chuyển khoản",
-            status: "Thành công",
-            confirmedBy: "Haro Hans",
-        },
     ];
 
     return (
@@ -62,15 +56,13 @@ console.log(Detail);
                 >
                     {/* Stepper Section */}
                     <Box>
-                        <Stepper activeStep={1} orientation="vertical">
-                            <Step key={1}>
-                                <StepLabel>Tạo hóa đơn</StepLabel>
-                                <StepContent>16-01-2024 20:00</StepContent>
-                            </Step>
-                            <Step key={2}>
-                                <StepLabel>Thanh toán</StepLabel>
-                                <StepContent>16-01-2024 20:30</StepContent>
-                            </Step>
+                        <Stepper activeStep={steps.length - 1} orientation="vertical">
+                            {steps.map((step, index) => (
+                                <Step key={index}>
+                                    <StepLabel>{step.label}</StepLabel>
+                                    <StepContent>{step.description}</StepContent>
+                                </Step>
+                            ))}
                         </Stepper>
                     </Box>
 
@@ -85,7 +77,7 @@ console.log(Detail);
                             <Grid item xs={6} textAlign="right">
                                 <Typography variant="body1">{item?.total || 'N/A'}</Typography>
                                 <Typography variant="body1">{item?.shippingFee || 'N/A'}VND</Typography>
-                                <Typography variant="body1">{item?.paymentAmount || '0'}VND</Typography>
+                                <Typography variant="body1">{totalPaid || '0'}VND</Typography>
                             </Grid>
                         </Grid>
                         <Box>
@@ -140,7 +132,7 @@ console.log(Detail);
                                 Lịch sử thanh toán
                             </Typography>
                             <DataGrid
-                                rows={paymentRows}
+                                rows={item?.paymentHistories}
                                 columns={paymentColumns}
                                 autoHeight
                                 disableSelectionOnClick

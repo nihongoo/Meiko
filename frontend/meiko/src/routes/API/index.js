@@ -87,6 +87,7 @@ const apiURL = {
         search: 'https://localhost:7265/Staff/Search/',
         delete: 'https://localhost:7265/Staff/Delete-Staff/',
         getbyid: 'https://localhost:7172/api/Staff/Get-By-AccID',
+        getByStaffId: 'https://localhost:7172/api/Staff/Get/'
     },
     account:{
         base: 'https://localhost:7172/api/Account/Account/',

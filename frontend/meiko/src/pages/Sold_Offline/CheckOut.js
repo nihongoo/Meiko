@@ -32,8 +32,6 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
         }
         if (paymentMethod === 'cash') {
             const newRemaining = remaining - cashAmount;
-            console.log(newRemaining);
-            
             try {
                 const res = await fetch(`${apiURL.bill.pay}${bill.id}?paymentAmount=${cashAmount}`, {
                     method: 'POST',
