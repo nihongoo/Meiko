@@ -94,5 +94,9 @@ namespace DataProcessing.Models
 		HoanTra = 9,
 		[Display(Name = "Đã huỷ")]
 		DaHuy = 10,
+
+        //Tôi phải thêm trạng thái
+        [Display(Name = "Đã thanh toán")]
+        DaThanhToan = 11,
 	}
 }

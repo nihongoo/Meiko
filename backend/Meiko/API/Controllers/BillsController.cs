@@ -27,8 +27,8 @@ namespace API.Controllers
 		private readonly ToolDB<Bills> _tool;
 
 		public BillsController(IBillServices billServices, IConfiguration configuration, ToolDB<Bills> tool)
-        {
-            _IBillServices = billServices;
+		{
+			_IBillServices = billServices;
 			_apiKey = configuration["PayOS:ApiKey"];
 			_checkSum = configuration["PayOS:CheckSumKey"];
 			_clientId = configuration["PayOS:ClientId"];
@@ -52,6 +52,11 @@ namespace API.Controllers
 		public async Task<BillDto> GetBillById(Guid id)
 		{
 			return await _IBillServices.GetBillById(id);
+		}
+		[HttpGet("get-bill-by-status/{status}")]
+		public async Task<BillDto> GetBillById(int status)
+		{
+			return await _IBillServices.GetBillByStatus(status);
 		}
 
 		[HttpGet("get-billDetails")]
@@ -132,7 +137,7 @@ namespace API.Controllers
 		[HttpPost("create-bill")]
 		public async Task<ActionResult<object>> CreateBill(BillInfoModel model)
 		{
-			var result = await _IBillServices.Create(model.BillCode, model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId);
+			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId);
 			if (result.k)
 			{
 				return Ok(new { success = result.k, id = result.id });
@@ -145,9 +150,26 @@ namespace API.Controllers
 
 
 		[HttpDelete("delete-bill/{id}")]
-		public async Task<IActionResult> DeleteBill(Guid id)
+		public async Task<IActionResult> DeleteBill(Guid id, [FromQuery] string? note, [FromQuery] Guid StaffWhoDothis)
 		{
-			return Ok(await _IBillServices.Delete(id));
+			var result = _IBillServices.Delete(id).Result;
+			if (result.status == 0)
+			{
+				await _IBillServices.ChangeStatusTo(id, 10, note, StaffWhoDothis);
+				return Ok(result);
+			}
+			else
+				return Ok(result);
+		}
+
+		[HttpPost("refund/{id}")]
+		public async Task<IActionResult> Refund(Guid id, [FromQuery] string? note, [FromQuery] Guid CustomerWhoDothis)
+		{
+			var result = _IBillServices.Refund(id, CustomerWhoDothis, note).Result;
+			if (result.status == 0)
+				return Ok(result);
+			else
+				return BadRequest(result);
 		}
 
 		[HttpPost("change-status-from-bill/{id}")]
@@ -157,9 +179,18 @@ namespace API.Controllers
 		}
 
 		[HttpPost("pay-for-bill/{id}")]
-		public async Task<IActionResult> PayForBill(Guid id, decimal paymentAmount)
+		public async Task<IActionResult> PayForBill(Guid id, [FromQuery] decimal paymentAmount, [FromQuery] Guid staffWhoDoThis)
 		{
-			return Ok(await _IBillServices.Pay(paymentAmount, 0, 0, id));
+			var result = await _IBillServices.Pay(paymentAmount, 0, 0, id);
+			if (result.status == 0)
+			{
+				await _IBillServices.ChangeStatusTo(id, 11, null, staffWhoDoThis);
+				var bill = _IBillServices.GetBillById(id).Result;
+
+				if (bill.PaymentAmount >= bill.Total && bill.IsShipping == true)
+					await _IBillServices.ChangeStatusTo(id, 5, null, staffWhoDoThis);
+			}
+			return Ok(result);
 		}
 
 		//Shipping Address
@@ -195,10 +226,10 @@ namespace API.Controllers
 		}
 
 		//Momo API
-		[HttpPost("CreatePaymentWithMomo")]
-		public async Task<IActionResult> Post(OrderInfoModel model)
+		[HttpPost("CreatePaymentWithMomo/{id}")]
+		public async Task<IActionResult> Post(Guid id, string description)
 		{
-			var response = await _IBillServices.CreatePaymentAsync(model);
+			var response = await _IBillServices.CreatePaymentAsync(id, description);
 			return Ok(response);
 		}
 
@@ -214,10 +245,10 @@ namespace API.Controllers
 		}
 
 		//PayOS API
-		[HttpPost("CreatePaymentWithPayOS")]
-		public async Task<IActionResult> CreatePayOS(OrderInfoModel model)
+		[HttpPost("CreatePaymentWithPayOS/{id}")]
+		public async Task<IActionResult> CreatePayOS(Guid id, [FromQuery] string descrtiption)
 		{
-			return Ok(await _IBillServices.CreatePayOSRequestAsync(model));
+			return Ok(await _IBillServices.CreatePayOSRequestAsync(id, descrtiption));
 		}
 
 		[HttpGet("PayOS/ReturnPayOS/{billId}")]
@@ -253,22 +284,20 @@ namespace API.Controllers
 			}
 		}
 
-		[HttpGet("PayOS/CancelPayOS/{id}")]
-		public async Task<IActionResult> CancelData(Guid id, [FromQuery] string orderId, [FromQuery] string status, [FromQuery] decimal? amount)
+		[HttpGet("PayOS/CancelPayOS/{billId}")]
+		public async Task<IActionResult> CancelData(Guid billId, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
 		{
 			try
 			{
 				// Kiểm tra trạng thái và xử lý hủy đơn hàng
 				if (status == "CANCELLED")
 				{
-					
-
 					// Thực hiện các hành động khác nếu cần, như ghi log hoặc thông báo người dùng.
-					return Ok(await _IBillServices.CancelPaymentById(id));
+					return Ok(await _IBillServices.CancelPaymentById(billId, orderCode));
 				}
 
 				// Xử lý trạng thái khác (nếu có)
-				return BadRequest(new ReturnMessage { status = 1, message = "Invalid status received." });
+				return BadRequest(new ReturnMessage { status = 1, message = "Trạng thái nhận được không chính xác" });
 			}
 			catch (Exception ex)
 			{
@@ -287,7 +316,7 @@ namespace API.Controllers
 		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 		//	}
 		//}
-		
+
 		[HttpGet("Search")]
 		public async Task<IActionResult> Search(string query)
 		{
