@@ -22,42 +22,32 @@ namespace Meiko
 			builder.Services.AddDbContext<AppDbContext>(options =>
 				options.UseSqlServer(connectionString));
 
-			//CORS
-			builder.Services.AddCors(options =>
-			{
-				options.AddPolicy("AllowAll", policy =>
-				{
-					policy.AllowAnyOrigin()
-						  .AllowAnyHeader()
-						  .AllowAnyMethod();
-				});
-			});
 			//Configure
 			builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
-            //Service
-            builder.Services.AddScoped<IAccountServices, AccountService>();
-            builder.Services.AddScoped<IAddressServices, AddressServices>();
-            builder.Services.AddScoped<IStaffServices, StaffServices>();
-            builder.Services.AddScoped<ICustomerServices, CustomerServices>();
-            builder.Services.AddScoped<IEmailService, EmailService>();
-            builder.Services.AddScoped<IOtpService, OtpService>();
-            builder.Services.AddScoped<IMaterialServices, MaterialServices>();
-            builder.Services.AddScoped<IBrandServices, BrandServices>();
-            builder.Services.AddScoped<ICategoryServices, CategoryServices>();
-            builder.Services.AddScoped<IColorServices, ColorServices>();
-            builder.Services.AddScoped<ISizeServices, SizeServices>();
-            builder.Services.AddScoped<ITargetServices, TargetServices>();
-            builder.Services.AddScoped<IProductServices, ProductServices>();
-            builder.Services.AddScoped<IProductDetailServices, ProductDetailServices>();
-            builder.Services.AddScoped<ICartServices, CartServices>();
-            builder.Services.AddScoped<ICartDetailServices, CartDetailServices>();
-            builder.Services.AddScoped<ISaleServices, SaleServices>();
-            builder.Services.AddScoped<ISaleProductServices, SaleProductServices>();
-            builder.Services.AddScoped<IVoucherServices, VoucherServices>();
-            builder.Services.AddScoped<IGHNService, GHNService>();
+			//Service
+			builder.Services.AddScoped<IAccountServices, AccountService>();
+			builder.Services.AddScoped<IAddressServices, AddressServices>();
+			builder.Services.AddScoped<IStaffServices, StaffServices>();
+			builder.Services.AddScoped<ICustomerServices, CustomerServices>();
+			builder.Services.AddScoped<IEmailService, EmailService>();
+			builder.Services.AddScoped<IOtpService, OtpService>();
+			builder.Services.AddScoped<IMaterialServices, MaterialServices>();
+			builder.Services.AddScoped<IBrandServices, BrandServices>();
+			builder.Services.AddScoped<ICategoryServices, CategoryServices>();
+			builder.Services.AddScoped<IColorServices, ColorServices>();
+			builder.Services.AddScoped<ISizeServices, SizeServices>();
+			builder.Services.AddScoped<ITargetServices, TargetServices>();
+			builder.Services.AddScoped<IProductServices, ProductServices>();
+			builder.Services.AddScoped<IProductDetailServices, ProductDetailServices>();
+			builder.Services.AddScoped<ICartServices, CartServices>();
+			builder.Services.AddScoped<ICartDetailServices, CartDetailServices>();
+			builder.Services.AddScoped<ISaleServices, SaleServices>();
+			builder.Services.AddScoped<ISaleProductServices, SaleProductServices>();
+			builder.Services.AddScoped<IVoucherServices, VoucherServices>();
+			builder.Services.AddScoped<IGHNService, GHNService>();
 
-            builder.Services.AddScoped<IImageServices, ImageServices>();
-            builder.Services.AddScoped<IBillServices, BillServices>();
+			builder.Services.AddScoped<IImageServices, ImageServices>();
+			builder.Services.AddScoped<IBillServices, BillServices>();
 
 			builder.Services.AddExtentionsService(builder.Configuration);
 
@@ -125,8 +115,6 @@ namespace Meiko
 			app.UseAuthentication();
 
 			app.UseAuthorization();
-
-			//app.UseCors("AllowAll");
 
 			app.MapControllers();
 

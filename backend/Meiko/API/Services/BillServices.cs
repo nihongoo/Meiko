@@ -20,7 +20,6 @@ namespace API.Services
 	{
 		private readonly AppDbContext _dbcontext;
 		private readonly ICartDetailServices _cartDetailServices;
-		private readonly string _baseUrl;
 		private readonly string _apiKey;
 		private readonly string _checkSum;
 		private readonly string _clientId;
@@ -28,7 +27,6 @@ namespace API.Services
 		{
 			_dbcontext = context;
 			_cartDetailServices = cartDetailServices;
-			_baseUrl = configuration["PayOS:BaseUrl"];
 			_apiKey = configuration["PayOS:ApiKey"];
 			_checkSum = configuration["PayOS:CheckSumKey"];
 			_clientId = configuration["PayOS:ClientId"];
@@ -41,6 +39,83 @@ namespace API.Services
 			{
 				// Truy vấn hóa đơn kèm bảng phụ
 				var bills = await context.Bills.Where(b => b.Id == BillId)
+					.Include(b => b.BillDetails)
+					.Include(b => b.ShippingAddresses)
+					.Include(b => b.StatusHistories)
+					.Include(b => b.PaymentHistories)
+					.Select(b => new BillDto
+					{
+						Id = b.Id,
+						BillCode = b.BillCode,
+						IsShipping = b.IsShipping,
+						Total = b.Total,
+						CreatedDate = b.CreatedDate,
+						DeliveryDate = b.DeliveryDate,
+						DateOfRecept = b.DateOfRecept,
+						PaymentDate = b.PaymentDate,
+						Status = b.Status.GetDisplayName(),
+						PaymentAmount = b.PaymentAmount,
+						ShippingFee = b.ShippingFee,
+						ReasonForCancellation = b.ReasonForCancellation,
+
+						CustomerId = b.CustomerId,
+						VoucherId = b.VoucherId,
+						StaffId = b.StaffId,
+
+						// Ánh xạ bảng con
+						BillDetails = b.BillDetails.Select(d => new BillDetailDto
+						{
+							Id = d.Id,
+							BillId = d.BillId,
+							ProductDetailId = d.ProductDetailId,
+							Quantity = d.Quantity,
+							Price = d.Price,
+							Status = d.Status
+						}).ToList(),
+
+						ShippingAddresses = b.ShippingAddresses.Select(a => new ShippingAddressDto
+						{
+							Id = a.Id,
+							BillId = a.BillId,
+							RecipientName = a.RecipientName,
+							AddressDetail = a.RecipientName,
+							PhoneNumber = a.PhoneNumber,
+							City = a.City,
+							District = a.District,
+							Ward = a.Ward,
+							Status = a.Status
+						}).ToList(),
+
+						PaymentHistories = b.PaymentHistories.Select(c => new PaymentHistoryDto
+						{
+							Id = c.Id,
+							Amount = c.Amount,
+							PaymentMethod = c.PaymentMethod.GetDisplayName(),
+							Status = c.Status.GetDisplayName(),
+							BillId = c.BillId
+						}).ToList(),
+
+						StatusHistories = b.StatusHistories.Select(c => new StatusHistoryDto
+						{
+							Id = c.Id,
+							CreatedDate = c.CreatedDate,
+							StatusType = c.StatusType.GetDisplayName(),
+							Note = c.Note,
+							WhoCreatedThis = c.WhoCreatedThis,
+							BillId = c.BillId
+						}).ToList()
+					}).FirstOrDefaultAsync();
+
+				return bills;
+			}
+		}
+
+		public async Task<BillDto?> GetBillByStatus(int status)
+		{
+			using (var context = _dbcontext)
+			{
+				// Truy vấn hóa đơn kèm bảng phụ
+				var bills = await context.Bills.Where(b => b.Status == (StatusType)status)
 					.Include(b => b.BillDetails)
 					.Include(b => b.ShippingAddresses)
 					.Include(b => b.StatusHistories)
@@ -502,7 +577,7 @@ namespace API.Services
 
 
 		// Bill
-		public async Task<(bool k, Guid id)> Create(string BillCode, bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId)
+		public async Task<(bool k, Guid id)> Create(bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId)
 		{
 			bool check = false;
 			Guid billId = Guid.Empty;
@@ -515,7 +590,7 @@ namespace API.Services
 					Bills bill = new Bills()
 					{
 						Id = Guid.NewGuid(),
-						BillCode = BillCode,
+						BillCode = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString(),
 						IsShipping = IsShiping,
 						Total = 0,
 						CreatedDate = DateTime.Now,
@@ -531,6 +606,16 @@ namespace API.Services
 
 					billId = bill.Id;
 
+					StatusHistory statusHistory = new StatusHistory()
+					{
+						Id = Guid.NewGuid(),
+						CreatedDate = DateTime.Now,
+						StatusType = StatusType.TaoHoaDon,
+						WhoCreatedThis = CustomerWhoCreateThis != null ? (Guid)CustomerWhoCreateThis : (Guid)StaffWhoCreateThis,
+						BillId = billId
+					};
+
+					await _dbcontext.StatusHistories.AddAsync(statusHistory);
 					if (CartId != null)
 					{
 						List<CartDetails>? cartDetails = await _dbcontext.CartDetails.Where(cd => cd.CartId == CartId).ToListAsync();
@@ -551,7 +636,6 @@ namespace API.Services
 						}
 
 						bill.Total = _dbcontext.Carts.First(c => c.Id == CartId).Total;
-                        bill.PaymentAmount = bill.Total + bill.ShippingFee;
                         check = true;
 					}
 
@@ -630,18 +714,36 @@ namespace API.Services
 				try
 				{
 					var bill = await _dbcontext.Bills.Where(c => c.Id == Id).FirstOrDefaultAsync();
-					if (bill == null)
+					if (bill == null || bill.Status == StatusType.DaHuy)
 						return new ReturnMessage()
 						{
 							status = 1,
-							message = "Không tìm thấy hoá đơn để xoá"
+							message = "Hoá đơn đã xoá hoặc đã huỷ"
 						};
-					if (bill.Total == 0) _dbcontext.Bills.Remove(bill);
-					else
+					
+					var total = bill.PaymentAmount;
+
+					var customer = bill.CustomerId == null ? null : _dbcontext.Customers.Find(bill.CustomerId);
+
+					if (bill.Total > 0)
 					{
-						bill.Status = StatusType.DaHuy;
-						_dbcontext.Bills.Update(bill);
-					}
+						var billDetails = await _dbcontext.BillDetails.Where(bd => bd.BillId == Id).ToListAsync();
+						if (billDetails != null)
+						{
+							var productDetails = await _dbcontext.ProductDetails.ToListAsync();
+							var query = from bd in billDetails
+										join pd in productDetails
+										on bd.ProductDetailId equals pd.Id
+										select pd;
+							query.ToList().ForEach(product =>
+							{
+								product.Quantity += billDetails.FirstOrDefault(bd => bd.ProductDetailId == product.Id).Quantity;
+							});
+
+							_dbcontext.ProductDetails.UpdateRange(query);
+						}
+					
+					}else _dbcontext.Bills.Remove(bill);
 
 					await _dbcontext.SaveChangesAsync();
 
@@ -649,7 +751,8 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 0,
-						message = "Xoá thành công hoá đơn"
+						message = $"Huỷ hoá đơn thành công \n Số tiền cần hoàn trả là {total}VND",
+						data = customer == null ? null : $"{customer.Id} - {customer.Name} - {total}"
 					};
 
 				}
@@ -660,9 +763,61 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 2,
-						message = $"Đã có lỗi xảy ra : {ex.InnerException}"
+						message = $"Đã có lỗi xảy ra : {ex.Message}"
 					};
 				}
+			}
+		}
+		public async Task<ReturnMessage> Refund(Guid Id, Guid CustomerWhoDoThis, string? note)
+		{
+			using (var dbtransaction = await _dbcontext.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					var bill = await _dbcontext.Bills.Where(c => c.Id == Id).FirstOrDefaultAsync();
+					if (bill == null || bill.Status == StatusType.DaHuy ||  bill.Status == StatusType.HoanTra)
+						return new ReturnMessage()
+						{
+							status = 1,
+							message = "Hoá đơn đã bị xoá, đã bị huỷ hoặc đang trong quá trình hoàn trả"
+						};
+
+					var customer = _dbcontext.Customers.Find(bill.CustomerId);
+
+					bill.Status = StatusType.HoanTra;
+
+					StatusHistory statusHistory = new StatusHistory()
+					{
+						Id = Guid.NewGuid(),
+						CreatedDate = DateTime.Now,
+						StatusType = StatusType.HoanTra,
+						Note = note,
+						WhoCreatedThis = CustomerWhoDoThis,
+						BillId = Id
+					};
+
+					_dbcontext.Bills.Update(bill);
+					await _dbcontext.StatusHistories.AddAsync(statusHistory);
+
+					await _dbcontext.SaveChangesAsync();
+
+					await dbtransaction.CommitAsync();
+
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Đã yêu cầu hoàn trả!\nQuý khách vui lòng chờ nhân viên xác nhận qua số điện thoại hoặc email!"
+					};
+				}
+				catch(Exception ex)
+				{
+					await dbtransaction.RollbackAsync();
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = "Đã có lỗi xảy ra khi gửi yêu cầu hoàn trả : " + ex.Message
+					};
+				};
 			}
 		}
 
@@ -674,6 +829,19 @@ namespace API.Services
 			{
 				try
 				{
+					var bill = _dbcontext.Bills.FirstOrDefaultAsync(b => b.Id == model.BillId).Result;
+					if (bill == null) return new ReturnMessage()
+					{
+						status = 4,
+						message = "Không tìm thấy hoá đơn"
+					};
+
+					if ((int)bill.Status >= 3 && (int)bill.Status <= 5) return new ReturnMessage()
+					{
+						status = 1,
+						message = "Đơn hàng đang trong quá trình vận chuyển hoặc đã vận chuyển nên không thể đổi địa chỉ"
+					};
+
 					await _dbcontext.ShippingAddresses.AddAsync(new ShippingAddress()
 					{
 						Id = Guid.NewGuid(),
@@ -747,6 +915,19 @@ namespace API.Services
 			{
 				try
 				{
+					var bill = _dbcontext.Bills.FirstOrDefaultAsync(b => b.Id == model.BillId).Result;
+					if (bill == null) return new ReturnMessage()
+					{
+						status = 4,
+						message = "Không tìm thấy hoá đơn"
+					};
+
+					if ((int)bill.Status >= 3 && (int)bill.Status <= 5) return new ReturnMessage()
+					{
+						status = 1,
+						message = "Đơn hàng đang trong quá trình vận chuyển hoặc đã vận chuyển nên không thể đổi địa chỉ"
+					};
+
 					var shippingAddress = await _dbcontext.ShippingAddresses.Where(c => c.Id == Id).FirstOrDefaultAsync();
 
 					shippingAddress.RecipientName = model.RecipientName;
@@ -788,6 +969,23 @@ namespace API.Services
 			{
 				try
 				{
+					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.ProductDetails).ToListAsync();
+					var bill = _dbcontext.Bills.FirstOrDefault(b => b.Id == BillId);
+					var billCode = bill.BillCode;
+
+					if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
+						return new ReturnMessage()
+						{
+							status = 3,
+							message = "Đơn hàng đã được thanh toán đủ"
+						};
+
+					if (bill.Status == StatusType.DaHuy)
+						return new ReturnMessage()
+						{
+							status = 4,
+							message = "Đơn hàng đã bị huỷ, không thể thanh toán"
+						};
 					await _dbcontext.PaymentHistories.AddAsync(new PaymentHistory()
 					{
 						Id = Guid.NewGuid(),
@@ -798,7 +996,6 @@ namespace API.Services
 						BillId = BillId
 					});
 
-					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.Bills).ToListAsync();
 					List<ProductDetails> productDetails = new List<ProductDetails>();
 					for (int i = 0; i < billDetails.Count; i++)
 					{
@@ -816,33 +1013,46 @@ namespace API.Services
 
 					_dbcontext.ProductDetails.UpdateRange(productDetails);
 
+					bill.PaymentDate = DateTime.Now;
+					bill.PaymentAmount = AmountInput;
+
+					_dbcontext.Bills.Update(bill);
+
 					await _dbcontext.SaveChangesAsync();
 
 					await dbTransaction.CommitAsync();
-					return new ReturnMessage() { status = 0, message = $"Thanh toán thành công ${AmountInput} cho đơn hàng {billDetails.First().Bills.BillCode}!" };
+					return new ReturnMessage() { status = 0, message = $"Thanh toán thành công {AmountInput} VND cho đơn hàng {billCode}!" };
 
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
-					return new ReturnMessage() { status = 2, message = $"Đã có lỗi xảy ra: {ex.InnerException}" };
+					return new ReturnMessage() { status = 2, message = $"Đã có lỗi xảy ra: {ex.Message}" };
 				}
 			}
 		}
 
-		public async Task<ReturnMessage> CancelPaymentById(Guid id)
+		public async Task<ReturnMessage> CancelPaymentById(Guid id, long billCode)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
 					var payment = await _dbcontext.PaymentHistories.Where(c => c.Id == id).Include(ph => ph.Bill).FirstOrDefaultAsync();
+					var bill = await _dbcontext.Bills.FindAsync(id);
 
-					payment.Status = StatusForPayment.Cancelled;
-					_dbcontext.PaymentHistories.Update(payment);
+
 
 					PayOS payOs = new PayOS(_clientId, _apiKey, _checkSum);
-					var result = await payOs.cancelPaymentLink(long.Parse(payment.Bill.BillCode));
+					var result = await payOs.cancelPaymentLink(billCode);
+
+					bill.PaymentAmount -= result.amount;
+					if (bill.PaymentAmount < 0) bill.PaymentAmount = 0;
+
+					payment.Status = StatusForPayment.Cancelled;
+
+					_dbcontext.PaymentHistories.Update(payment);
+					_dbcontext.Bills.Update(bill);
 
 					await _dbcontext.SaveChangesAsync();
 
@@ -861,7 +1071,7 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 2,
-						message = $"Đã có lỗi xảy ra trong quá trình xoá : {ex.InnerException}"
+						message = $"Đã có lỗi xảy ra trong quá trình xoá : {ex.Message}"
 					};
 				}
 			}
@@ -945,7 +1155,7 @@ namespace API.Services
 					return new ReturnMessage()
 					{
 						status = 2,
-						message = $"Đã xảy ra lỗi khi thêm vào hoá đơn : {ex.InnerException}"
+						message = $"Đã xảy ra lỗi khi thêm vào hoá đơn : {ex.Message}"
 					};
 				}
 			}
@@ -1063,16 +1273,20 @@ namespace API.Services
 		}
 
 		// Momo API
-		public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
+		public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(Guid id, string description)
 		{
-			model.OrderInfo = "Khách hàng: " + model.FullName + ". Nội dung: " + model.OrderInfo;
+			var bill = _dbcontext.Bills.FirstOrDefaultAsync(b => b.Id == id).Result;
+			if (bill.Total - bill.PaymentAmount <= 0) return new MomoCreatePaymentResponseModel() { };
+
+			var orderInfo = "Nội dung: " + description;
+			var requestId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 			var rawData =
 				$"partnerCode=MOMO" +
 				$"&accessKey=F8BBA842ECF85" +
-				$"&requestId={model.OrderId}" +
-				$"&amount={model.Amount}" +
-				$"&orderId={model.OrderId}" +
-				$"&orderInfo={model.OrderInfo}" +
+				$"&requestId={requestId}" +
+				$"&amount={(long)(bill.Total - bill.PaymentAmount)}" +
+				$"&orderId={id}" +
+				$"&orderInfo={orderInfo}" +
 				$"&returnUrl=https://localhost:7172/api/Bills/Momo/CallBack/" +
 				$"&notifyUrl=https://localhost:7172/api/Bills/Momo/Notify" +
 				$"&extraData=";
@@ -1091,10 +1305,10 @@ namespace API.Services
 				requestType = "captureMoMoWallet",
 				notifyUrl = "https://localhost:7172/api/Bills/Momo/Notify",
 				returnUrl = $"https://localhost:7172/api/Bills/Momo/CallBack/",
-				orderId = model.OrderId,
-				amount = model.Amount.ToString(),
-				orderInfo = model.OrderInfo,
-				requestId = model.OrderId,
+				orderId = id.ToString(),
+				amount = ((long)(bill.Total - bill.PaymentAmount)).ToString(),
+				orderInfo = orderInfo,
+				requestId = requestId,
 				extraData = "",
 				signature = signature
 			};
@@ -1102,6 +1316,7 @@ namespace API.Services
 			request.AddParameter("application/json", JsonConvert.SerializeObject(requestData), ParameterType.RequestBody);
 
 			var response = await client.ExecuteAsync(request);
+			Console.WriteLine(response.Content);
 			var momoResponse = JsonConvert.DeserializeObject<MomoCreatePaymentResponseModel>(response.Content);
 			return momoResponse;
 
@@ -1138,17 +1353,19 @@ namespace API.Services
 		}
 
 		//PayOS API
-		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(OrderInfoModel model)
+		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(Guid id, string description)
 		{
-			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{model.OrderId}";
-			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{model.OrderId}";
+			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{id}";
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}";
 
 			PayOS payment = new(_clientId, _apiKey, _checkSum);
 			var list = new List<ItemData>();
-			var listProduct = await _dbcontext.BillDetails.Where(bd => bd.BillId == Guid.Parse(model.OrderId))
+			var listProduct = await _dbcontext.BillDetails.Where(bd => bd.BillId == id)
 				.Include(bd => bd.ProductDetails)
 				.ThenInclude(pd => pd.Products)
 				.ToListAsync();
+			var bill = await _dbcontext.Bills.FindAsync(id);
+			
 			if (listProduct == null)
 			{
 				list.Add(new ItemData(null, 1, 0));
@@ -1162,8 +1379,8 @@ namespace API.Services
 			}
 
 			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-				(int)model.Amount,
-				model.OrderInfo,
+				(int)(bill.Total - bill.PaymentAmount),
+				description,
 				list,
 				cancelUrl,
 				returnUrl
@@ -1173,30 +1390,37 @@ namespace API.Services
 			return paymentResult;
 		}
 
-		public static string GenerateSignature(decimal amount, string cancelUrl, string description, string orderCode, string returnUrl, string checksumKey)
-		{
-			// Tạo chuỗi data theo định dạng được sắp xếp alphabet
-			string data = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
+		//public static string GenerateSignature(decimal amount, string cancelUrl, string description, string orderCode, string returnUrl, string checksumKey)
+		//{
+		//	// Tạo chuỗi data theo định dạng được sắp xếp alphabet
+		//	string data = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
 
-			// Chuyển checksumKey thành byte
-			var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
+		//	// Chuyển checksumKey thành byte
+		//	var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
 
-			// Tạo chữ ký HMAC_SHA256
-			using (var hmac = new HMACSHA256(keyBytes))
-			{
-				var dataBytes = Encoding.UTF8.GetBytes(data);
-				var hashBytes = hmac.ComputeHash(dataBytes);
+		//	// Tạo chữ ký HMAC_SHA256
+		//	using (var hmac = new HMACSHA256(keyBytes))
+		//	{
+		//		var dataBytes = Encoding.UTF8.GetBytes(data);
+		//		var hashBytes = hmac.ComputeHash(dataBytes);
 
-				// Chuyển đổi hash thành chuỗi hex
-				return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-			}
-		}
+		//		// Chuyển đổi hash thành chuỗi hex
+		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+		//	}
+		//}
 
 		private async Task UpdatePrice(Guid BillId)
 		{
 			var bill = await _dbcontext.Bills.FindAsync(BillId);
 
-			bill.Total = bill.BillDetails == null ? 0 : bill.Total + bill.BillDetails.Sum(bd => bd.Price);
+			bill.Total = bill.BillDetails == null ? 0 : bill.BillDetails.Sum(bd => bd.Price);
+			if (bill.VoucherId != null)
+			{
+				var voucher = await _dbcontext.Vouchers.FindAsync(bill.VoucherId);
+				bill.Total -= (bill.Total * (decimal)voucher.Value) / 100;
+			}
+
+			bill.Total += bill.ShippingFee;
 
 			_dbcontext.Bills.Update(bill);
 
@@ -1358,7 +1582,6 @@ namespace API.Services
 				.ToListAsync();
 			return bills;
 		}
-
 	}
 
 }
