@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { ChromePicker } from 'react-color';
-import apiURL from '../../routes/API/index';
+import { DialogContent, TextField, Button, Snackbar, Box, InputAdornment } from '@mui/material';
+import { ChromePicker } from 'react-color'; // Import ChromePicker from react-color
 import { toast } from 'react-toastify';
+import apiURL from '../../routes/API/index';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 function ColorPicker({ onClose }) {
     const [obj, setObj] = useState({
         name: '',
         hex: '#7D4141',
         status: 1
-    })
+    });
 
     const handleChangeComplete = (color) => {
-        setObj(prev => ({
+        setObj((prev) => ({
             ...prev,
             hex: color.hex
-        }))
+        }));
     };
 
     const handleAddColor = async () => {
@@ -38,40 +40,41 @@ function ColorPicker({ onClose }) {
     };
 
     return (
-        <div>
-            <ChromePicker
-                color={obj.hex}
-                onChangeComplete={handleChangeComplete}
-            />
-            <div className='d-flex mt-2'>
-                <div>
-                    <div className='d-flex align-items-center'>
-                        <input
-                            placeholder='Nhập tên cho màu'
-                            onChange={(e) => setObj((prev) => ({
-                                ...prev,
-                                name: e.target.value
-                            }))}
-                        />
-                    </div>
-                    {/* <div
-                    style={{
-                        padding: '10px',
-                        margin: '5px',
-                        borderRadius: '5px',
-                        backgroundColor: obj.hex,
-                        width: '85px'
+        <Box>
+            <DialogContent>
+                <ChromePicker
+                    color={obj.hex}
+                    onChangeComplete={handleChangeComplete}
+                    style={{ width: '100%' }}
+                />
+                <TextField
+                    margin='dense'
+                    placeholder="Nhập tên màu"
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    onChange={(e) => setObj((prev) => ({
+                        ...prev,
+                        name: e.target.value
+                    }))}
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <Button
+                                    variant="text"
+                                    color="primary"
+                                    size="small"
+                                    sx={{ whiteSpace: 'nowrap' }}
+                                    onClick={handleAddColor}
+                                >
+                                    <CheckCircleOutlineIcon />
+                                </Button>
+                            </InputAdornment>
+                        ),
                     }}
-                /> */}
-                </div>
-                <button
-                    className='btn'
-                    onClick={handleAddColor}
-                >
-                    <i className="text-success fa-regular fa-circle-check fa-xl"></i>
-                </button>
-            </div>
-        </div>
+                />
+            </DialogContent>
+        </Box>
     );
 }
 

@@ -1,8 +1,7 @@
 import { DataGrid } from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
 import { Button } from '@mui/material';
 
-function ProductDetail({size, nameProduct, productDetails, color, onDelete, onUpdate }) {
+function ProductDetail({ size, nameProduct, productDetails, color, onDelete, onUpdate }) {
     const rows = productDetails.map(product => ({
         ...product,
         size: size.find(c => c.id === product.sizeId).name || 'N/A',
@@ -10,40 +9,42 @@ function ProductDetail({size, nameProduct, productDetails, color, onDelete, onUp
 
     if (!rows || rows.length === 0) {
         return null;
-    }    
-    
+    }
+    console.log(color);
+
+
     const columns = [
-        { field: 'name', headerName: 'Sản phẩm', width: 130, valueGetter: () => nameProduct },
-        { field: 'size', headerName: 'Kích cỡ', width: 130},
+        { field: 'name', headerName: 'Sản phẩm', flex: 1, valueGetter: () => nameProduct },
+        { field: 'size', headerName: 'Kích cỡ', flex: 1 },
         {
             field: 'quantity',
             headerName: 'Số lượng',
             type: 'number',
-            width: 130,
+            flex: 1,
             editable: true,
         },
         {
-            field: 'giaNhap',
+            field: 'importPrice',
             headerName: 'Giá nhập',
             type: 'number',
-            width: 130,
+            flex: 1,
             editable: true,
         },
         {
-            field: 'giaBan',
+            field: 'price',
             headerName: 'Giá bán',
             type: 'number',
-            width: 130,
+            flex: 1,
             editable: true,
         },
         {
             field: 'delete',
             headerName: 'Xóa',
-            width: 100,
+            flex: 1,
             renderCell: (params) => (
-                <Button 
-                    variant="contained" 
-                    color="secondary" 
+                <Button
+                    variant="contained"
+                    color="secondary"
                     onClick={() => onDelete(params.row.id)}
                 >
                     Xóa
@@ -52,36 +53,46 @@ function ProductDetail({size, nameProduct, productDetails, color, onDelete, onUp
         },
     ];
 
-    const handleRowEdit = (updateRow)=>{
-        onUpdate(updateRow)  
-        return updateRow      
+    const handleRowEdit = (updateRow) => {
+        onUpdate(updateRow)
+        return updateRow
     }
     const paginationModel = { page: 0, pageSize: 5 };
 
     return (
         <div className="border mt-4 bg-light rounded-3">
             <div className='d-flex align-items-center ms-4 mt-2'>
-                <p className='m-2'>Danh sách sản phẩm màu</p>
-                <span
+                <p className='m-2'>Danh sách sản phẩm màu:</p>
+                <p
+                    className='p-0 m-0'
                     style={{
-                        backgroundColor: color.name,
-                        width: '1.875rem',
-                        height: '1rem'
+                        color: color.hex,
                     }}
-                />
+                >{color.name}</p>
             </div>
             <div className='m-4 mt-0'>
-                <Paper sx={{ minWidth: '705px', width: 'auto', maxWidth: '1558px' }}>
-                    <DataGrid
-                        columns={columns}
-                        rows={rows}
-                        initialState={{ pagination: { paginationModel } }}
-                        pageSizeOptions={[5, 10]}
-                        processRowUpdate={handleRowEdit}
-                        onProcessRowUpdateError={(error)=>{console.log(error)}}
-                        disableRowSelectionOnClick
-                    />
-                </Paper>
+                <DataGrid
+                    columns={columns}
+                    rows={rows}
+                    initialState={{ pagination: { paginationModel } }}
+                    pageSizeOptions={[5, 10]}
+                    processRowUpdate={handleRowEdit}
+                    onProcessRowUpdateError={(error) => { console.log(error) }}
+                    disableRowSelectionOnClick
+                    rowHeight={80}
+                    sx={{
+                        border: 'none',
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: 'none',
+                        },
+                        '& .MuiDataGrid-columnHeaders': {
+                            borderBottom: 'none',
+                        },
+                        backgroundColor: '#fff',
+                        minHeight: 350, 
+                        maxHeight: 'calc(100vh - 200px)',
+                    }}
+                />
             </div>
         </div>
     );

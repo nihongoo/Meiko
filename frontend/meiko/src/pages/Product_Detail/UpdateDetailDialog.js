@@ -24,7 +24,8 @@ function UpdateDetailDialog({
     onUpdate,
     setImage,
     preview,
-    setPreview
+    setPreview,
+    image
 }) {    
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -135,7 +136,7 @@ function UpdateDetailDialog({
                                 objectFit: 'contain',
                                 backgroundColor: '#f0f0f0'
                             }}
-                            image={preview}
+                            image={preview || image || 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png'}
                             title="demo"
                         />
                         <Button

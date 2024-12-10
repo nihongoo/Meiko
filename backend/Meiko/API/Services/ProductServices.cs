@@ -101,15 +101,8 @@ namespace API.Services
 
             product.Name = model.Name;
             product.Description = model.Description;
-            product.ProductCode = model.ProductCode;
             product.ImageUrl = model.ImageUrl;
-            product.WarrantyPeriod = model.WarrantyPeriod;
-            product.CreateTime = model.CreateTime;
             product.Status = model.Status;
-            product.MaterialId = model.MaterialId;
-            product.BrandId = model.BrandId;
-            product.CategoryId = model.CategoryId;
-            product.TargretCustomerId = model.TargretCustomerId;
 
             await _context.SaveChangesAsync();
         }
