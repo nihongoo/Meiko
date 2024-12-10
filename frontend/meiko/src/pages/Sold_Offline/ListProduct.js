@@ -10,7 +10,7 @@ import ChooseProduct from "./ChooseProduct";
 import useFetchData from "../../customHook/useFetchData";
 import apiURL from "../../routes/API";
 import { toast } from "react-toastify";
-import {BillInfoContext} from './SoldOfline'
+import { BillInfoContext } from './SoldOfline'
 
 function ListProduct({ bill }) {
   const [open, setOpen] = useState(false);

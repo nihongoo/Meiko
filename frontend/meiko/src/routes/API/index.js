@@ -94,7 +94,8 @@ const apiURL = {
         create_staff: 'https://localhost:7172/api/Account/register-staff/',
         login: 'https://localhost:7172/api/Account/login/',
         forgot_password: 'https://localhost:7172/api/Account/forgot-password/',
-        verify_otp: 'https://localhost:7172/api/Account/verify-otp/'
+        verify_otp: 'https://localhost:7172/api/Account/verify-otp/',
+        verify:'https://localhost:7172/api/Account/verify',
     },
     cartDetails:{
         base: 'https://localhost:7172/api/CartDetails/',
@@ -116,13 +117,18 @@ const apiURL = {
         billId:'https://localhost:7172/api/Bills/get-bill-by-id/',
         all:'https://localhost:7172/api/Bills/get-bills',
         filter: 'https://localhost:7172/api/Bills/Filter',
-        search: 'https://localhost:7172/api/Bills/Search'
+        search: 'https://localhost:7172/api/Bills/Search',
+        pay: 'https://localhost:7172/api/Bills/pay-for-bill/',
+        changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/'
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',
         all: 'https://localhost:7172/api/Voucher/GetAll',
         delete: 'https://localhost:7172/api/Voucher/Delete/',
         filter: 'https://localhost:7172/api/Voucher/Filter'
+    },
+    payHistory:{
+        byBillId: 'https://localhost:7172/api/Bills/get-paymentHistories-by-billId/'
     }
     
 };
