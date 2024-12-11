@@ -9,5 +9,6 @@ namespace API.IServices
         public Task AddSalesAsync(Sales sales);
         public Task UpdateSalesAsync(Sales sales);
         public Task DeleteSalesAsync(Guid id);
-    }
+		public Task<List<Sales>> Filter(DateTime startDate, DateTime endDate);
+	}
 }

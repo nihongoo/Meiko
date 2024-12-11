@@ -6,18 +6,27 @@ import { toast } from 'react-toastify';
 import useFetchData from '../../customHook/useFetchData';
 import moment from 'moment';
 import SearchIcon from '@mui/icons-material/Search';
+import CreateSaleDialog from './CreateSaleDialog';
 
 function ManageDiscount() {
     const paginationModel = { page: 0, pageSize: 5 };
-    const rows = [{
-        id: 1,
-        stt: 1,
-        name: 'Sale giáng sinh bảnh vcl',
-        value: '25%',
-        status: 'Đang diễn ra',
-        startDay: '7-12-2024',
-        endDay: '26-12-2024'
-    }]
+    const [add, setAdd] = useState(false)
+    const [api, setApi] = useState(apiURL.sale.all)
+    const [filter, setFilter] = useState({
+        startDate: "",
+        endDate: ""
+    })
+    const [newSale, setNewSale] = useState({
+        selectedProductDetailIds: [],
+    })
+    const { data: sale, refetch, loading, error } = useFetchData(api, (r) =>
+        r.map((item, index) => ({
+            ...item,
+            stt: index + 1,
+            startDay: moment(item.startDay).format('DD-MM-YYYY HH:mm'),
+            endDay: moment(item.endDay).format('DD-MM-YYYY HH:mm'),
+            status: item.status === 0 ? 'Đang diên ra':'Đã kết thúc'
+    })))
     const columns = [
         { field: 'stt', headerName: 'Stt', flex: 1 },
         { field: 'name', headerName: 'Tên đợt giảm giá', flex: 1 },
@@ -35,6 +44,7 @@ function ManageDiscount() {
                         Sửa
                     </Button> */}
                     <Button variant='outlined' color='error'
+                    onClick={()=>{handleDelete(params.row)}}
                     >
                         Xóa
                     </Button>
@@ -42,6 +52,70 @@ function ManageDiscount() {
             ),
         },
     ];
+    const handleFilter = () => {
+        const isDateValid = filter.startDate && filter.endDate;
+        setApi(isDateValid ? `${apiURL.sale.filter}?startDate=${filter.startDate}&endDate=${filter.endDate}` : apiURL.sale.all);
+        refetch();
+    };
+    const handleSetApi = () =>{
+        if (filter.startDate === null || filter.endDate === null) {
+            setApi(apiURL.sale.all)
+            refetch()
+        }
+    }
+
+    const handleDelete = async (item) => {
+        try {
+            const res = await fetch(`${apiURL.sale.delete}${item.id}`, { method: 'DELETE' })
+            if (res.ok) {
+                refetch()
+                toast.success('Xóa thành công')
+            }
+            else {
+                const errorData = await res.json();
+                if (errorData.errors) {
+                    const firstErrorKey = Object.keys(errorData.errors)[0];
+                    const firstErrorMessage = errorData.errors[firstErrorKey][0];
+                    if (firstErrorMessage) {
+                        toast.error(`${firstErrorMessage}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const handleCreate = async () => {
+        try {
+            const res = await fetch(apiURL.sale.create, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newSale)
+            })
+            if (res.ok) {
+                refetch()
+                toast.success('Tạo mới thành công')
+            }
+            else {
+                const errorData = await res.json();
+                if (errorData.errors) {
+                    const firstErrorKey = Object.keys(errorData.errors)[0];
+                    const firstErrorMessage = errorData.errors[firstErrorKey][0];
+                    if (firstErrorMessage) {
+                        toast.error(`${firstErrorMessage}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
+    if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;  
+
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2}>
             <Box display='flex' justifyContent='center' mb={2}>
@@ -54,6 +128,10 @@ function ManageDiscount() {
                         label='Từ ngày'
                         variant='outlined'
                         size='small'
+                        onChange={(e) => {
+                            setFilter({ ...filter, startDate: e.target.value })
+                            handleSetApi()
+                            }}
                         sx={{ mr: 2 }}
                         InputLabelProps={{ shrink: true }}
                     />
@@ -61,19 +139,23 @@ function ManageDiscount() {
                         type='date'
                         label='Đến ngày'
                         variant='outlined'
+                        onChange={(e) =>{
+                            setFilter({ ...filter, endDate: e.target.value })
+                            handleSetApi()
+                            }}
                         size='small'
                         InputLabelProps={{ shrink: true }}
                     />
-                    <Button>
+                    <Button onClick={() => { handleFilter() }}>
                         <SearchIcon></SearchIcon>
                     </Button>
                 </Box>
-                <Button variant='outlined' color='success'>
+                <Button variant='outlined' color='success' onClick={() => { setAdd(true) }}>
                     Tạo mới +
                 </Button>
             </Box>
             <DataGrid
-                rows={rows}
+                rows={sale}
                 columns={columns}
                 initialState={{ pagination: { paginationModel } }}
                 pageSize={5}
@@ -94,6 +176,13 @@ function ManageDiscount() {
                     maxHeight: 'calc(100vh - 200px)',
                 }}
             />
+            <CreateSaleDialog
+                open={add}
+                onClose={() => { setAdd(false) }}
+                item={newSale}
+                setItem={setNewSale}
+                onCreate={handleCreate}
+            ></CreateSaleDialog>
         </Box >
     );
 }

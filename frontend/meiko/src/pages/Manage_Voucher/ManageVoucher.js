@@ -25,13 +25,9 @@ function ManageVoucher() {
             status: item.status === 0 ? 'Đang diễn ra' : 'Đã kết thúc',
         }));
     });
-
-
     const [newVoucher, setNewVoucher] = useState({
         customerIds: [],
     });
-
-
     const columns = [
         { field: 'voucherCode', headerName: 'Mã', flex: 1 },
         { field: 'isPublic', headerName: 'Kiểu', flex: 1 },

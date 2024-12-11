@@ -128,6 +128,12 @@ const apiURL = {
         delete: 'https://localhost:7172/api/Voucher/Delete/',
         filter: 'https://localhost:7172/api/Voucher/Filter'
     },
+    sale: {
+        all: 'https://localhost:7172/api/Sales/Get-All',
+        create: 'https://localhost:7172/api/Sales/Create',
+        delete: 'https://localhost:7172/api/Sales/Delete/',
+        filter: 'https://localhost:7172/api/Sales/Filter'
+    },
     payHistory:{
         byBillId: 'https://localhost:7172/api/Bills/get-paymentHistories-by-billId/'
     }
