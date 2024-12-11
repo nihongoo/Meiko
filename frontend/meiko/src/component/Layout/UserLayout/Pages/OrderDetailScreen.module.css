@@ -1,164 +1,248 @@
 /* Timeline Wrapper */
 .timelineWrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-    margin: 2rem 0;
-    padding: 0 2rem;
-    width: 100%;
+  display: flex;
+  position: relative;
+  margin: 2rem 0;
+  padding: 0 2rem;
+  width: 100%;
+  background-color: #f9f9f9;
+  border-radius: 10px;
 }
 
-/* Timeline Step */
 .timelineStep {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    position: relative;
-    text-align: center;
-    transition: all 0.3s ease;
-    width: 25%; /* Mỗi bước chiếm 25% */
+  display: flex;
+  margin-top: 20px;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+  transition: all 0.3s ease;
+  width: 20%;
+  padding: 10px 0;
 }
 
-/* Thanh ngang giữa icon và status */
 .stepLine {
-    width: 2px;
-    height: 50px; /* Điều chỉnh chiều dài của thanh ngang tùy vào số lượng trạng thái */
-    background-color: #e0e0e0;
-    margin: 0.5rem 0; /* Khoảng cách giữa icon và status */
+  width: 2px;
+  height: 55px;
+  background-color: #e0e0e0;
+  margin-top: 8px;
+  border-radius: 2px; 
+  transition: background-color 0.3s ease;
+}
+
+/* Thanh ngang dưới */
+.bottomLine {
+  width: 100%;
+  height: 3px;
+  background-color: #e0e0e0;
+  transition: background-color 0.3s ease;
 }
 
 /* Icon bước */
 .stepCircle {
-    width: 3rem;
-    height: 3rem;
-    background-color: #e0e0e0;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2rem;
-    color: #fff;
-    transition: background-color 0.3s ease;
+  width: 3rem;
+  height: 3rem;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  color: #fff;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.stepCircle:hover {
+  transform: scale(1.2); /* Tăng kích thước icon khi hover */
 }
 
 /* Status text */
 .stepText {
-    margin-top: 0.5rem;
-    font-size: 1rem;
-    color: #666;
-    font-weight: 500;
-}
-
-/* Hoàn thành */
-.completed .stepCircle {
-    background-color: #4caf50; /* Màu xanh lá cho hoàn thành */
-}
-
-.completed .stepText {
-    color: #4caf50;
-}
-
-/* Đang xử lý */
-.current .stepCircle {
-    background-color: #ff9800; /* Màu cam cho đang xử lý */
-}
-
-.current .stepText {
-    color: #ff9800;
-}
-
-/* Các bước đang chờ */
-.pending .stepCircle {
-    background-color: #e0e0e0; /* Màu xám cho đang chờ */
-}
-
-.pending .stepText {
-    color: #e0e0e0;
-}
-
-/* Line giữa các bước */
-.timelineStep::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 2px;
-    background-color: #e0e0e0;
-    transform: translateX(-50%);
-    z-index: -1;
-}
-
-.timelineStep:last-child::after {
-    display: none; /* Ẩn line sau bước cuối cùng */
-}
-
-/* Hover effect */
-.stepCircle:hover {
-    background-color: #ff9800; /* Thay đổi màu khi hover */
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #666;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .stepText:hover {
-    color: #ff9800;
+  color: #007bff; /* Thay đổi màu khi hover */
 }
 
-  /* Order Item */
-  .orderItemWrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 1rem;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-  }
-  
-  .orderItemImage {
-    flex-shrink: 0;
-    margin-right: 1rem;
-  }
-  
-  .orderItemImage img {
-    width: 80px;
-    height: 80px;
-  }
-  
-  .orderItemInfo {
-    flex-grow: 1;
-    flex-basis: 0;
-  }
-  
-  .orderItemInfo p {
-    margin: 0;
-  }
-  
-  .orderItemInfo .color-size {
-    margin-bottom: 0.5rem;
-  }
-  
-  .orderItemCalc {
-    display: flex;
-    justify-content: flex-end;
-    flex-shrink: 0;
-    gap: 1rem;
-    padding-right: 60px;
-  }
-  
-  .orderItemCalc p {
-    margin: 0;
-    font-weight: bold;
-  }
-  
-  .deleteIcon {
-    cursor: pointer;
-    margin-left: 1rem;
-    color: #ff4d4d;
-    font-size: 1.5rem;
-    transition: color 0.3s ease, transform 0.3s ease;
-  }
-  
-  .deleteIcon:hover {
-    color: #ff0000;
-    transform: scale(1.1); /* Slightly enlarge the icon on hover */
-  }
+/* Thanh trạng thái */
+.text-warning .stepCircle {
+  background-color: #ff9800; /* Màu cam cho Chờ xử lý */
+}
+
+.text-primary .stepCircle {
+  background-color: #007bff; /* Màu xanh cho Đang chuẩn bị hàng */
+}
+
+.text-info .stepCircle {
+  background-color: #17a2b8; /* Màu xanh dương cho Đang giao hàng */
+}
+
+.text-success .stepCircle {
+  background-color: #28a745; /* Màu xanh lá cho Hoàn thành */
+}
+
+.text-danger .stepCircle {
+  background-color: #dc3545; /* Màu đỏ cho Đã hủy */
+}
+
+.text-secondary .stepCircle {
+  background-color: #6c757d; /* Màu xám cho Hoàn trả */
+}
+
+/* Thanh ngang cho trạng thái hoàn thành */
+.completed .bottomLine {
+  background-color: #4caf50; /* Màu xanh lá cho Hoàn thành */
+}
+
+/* Thanh ngang cho trạng thái đang chuẩn bị hàng */
+.current .bottomLine {
+  background-color: #ff9800; /* Màu cam cho Đang chuẩn bị hàng */
+}
+
+/* Order Item */
+.orderItemWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 8px; /* Bo góc các sản phẩm */
+  background-color: #fff;
+  border: 1px solid #ddd;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.3s ease;
+}
+
+.orderItemWrapper:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Thêm hiệu ứng shadow khi hover */
+}
+
+/* Hình ảnh sản phẩm */
+.orderItemImage {
+  flex-shrink: 0;
+  margin-right: 1rem;
+  border-radius: 8px; /* Bo góc hình ảnh */
+}
+
+.orderItemImage img {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.orderItemImage img:hover {
+  transform: scale(1.1); /* Tăng kích thước hình ảnh khi hover */
+}
+
+/* Thông tin sản phẩm */
+.orderItemInfo {
+  flex-grow: 1;
+  flex-basis: 0;
+  padding-left: 1rem;
+}
+
+.orderItemInfo p {
+  margin: 0;
+}
+
+.orderItemInfo .color-size {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Tính toán giá và số lượng */
+.orderItemCalc {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 20px;
+}
+
+/* Giá và số lượng */
+.orderItemCalc p {
+  margin: 0;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Button link cho quay lại */
+.btn-link {
+  color: #007bff;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.btn-link:hover {
+  color: #0056b3; /* Màu xanh đậm hơn khi hover */
+}
+.orderAddressWrapper {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  transition: all 0.3s ease;
+}
+
+.orderAddressWrapper:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Hiệu ứng khi hover */
+}
+
+/* Tiêu đề của địa chỉ */
+.orderAddressWrapper h5 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+/* Thông tin địa chỉ */
+.orderAddressWrapper p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+/* Định dạng địa chỉ: chia thành các phần */
+.addressPart {
+  font-weight: 600;
+  color: #333;
+  display: inline-block;
+}
+
+/* Số điện thoại */
+.phoneNumber {
+  font-weight: 600;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.phoneNumber:hover {
+  color: #0056b3;
+}
+.linkProduct {
+  color: #007bff;
+  font-weight: 600;
+  font-size: 1.125rem;
+  padding-right: 30px;
+  transition: color 0.3s ease, transform 0.3s ease; 
+}
+.linkProduct:hover {
+  color: #0056b3;
+  transform: scale(1.05);
+}
+.linkProduct:focus {
+  outline: none;
+  color: #0056b3;
+}

@@ -159,7 +159,7 @@ const ProductDetail = () => {
         ProductDetailId: productDetailId,
         Quantity: selectedQuantity,
       };
-  
+      
       Object.keys(params).forEach((key) => url.searchParams.append(key, params[key]));
   
       const addToCartResponse = await fetch(url, {
@@ -175,7 +175,7 @@ const ProductDetail = () => {
   
       if (responseText.includes("Đã thêm")) {
         alert(responseText);
-        window.location.reload();
+        window.dispatchEvent(new Event('cartUpdated'));
       } else {
         alert(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
       }

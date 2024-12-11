@@ -6,16 +6,27 @@ import UserMenu from "../Features/User/UserMenu";
 import Title from "../Features/common/Title";
 import { breakpoints, defaultTheme } from "../styles/themes/default";
 import OrderItemList from "../Features/User/OrderItemList";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const OrderListScreenWrapper = styled.div`
   .order-tabs-contents {
     margin-top: 40px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    display: flex;
+    gap: 20px;
   }
+
+  .order-tabs-content {
+    display: none; /* Hidden by default */
+  }
+
   .order-tabs-head {
     min-width: 170px;
     padding: 12px 0;
     border-bottom: 3px solid ${defaultTheme.color_whitesmoke};
+    cursor: pointer;
 
     &.order-tabs-head-active {
       border-bottom-color: ${defaultTheme.color_outerspace};
@@ -30,6 +41,10 @@ const OrderListScreenWrapper = styled.div`
       min-width: 80px;
     }
   }
+
+  .order-tabs-content.active {
+    display: block; /* Show the active tab */
+  }
 `;
 
 const breadcrumbItems = [
@@ -37,105 +52,110 @@ const breadcrumbItems = [
   { label: "Đơn hàng", link: "/order" },
 ];
 
-// Dữ liệu giả của các đơn hàng
-const fakeOrderData = [
-  {
-    id: 1,
-    orderNumber: 'ORD12345',
-    date: '2024-12-01',
-    status: 'Active',
-    items: [
-      { id: 1, name: 'Sản phẩm 1', quantity: 2, price: 15.99, color: 'Đỏ' },
-      { id: 2, name: 'Sản phẩm 2', quantity: 1, price: 25.99, color: 'Xanh' },
-    ],
-  },
-  {
-    id: 2,
-    orderNumber: 'ORD12346',
-    date: '2024-12-03',
-    status: 'Cancelled',
-    items: [{ id: 3, name: 'Sản phẩm 3', quantity: 1, price: 300000, color: 'Xanh lá' }],
-  },
-  {
-    id: 3,
-    orderNumber: 'ORD12347',
-    date: '2024-12-05',
-    status: 'Completed',
-    items: [{ id: 4, name: 'Sản phẩm 4', quantity: 1, price: 400000, color: 'Vàng' }],
-  },
-  {
-    id: 4,
-    orderNumber: 'ORD12348',
-    date: '2024-12-06',
-    status: 'Active',
-    items: [{ id: 5, name: 'Sản phẩm 5', quantity: 3, price: 600000, color: 'Tím' }],
-  },
-  {
-    id: 5,
-    orderNumber: 'ORD12349',
-    date: '2024-12-07',
-    status: 'Cancelled',
-    items: [{ id: 6, name: 'Sản phẩm 6', quantity: 2, price: 700000, color: 'Hồng' }],
-  },
-];
+// Định nghĩa trạng thái tiếng Việt và mã trạng thái
+const statusLabels = {
+  pending: "Chờ xử lý",
+  preparing: "Đang chuẩn bị hàng",
+  shipping: "Đang giao hàng",
+  completed: "Hoàn thành",
+  cancelled: "Đã hủy",
+  returned: "Hoàn trả",
+};
 
 const OrderListScreen = () => {
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState("");
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabFromUrl = urlParams.get("tab") || "pending";
+    setActiveTab(tabFromUrl);
+  }, []);
+
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const customerId = localStorage.getItem("customerId");
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(`https://localhost:7172/api/Bills/get-bills-by-customer-id/${customerId}`);
+        if (!response.ok) {
+          throw new Error("Không thể tải đơn hàng. Vui lòng thử lại sau.");
+        }
+
+        const data = await response.json();
+        console.log("Dữ liệu API trả về:", data);
+        setOrders(data);
+        setLoading(false);
+      } catch (err) {
+        setError("Có lỗi xảy ra khi tải đơn hàng.");
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [customerId]);
 
   const filteredOrders = (status) => {
-    return fakeOrderData.filter(order => order.status.toLowerCase() === status.toLowerCase());
+    const vietnameseStatusMap = {
+      pending: "Chờ xử lý",
+      preparing: "Đang chuẩn bị hàng",
+      shipping: "Đang giao hàng",
+      completed: "Hoàn thành",
+      cancelled: "Đã hủy",
+      returned: "Hoàn trả",
+    };
+    const statusInVietnamese = vietnameseStatusMap[status.toLowerCase()];
+    return orders.filter((order) => {
+      const latestStatusHistory = order.statusHistories
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+      const latestStatus = latestStatusHistory?.statusType;
+      return latestStatus === statusInVietnamese; 
+    });
   };
 
   return (
     <div>
-        <OrderListScreenWrapper className="page-py-spacing" style={{ paddingTop: "220px" }}>
-      <Container>
-        <Breadcrumb items={breadcrumbItems} />
-        <UserDashboardWrapper>
-          <UserMenu />
-          <UserContent>
-            <Title titleText={"Đơn hàng của tôi"} />
-            <div className="order-tabs">
-              <div className="order-tabs-heads">
-                <button
-                  type="button"
-                  className={`order-tabs-head text-xl italic ${activeTab === "active" ? "order-tabs-head-active" : ""}`}
-                  onClick={() => setActiveTab("active")}
-                >
-                  Đang hoạt động
-                </button>
-                <button
-                  type="button"
-                  className={`order-tabs-head text-xl italic ${activeTab === "cancelled" ? "order-tabs-head-active" : ""}`}
-                  onClick={() => setActiveTab("cancelled")}
-                >
-                  Đã hủy
-                </button>
-                <button
-                  type="button"
-                  className={`order-tabs-head text-xl italic ${activeTab === "completed" ? "order-tabs-head-active" : ""}`}
-                  onClick={() => setActiveTab("completed")}
-                >
-                  Đã hoàn thành
-                </button>
-              </div>
+      <OrderListScreenWrapper className="page-py-spacing" style={{ paddingTop: "140px" }}>
+        <Container>
+          <Breadcrumb items={breadcrumbItems} />
+          <UserDashboardWrapper>
+            <UserMenu />
+            <UserContent>
+              <Title titleText={"Đơn hàng của tôi"} />
+              <div className="order-tabs">
+                <div className="order-tabs-heads d-flex">
+                  {Object.keys(statusLabels).map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      className={`order-tabs-head text-lg font-italic ${activeTab === status ? "order-tabs-head-active" : ""}`}
+                      onClick={() => setActiveTab(status)}
+                    >
+                      {statusLabels[status]}
+                    </button>
+                  ))}
+                </div>
+                <div className="order-tabs-contents">
+                  {loading && <div>Đang tải đơn hàng...</div>}
+                  {error && <div>{error}</div>}
 
-              <div className="order-tabs-contents">
-                <div className="order-tabs-content" id="active" style={{ display: activeTab === "active" ? "block" : "none" }}>
-                  <OrderItemList orders={filteredOrders("Active")} />
-                </div>
-                <div className="order-tabs-content" id="cancelled" style={{ display: activeTab === "cancelled" ? "block" : "none" }}>
-                  <OrderItemList orders={filteredOrders("Cancelled")} />
-                </div>
-                <div className="order-tabs-content" id="completed" style={{ display: activeTab === "completed" ? "block" : "none" }}>
-                  <OrderItemList orders={filteredOrders("Completed")} />
+                  {Object.keys(statusLabels).map((status) => (
+                    <div
+                      key={status}
+                      className={`order-tabs-content ${activeTab === status ? "active" : ""}`}
+                    >
+                      <OrderItemList orders={filteredOrders(status)} />
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          </UserContent>
-        </UserDashboardWrapper>
-      </Container>
-    </OrderListScreenWrapper>
+            </UserContent>
+          </UserDashboardWrapper>
+        </Container>
+      </OrderListScreenWrapper>
     </div>
   );
 };

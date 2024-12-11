@@ -53,8 +53,8 @@ const publicRoutes = [
     { path: '/checkout', component: Checkout, layout: 'user'},
     { path: '/accountUser', component: AccountUser, layout: 'user'},
     { path: '/addressScreen', component: AddressScreen, layout: 'user'},
-    { path: '/orderlistscreen', component: OrderListScreen, layout: 'user'},
-    { path: '/orderdetailscreen', component: OrderDetailScreen, layout: 'user'},
+    { path: '/orderlistscreen/:customerId', component: OrderListScreen, layout: 'user'},
+    { path: '/orderdetailscreen/:billId', component: OrderDetailScreen, layout: 'user'},
     { path: '/order-success', component: OrderSuccess, layout: 'user'},
 ]
 const privateRoutes = [

@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { FaBox, FaHeart, FaUser, FaSignOutAlt } from "react-icons/fa"; // Thêm icon từ React Icons
 import Title from "../common/Title";
@@ -83,7 +83,9 @@ const NavMenuWrapper = styled.nav`
 `;
 
 const UserMenu = () => {
+  const customerId = localStorage.getItem('customerId');
   const location = useLocation();
+  const { billId } = useParams();
   console.log(location.pathname);
   return (
     <div>
@@ -96,10 +98,10 @@ const UserMenu = () => {
         <ul className="nav-menu-list">
           <li className="nav-menu-item">
             <Link
-              to="/orderlistscreen"
+              to={`/orderlistscreen/${customerId}`}
               className={`nav-menu-link ${
-                location.pathname === "/orderlistscreen" ||
-                location.pathname === "/orderdetailscreen"
+                location.pathname === `/orderlistscreen/${customerId}` ||
+                location.pathname === `/orderdetailscreen/${billId}`
                   ? "active"
                   : ""
               }`}

@@ -5,6 +5,8 @@ import ProductPreview from "../Features/Product/ProductPreview";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductDescriptionTab from "../Features/Product/ProductDescriptionTab";
 import styles from "./ProductDetails.module.css";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProductDetails = () => {
   const { productId } = useParams();
@@ -95,15 +97,33 @@ const ProductDetails = () => {
 
   const handleAddToCart = async () => {
     const token = localStorage.getItem("jwtToken");
-    if (!token) {
-      alert("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
-      navigate("/SignIn");
-      return;
-    }
+    const handleAddToCart = async () => {
+      const token = localStorage.getItem("jwtToken"); 
+      if (!token) {
+        toast.error("Vui lòng đăng nhập để tiếp tục mua hàng.");
+        navigate('/login');
+        return;
+      }
+      if (!selectedSize || !selectedColor) {
+        toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
+        return;
+      }
+    
+      const selectedProductDetail = product.Product_detail?.find(
+        (detail) => detail.sizes.name === selectedSize && detail.colors.name === selectedColor
+      );
+    
+      if (!selectedProductDetail) {
+        toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
+        return;
+      }
+      toast.success("Sản phẩm đã được thêm vào giỏ hàng.");
+    };
+    
   
     const customerId = localStorage.getItem("customerId");
     if (!customerId) {
-      alert("Không tìm thấy thông tin khách hàng.");
+      toast.error("Không tìm thấy thông tin khách hàng.");
       return;
     }
   
@@ -115,20 +135,20 @@ const ProductDetails = () => {
   
       if (!cartResponse.ok) {
         const errorText = await cartResponse.text();
-        alert(`Không thể lấy giỏ hàng của bạn: ${errorText}`);
+        toast.error(`Không thể lấy giỏ hàng của bạn: ${errorText}`);
         return;
       }
   
       const cartData = await cartResponse.json();
       if (!cartData || !cartData.id) {
-        alert("Không có giỏ hàng cho tài khoản này.");
+        toast.error("Không có giỏ hàng cho tài khoản này.");
         return;
       }
   
       const cartId = cartData.id;
   
       if (!selectedSize || !selectedColor) {
-        alert("Vui lòng chọn màu và kích thước hợp lệ.");
+        toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
         return;
       }
   
@@ -143,7 +163,7 @@ const ProductDetails = () => {
           imageUrlToUse = product.imageUrl; // Sử dụng ảnh mặc định của sản phẩm
         }
       } else {
-        alert("Sản phẩm không hợp lệ hoặc không tồn tại.");
+        toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
         return;
       }
   
@@ -166,15 +186,15 @@ const ProductDetails = () => {
   
       const responseText = await addToCartResponse.text();
       if (!addToCartResponse.ok) {
-        alert(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
+        toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
         return;
       }
   
       if (responseText.includes("Đã thêm")) {
-        alert(responseText);
+        toast.success(responseText);
         window.location.reload();
       } else {
-        alert(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
+        toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
       }
   
     } catch (error) {
@@ -294,9 +314,8 @@ const ProductDetails = () => {
               <div className={styles.prodColorsList}>
                 {colors.length > 0 ? (
                   colors.map((color, index) => {
-                    // Tìm kiếm chi tiết sản phẩm theo màu sắc
                     const colorDetail = product.Product_detail.find(detail => detail.colors.name === color);
-                    const colorHex = colorDetail ? colorDetail.colors.hex : '#ccc'; // Màu mặc định nếu không có màu sắc
+                    const colorHex = colorDetail ? colorDetail.colors.hex : '#ccc'; 
                     return (
                       <div className={styles.prodColorItem} key={index}>
                         <input
