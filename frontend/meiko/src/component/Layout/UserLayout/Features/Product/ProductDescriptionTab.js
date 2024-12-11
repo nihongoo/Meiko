@@ -1,46 +1,75 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import ProductReviews from './ProductReview';
 import Title from "../common/Title";
 import styles from "./ProductDescriptionTab.module.css";
+import { Spinner } from 'react-bootstrap'; // Sử dụng Spinner từ react-bootstrap
 
 const productDescriptionTabHeads = [
   {
     id: "tab-description",
     tabHead: "tabDescription",
     tabText: "Mô Tả Sản Phẩm",
-    badgeValue: null,
-    badgeColor: "",
   },
   {
     id: "tab-comments",
     tabHead: "tabComments",
     tabText: "Bình luận người dùng",
-    badgeValue: null,
-    badgeColor: "purple",
   },
   {
     id: "tab-QNA",
     tabHead: "tabQNA",
     tabText: "Câu hỏi & trả lời",
-    badgeValue: null,
-    badgeColor: "outerspace",
   },
 ];
 
-const ProductDescriptionTab = () => {
-  const [activeDesTab, setActiveDesTab] = useState(
-    productDescriptionTabHeads[0].tabHead
-  );
+const ProductDescriptionTab = ({ productId }) => {
+  const [activeDesTab, setActiveDesTab] = useState(productDescriptionTabHeads[0].tabHead);
+  const [product, setProduct] = useState(null); 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const response = await fetch(`https://localhost:7172/api/Product/Get/${productId}`);
+        if (!response.ok) {
+          throw new Error('Không thể lấy dữ liệu sản phẩm');
+        }
+        const data = await response.json();
+        setProduct(data);  
+        setLoading(false); 
+      } catch (error) {
+        console.error(error);
+        setLoading(false);  
+      }
+    };
+
+    fetchProductData();
+  }, [productId]);
 
   const handleTabChange = (tabHead) => {
     setActiveDesTab(tabHead);
   };
 
+  if (loading) {
+    return (
+      <div className="text-center">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Đang tải...</span>
+        </Spinner>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return <div className="text-center">Không tìm thấy sản phẩm.</div>;
+  }
+
   return (
     <div className={styles.detailsContent}>
-      <Title titleText={"Mô Tả Sản Phẩm"} />
+      <Title titleText={product.name} />
       <div className={`d-flex flex-column flex-lg-row ${styles.detailsContentWrapper}`}>
         <div className={`col-lg-8 me-5 d-flex flex-column ${styles.tabsWrapper}`}>
-          {/* Phần header */}
+          {/* Tab Header */}
           <div className={styles.tabsHeads}>
             {productDescriptionTabHeads.map((tab) => (
               <button
@@ -50,49 +79,36 @@ const ProductDescriptionTab = () => {
                 onClick={() => handleTabChange(tab.tabHead)}
               >
                 <span>{tab.tabText}</span>
-                {tab.badgeValue && (
-                  <span
-                    className={`${styles.tabsBadge} ${styles[`tabsBadge${tab.badgeColor}`]}`}
-                  >
-                    {tab.badgeValue}
-                  </span>
-                )}
               </button>
             ))}
           </div>
-          {/* Phần nội dung */}
+
+          {/* Tab Content */}
           <div className={styles.tabsContents}>
             <div
               className={`${styles.tabsContent} ${activeDesTab === "tabDescription" ? styles.show : ""}`}
             >
               <div className={styles.contentStylings}>
-                <p>
-                  Chất liệu 100% cotton đã được xử lý sinh học giúp vải mềm mại và mịn màng.
-                </p>
                 <h4>Thông số kỹ thuật:</h4>
                 <ul>
-                  <li>Chất liệu: Cotton đã qua xử lý sinh học</li>
-                  <li>Họa tiết: In</li>
-                  <li>Kiểu dáng: Regular-fit</li>
-                  <li>Cổ áo: Cổ tròn</li>
-                  <li>Tay áo: Tay ngắn</li>
-                  <li>Phong cách: Dành cho trang phục hàng ngày</li>
+                  <li><strong>Mã sản phẩm:</strong> {product.productCode}</li>
+                  <li><strong>Chất liệu:</strong> {product.materials.name}</li>
+                  <li><strong>Thương hiệu:</strong> {product.brands.name}</li>
+                  <li><strong>Bảo hành:</strong> {product.warrantyPeriod}</li>
                 </ul>
-                <p>*Lưu ý: Vui lòng điền số điện thoại chính xác.</p>
+                <p><strong>*Lưu ý:</strong> Vui lòng điền số điện thoại chính xác.</p>
                 <h4>Tại sao nên mua sắm tại Outfit store?</h4>
                 <ul>
                   <li>Chất lượng vật liệu đảm bảo</li>
-                  <li>Công nghệ may chính xác.</li>
+                  <li>Công nghệ may chính xác</li>
                 </ul>
-                <p>
-                Bản thân công ty đã là một công ty rất thành công. Những người may mắn hiện tại của chúng ta không bị dịu dàng bởi bất kỳ sự dịu dàng nào, họ không bỏ rơi những người khác sắc bén hơn một cách chính đáng, bởi vì họ bị niềm vui của tâm trí nắm giữ! Chuyến bay này có được tạo điều kiện bởi một số ham muốn cuộc sống? Tôi ghét nó, nó có làm phiền bạn không?
-                </p>
+                <p>{product.description}</p>
               </div>
             </div>
             <div
               className={`${styles.tabsContent} ${activeDesTab === "tabComments" ? styles.show : ""}`}
             >
-              Bình luận người dùng ở đây.
+              <ProductReviews productId={productId} />
             </div>
             <div
               className={`${styles.tabsContent} ${activeDesTab === "tabQNA" ? styles.show : ""}`}
@@ -101,7 +117,7 @@ const ProductDescriptionTab = () => {
             </div>
           </div>
         </div>
-        <div className="col-lg-4  ">
+        <div className="col-lg-4">
         </div>
       </div>
     </div>
