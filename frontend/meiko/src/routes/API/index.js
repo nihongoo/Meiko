@@ -120,7 +120,8 @@ const apiURL = {
         filter: 'https://localhost:7172/api/Bills/Filter',
         search: 'https://localhost:7172/api/Bills/Search',
         pay: 'https://localhost:7172/api/Bills/pay-for-bill/',
-        changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/'
+        changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/',
+        changeQuantity: 'https://localhost:7172/api/Bills/add-quantity-to/',
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',

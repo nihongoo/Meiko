@@ -45,6 +45,25 @@ function ListProduct({ bill }) {
     totalSum += item.totalPrice;
   }
 
+  const handleChangeQuantity = async (id, quantity) => {
+    try {
+      const res = await fetch(`${apiURL.bill.changeQuantity}${id}?Quantity=${quantity}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (res.ok) {
+        // Sau khi thành công, gọi refetchData để tải lại dữ liệu
+        refetchData();
+        handleReloadFromAnother()
+      } else {
+        toast.error('Cập nhật số lượng thất bại');
+      }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra');
+    }
+  }
   return (
     <Box minHeight={300} maxHeight={630}>
       {/* Header */}
@@ -71,21 +90,21 @@ function ListProduct({ bill }) {
 
       {/* Product List */}
       <Box
-        maxHeight="calc(630px - 50px)" // Adjust height to exclude the header
+        maxHeight="calc(630px - 50px)"
         overflow="auto"
         sx={{
           "&::-webkit-scrollbar": {
-            width: "6px", // Độ rộng scrollbar
+            width: "6px",
           },
           "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "#888", // Màu thanh cuộn
-            borderRadius: "10px", // Bo tròn
+            backgroundColor: "#888",
+            borderRadius: "10px",
           },
           "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: "#555", // Màu khi hover
+            backgroundColor: "#555",
           },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: "#f1f1f1", // Nền thanh cuộn
+            backgroundColor: "#f1f1f1",
           },
         }}
       >
@@ -156,9 +175,9 @@ function ListProduct({ bill }) {
                 mx={2}
                 sx={{ mb: { xs: 2, sm: 0 } }}
               >
-                <Button size="small">-</Button>
+                <Button size="small" onClick={()=>{handleChangeQuantity(item.id, -1)}}>-</Button>
                 <Typography mx={1}>{item.quantity}</Typography>
-                <Button size="small">+</Button>
+                <Button size="small" onClick={()=>{handleChangeQuantity(item.id, 1)}}>+</Button>
               </Box>
 
               {/* Total Price */}

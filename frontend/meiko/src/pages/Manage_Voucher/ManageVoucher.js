@@ -23,8 +23,8 @@ function ManageVoucher() {
             startDay: moment(item.startDay).format('DD-MM-YYYY HH:mm'),
             endDay: moment(item.endDay).format('DD-MM-YYYY HH:mm'),
             status: item.status === 0 ? 'Đang diễn ra' : 'Đã kết thúc',
-        }));
-    });
+        }));}
+    );
     const [newVoucher, setNewVoucher] = useState({
         customerIds: [],
     });
