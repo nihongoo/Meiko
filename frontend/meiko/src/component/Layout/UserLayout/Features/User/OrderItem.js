@@ -118,9 +118,12 @@ const OrderItemWrapper = styled.div`
     }
   }
 
+  .order-overview-info{
+    margin-top: 30px;
+  }
+
   .order-overview-btn {
-    align-self: center;  // Căn giữa nút
-    margin-top: 20px;
+    align-self: center; 
     text-align: center;
     &:hover {
       background-color: ${defaultTheme.color_dark};
@@ -130,62 +133,51 @@ const OrderItemWrapper = styled.div`
 `;
 
 const OrderItem = ({ order }) => {
+  console.log("Hóa đơn:", order);
   return (
     <OrderItemWrapper>
       <div className="order-item-details">
-        <h3 className="order-item-title">Số đơn hàng: {order.order_no}</h3>
-        <div className="order-info-group">
+        <BaseLinkGreen to={`/orderdetailscreen/${order.id}`} style={{backgroundColor:"#ffffff", borderColor:"#ffffff"}}>
+          <h3 className="order-item-title">Số đơn hàng: {order.billCode}</h3>
+        </BaseLinkGreen>
+        <div className="order-info-group" style={{marginLeft:"14px"}}>
           <div className="order-info-item">
             <span className="text-gray font-semibold">Ngày đặt hàng:</span>
-            <span className="text-silver">{order.order_date}</span>
+            <span className="text-silver">
+              {new Date(order.createdDate).toLocaleString("vi-VN", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+                second: "numeric",
+              })}
+            </span>
           </div>
           <div className="order-info-item">
             <span className="text-gray font-semibold">Trạng thái đơn hàng:</span>
-            <span className="text-silver">{order.status}</span>
+            <span className="text-silver">
+              {order.statusHistories && order.statusHistories.length > 0 
+                ? order.statusHistories
+                    .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) 
+                    .map(status => status.statusType)
+                    [0] 
+                : 'Chưa có trạng thái'}
+            </span>
           </div>
+
           <div className="order-info-item">
             <span className="text-gray font-semibold">Ngày giao dự kiến:</span>
-            <span className="text-silver">{order.delivery_date}</span>
+            <span className="text-silver">{order.deliveryDate || "Chưa có"}</span>
           </div>
           <div className="order-info-item">
             <span className="text-gray font-semibold">Phương thức thanh toán:</span>
-            <span className="text-silver">{order.payment_method}</span>
+            <span className="text-silver">{order.paymentAmount === 0 ? "Chưa thanh toán" : "Đã thanh toán"}</span>
           </div>
         </div>
       </div>
 
-      <div className="order-overview">
-        <div className="order-overview-content">
-          <div className="order-overview-img" style={{marginTop: "30px"}}>
-            <img
-              src={order.items[0]?.imageUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXr49HDVtzGLB2P5GqGhUpneMiZa08kAmZEw&s"}
-              alt={order.items[0]?.name || "Hình ảnh sản phẩm"}
-            />
-          </div>
-
-          <div className="order-overview-info">
-            <h4 className="text-xl">{order.items[0]?.name || "Sản phẩm"}</h4>
-            <ul>
-              <li className="font-semibold text-base">
-                <span>Màu sắc:</span>
-                <span>{order.items[0]?.color || "Chưa có"}</span>
-              </li>
-              <li className="font-semibold text-base">
-                <span>Số lượng:</span>
-                <span>{order.items[0]?.quantity || 0}</span>
-              </li>
-              <li className="font-semibold text-base">
-                <span>Tổng tiền:</span>
-                <span>{currencyFormat(order.items[0]?.price || 0, 'VND')}</span>
-              </li>
-            </ul>
-          </div>
-          <span style={{color: "#A9A9A9"}}>+2 sản phẩm</span>
-        </div>
-        <BaseLinkGreen to={`/order_detail/${order.order_no}`} className="order-overview-btn">
-          Xem Chi Tiết
-        </BaseLinkGreen>
-      </div>
     </OrderItemWrapper>
   );
 };

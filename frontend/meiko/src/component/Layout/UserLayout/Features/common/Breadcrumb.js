@@ -10,8 +10,8 @@ const BreadcrumbWrapper = styled.nav`
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  height: 180px;
-  padding-left: 200px;
+  height: 120px;
+  padding-left: 80px;
   background: #f5f5f5 url("//dorno-demo.myshopify.com/cdn/shop/files/testi_bg_2_3c8502bd-60a4-403a-9378-a39ac074dd01.jpg?v=1652605155") no-repeat center center / cover;
 
   .breadcrumb-separator {

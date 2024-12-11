@@ -10,6 +10,8 @@ namespace API.Models
 		[Range(0, double.MaxValue, ErrorMessage = "Tổng tiền phải lớn hơn hoặc bằng 0.")]
 		public double Total { get; set; } = 0;
 
+		public string? BillCode { get; set; }
+
 		public StatusType Status { get; set; } = StatusType.TaoHoaDon;
 
 		[Range(0, double.MaxValue, ErrorMessage = "Số tiền khách thanh toán phải lớn hơn hoặc bằng 0.")]

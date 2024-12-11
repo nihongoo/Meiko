@@ -137,7 +137,7 @@ namespace API.Controllers
 		[HttpPost("create-bill")]
 		public async Task<ActionResult<object>> CreateBill(BillInfoModel model)
 		{
-			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId);
+			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId, model.BillCode);
 			if (result.k)
 			{
 				return Ok(new { success = result.k, id = result.id });

@@ -46,7 +46,7 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
                     billCode: billCode,
                     isShipping: true,
                     total: 0,
-                    status: 0, 
+                    status: 1, 
                     paymentAmount: 0,
                     shippingFee: shippingFee,
                     cartId: localStorage.getItem("cartId"), 
@@ -55,14 +55,34 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
                     staffId: null
                 }),
             });
-            console.log(total);
             const createBillData = await createBillResponse.json();
-            console.log("Create Bill Response:", createBillData); 
             const billId = createBillData.id;
-
             console.log("Bill Id:", billId);
 
-    
+            const changeStatusFromBillResponse = await fetch(`https://localhost:7172/api/Bills/change-status-from-bill/${billId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    statusType: 1,
+                    note: "Bill Status",
+                    staffWhoCreatedThis: localStorage.getItem("customerId")
+                }),
+            });
+        
+            if (!changeStatusFromBillResponse.ok) {
+                console.error("API Error:", changeStatusFromBillResponse.status, changeStatusFromBillResponse.statusText);
+                alert("Không thể cập nhật trạng thái hóa đơn.");
+                return;
+            }
+            const changeStatusFromBillData = await changeStatusFromBillResponse.json();
+            if (changeStatusFromBillData) {
+                console.log("Cập nhật trạng thái hóa đơn thành công.");
+            } else {
+                alert("Không thể cập nhật trạng thái hóa đơn.");
+            }
+            
             const addAddressResponse = await fetch("https://localhost:7172/api/Bills/add-address-to-bill", {
                 method: "POST",
                 headers: {
@@ -80,48 +100,11 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
                 }),
             });
             const addAddressData = await addAddressResponse.json();
-            console.log("Add Address Response:", addAddressData); 
             if (addAddressData) {
                 console.log("Địa chỉ đã được cập nhật vào hóa đơn.");
             } else {
                 alert("Không thể cập nhật địa chỉ vào hóa đơn.");
             }
-    
-            const addProductPromises = selectedItems.map((item) => {
-                console.log("Selected items before sending to API:", selectedItems);
-                console.log("Sending product to add to bill:", item.productDetails.id, item.quantity);
-            
-                return fetch("https://localhost:7172/api/Bills/add-to-bill", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        billId: billId,
-                        productDetailId: item.productDetails.id,
-                        quantity: item.quantity,
-                        status: 0, 
-                    }),
-                })
-                .then(response => {
-                    console.log("Response for product ID:", item.productDetails.id, response);
-                    if (!response.ok) {
-                        console.error("Error adding product to bill:", response.status, response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Product added successfully to bill for product ID:", item.productDetails.id, data); 
-                    return data; 
-                })
-                .catch(error => {
-                    console.error("Error with product ID:", item.productDetails.id, error); 
-                    return null; 
-                });
-            });
-
-            const addProductData = await Promise.all(addProductPromises);
-            console.log("All Product Add Responses:", addProductData); 
 
             if (voucherDetailIdd) {
                 const updateVoucherResponse = await fetch(`https://localhost:7172/api/Voucher/UpdateVoucherStatus/${voucherDetailIdd}`, {

@@ -4,9 +4,9 @@ const OrderItemList = ({ orders }) => {
   return (
     <div>
       {orders?.map((order) => (
-        <div>
-          <OrderItem key={order.id} order={order} />
-          <hr/>
+        <div key={order.id}>
+          <OrderItem order={order} />
+          <hr />
         </div>
       ))}
     </div>
@@ -14,4 +14,3 @@ const OrderItemList = ({ orders }) => {
 };
 
 export default OrderItemList;
-

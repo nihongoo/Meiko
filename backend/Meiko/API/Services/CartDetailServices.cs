@@ -12,60 +12,90 @@ namespace API.Services
             _appDbContext = appDbContext;
         }
         public async Task<string> AddToCart(Guid CartId, Guid productDetailId, int Quantity)
-		{
-			using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
-			{
-				try
-				{
-					var cartDetailEntity = await _appDbContext.CartDetails.Where(
-						cd => cd.CartId == CartId
-						&& cd.ProductDetailsId == productDetailId)
-						.FirstOrDefaultAsync();
+        {
+            using (var dbTrans = await _appDbContext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Lấy thông tin chi tiết giỏ hàng
+                    var cartDetailEntity = await _appDbContext.CartDetails
+                        .Where(cd => cd.CartId == CartId && cd.ProductDetailsId == productDetailId)
+                        .FirstOrDefaultAsync();
 
-					var productDetail = await _appDbContext.ProductDetails.Where(pd => pd.Id == productDetailId)
-						.Include(p => p.Products)
-						.FirstOrDefaultAsync();
+                    // Lấy thông tin sản phẩm chi tiết
+                    var productDetail = await _appDbContext.ProductDetails
+                        .Where(pd => pd.Id == productDetailId)
+                        .Include(p => p.Products)
+                        .Include(p => p.SaleProducts)
+                        .FirstOrDefaultAsync();
 
-					var response = $"Đã thêm {productDetail.Products.Name} vào giỏ hàng!";
+                    if (productDetail == null)
+                    {
+                        return "Sản phẩm không tồn tại!";
+                    }
 
-					if (cartDetailEntity == null) await _appDbContext.CartDetails.AddAsync(new CartDetails()
-					{
-						Id = Guid.NewGuid(),
-						Quantity = Quantity,
-						Price = Quantity*productDetail.Price,
-						Status = 5,
-						CartId = CartId,
-						ProductDetailsId = productDetailId
-					});
-					else
-					{
-						cartDetailEntity.Quantity += Quantity;
+                    // Kiểm tra giảm giá (nếu có) và lấy giá sau giảm
+                    decimal? discountedPrice = null;
+                    if (productDetail.SaleProducts != null && productDetail.SaleProducts.Any())
+                    {
+                        discountedPrice = productDetail.SaleProducts
+                            .Where(sp => sp.EffectiveDate <= DateTime.Now && (sp.ExpiryDate == null || sp.ExpiryDate >= DateTime.Now))
+                            .Select(sp => sp.DiscountedPrice)
+                            .FirstOrDefault();
+                    }
 
-						if (cartDetailEntity.Quantity > productDetail.Quantity)
-						{
-							cartDetailEntity.Quantity = productDetail.Quantity;
-							response = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
-						}
+                    // Nếu có giảm giá, dùng giá giảm; nếu không, dùng giá gốc
+                    var finalPrice = discountedPrice.HasValue ? discountedPrice.Value : productDetail.Price;
 
-						cartDetailEntity.Price = cartDetailEntity.Quantity * productDetail.Price;
+                    var response = $"Đã thêm {productDetail.Products.Name} vào giỏ hàng!";
 
-						_appDbContext.CartDetails.Update(cartDetailEntity);
-					}
+                    if (cartDetailEntity == null)
+                    {
+                        // Thêm sản phẩm vào giỏ hàng nếu chưa có
+                        await _appDbContext.CartDetails.AddAsync(new CartDetails()
+                        {
+                            Id = Guid.NewGuid(),
+                            Quantity = Quantity,
+                            Price = Quantity * finalPrice, // Giá sau giảm
+                            Status = 5,  // Trạng thái sản phẩm trong giỏ
+                            CartId = CartId,
+                            ProductDetailsId = productDetailId
+                        });
+                    }
+                    else
+                    {
+                        // Nếu sản phẩm đã có trong giỏ, cập nhật số lượng và giá
+                        cartDetailEntity.Quantity += Quantity;
 
-					await _appDbContext.SaveChangesAsync();
+                        // Kiểm tra số lượng không vượt quá số lượng tồn kho
+                        if (cartDetailEntity.Quantity > productDetail.Quantity)
+                        {
+                            cartDetailEntity.Quantity = productDetail.Quantity;
+                            response = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
+                        }
 
-					await UpdateTotal(CartId);
+                        // Cập nhật giá trị cho giỏ
+                        cartDetailEntity.Price = cartDetailEntity.Quantity * finalPrice; // Giá sau giảm
 
-					await dbTrans.CommitAsync();
-					return response;
+                        _appDbContext.CartDetails.Update(cartDetailEntity);
+                    }
 
-				} catch (Exception ex)
-				{
-					await dbTrans.RollbackAsync();
-					return ex.Message;
-				}
-			}
-		}
+                    // Lưu thay đổi và cập nhật tổng giỏ hàng
+                    await _appDbContext.SaveChangesAsync();
+                    await UpdateTotal(CartId);  // Cập nhật tổng giỏ hàng
+
+                    // Cam kết transaction
+                    await dbTrans.CommitAsync();
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    // Nếu có lỗi, rollback transaction và trả về lỗi
+                    await dbTrans.RollbackAsync();
+                    return $"Lỗi: {ex.Message}";
+                }
+            }
+        }
 
         public async Task<string> ChangeStockOnly(Guid CartDetailId, Guid ProductDetailId, int Quantity)
         {
@@ -73,7 +103,6 @@ namespace API.Services
             {
                 try
                 {
-                    // Kiểm tra cartDetail và productDetail có null không
                     var cartDetail = await _appDbContext.CartDetails
                         .Where(cd => cd.Id == CartDetailId)
                         .Include(cd => cd.ProductDetails)
@@ -88,6 +117,7 @@ namespace API.Services
                     var productDetail = await _appDbContext.ProductDetails
                         .Where(pd => pd.Id == ProductDetailId)
                         .Include(pd => pd.Products)
+                        .Include(pd => pd.SaleProducts)
                         .FirstOrDefaultAsync();
 
                     if (productDetail == null)
@@ -103,7 +133,7 @@ namespace API.Services
 
                     var response = $"Đã thêm {Quantity} vào giỏ hàng!";
 
-                    // Kiểm tra nếu số lượng giỏ hàng vượt quá số lượng trong kho
+                    // Kiểm tra số lượng không vượt quá số lượng trong kho
                     cartDetail.Quantity = Quantity;
                     if (cartDetail.Quantity > cartDetail.ProductDetails.Quantity)
                     {
@@ -111,8 +141,19 @@ namespace API.Services
                         response = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
                     }
 
+                    // Kiểm tra giảm giá sản phẩm (nếu có)
+                    decimal? discountedPrice = productDetail.SaleProducts != null
+                                                ? productDetail.SaleProducts
+                                                .Where(sp => sp.EffectiveDate <= DateTime.Now && (sp.ExpiryDate == null || sp.ExpiryDate >= DateTime.Now))
+                                                .Select(sp => sp.DiscountedPrice)
+                                                .FirstOrDefault()
+                                                : null;
+
+                    // Nếu có giảm giá, sử dụng giá giảm, nếu không thì dùng giá gốc
+                    var finalPrice = discountedPrice.HasValue ? discountedPrice.Value : productDetail.Price;
+
                     // Cập nhật giá trị của sản phẩm trong giỏ hàng
-                    cartDetail.Price = cartDetail.Quantity * productDetail.Price;
+                    cartDetail.Price = cartDetail.Quantity * finalPrice;
 
                     // Cập nhật giỏ hàng
                     _appDbContext.CartDetails.Update(cartDetail);
@@ -130,6 +171,7 @@ namespace API.Services
                 }
             }
         }
+
 
         public async Task<bool> ClearCart(Guid CartId)
 		{
@@ -162,6 +204,7 @@ namespace API.Services
 				.Include(cd => cd.Carts)
 				.Include(cd => cd.ProductDetails)
 					.ThenInclude(pd => pd.Products)
+				.Include(cd => cd.ProductDetails).ThenInclude(pd => pd.SaleProducts)
 				.ToListAsync();
 		}
 

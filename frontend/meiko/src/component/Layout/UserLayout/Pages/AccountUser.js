@@ -106,7 +106,7 @@ const breadcrumbItems = [
 const AccountUser = () => {
   return (
     <div>
-      <AccountScreenWrapper className="page-py-spacing" style={{ paddingTop: "220px" }}>
+      <AccountScreenWrapper className="page-py-spacing" style={{ paddingTop: "140px" }}>
         <Container>
           <Breadcrumb items={breadcrumbItems} />
           <UserDashboardWrapper>
