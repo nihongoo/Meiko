@@ -8,7 +8,6 @@ import generateSerialCode from '../../customHook/useRandom';
 import apiURL from "../../routes/API";
 import BillInfo from "./BillInfo";
 
-// Tạo context trực tiếp trong file
 export const BillInfoContext = createContext();
 
 function SoldOfline() {
@@ -16,8 +15,7 @@ function SoldOfline() {
     const [tabs, setTabs] = useState([]);
     const [bills, setBills] = useState([]);
     const billInfoRef = useRef();
-
-    // Khôi phục dữ liệu từ localStorage khi component mount
+    const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
     useEffect(() => {
         const storedBills = localStorage.getItem('bills');
         const storedTabs = localStorage.getItem('tabs');
@@ -29,7 +27,6 @@ function SoldOfline() {
         }
     }, []);
 
-    // Lưu dữ liệu vào localStorage khi các state thay đổi
     useEffect(() => {
         if (bills.length > 0) {
             localStorage.setItem('bills', JSON.stringify(bills));
@@ -48,7 +45,6 @@ function SoldOfline() {
             billInfoRef.current.reload();
         }
     };
-
     const handleAddTab = async () => {
         if (tabs.length >= 5) {
             toast.warning("Chỉ có thể thêm tối đa 5 hóa đơn");
@@ -63,8 +59,14 @@ function SoldOfline() {
             status: 0,
             paymentAmount: 0,
             shippingFee: 0,
+            staffId: staffInfo.id
         };
-
+        const payload = {
+            statusType: 0,
+            note: 'Tạo mới hóa đơn thành công',
+            staffWhoCreatedThis: staffInfo.id,
+        };
+        
         try {
             const res = await fetch(apiURL.bill.create, {
                 method: 'POST',
@@ -90,7 +92,13 @@ function SoldOfline() {
                 localStorage.setItem('tabs', JSON.stringify(newTabs));
                 return newTabs;
             });
-
+            await fetch(`${apiURL.bill.changeStatus}${createdBill.id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
             setIndex(tabs.length);
             toast.success('Tạo hóa đơn thành công!');
         } catch (error) {
@@ -99,15 +107,15 @@ function SoldOfline() {
         }
     };
 
-    const handleCloseTab = async (tabIndex) => {
+    const handleCloseTab = async (tabIndex, customMessage = 'Đóng hóa đơn thành công!') => {
         const billToDelete = bills[tabIndex];
         if (!billToDelete) return;
 
         try {
-            const res = await fetch(`${apiURL.bill.delete}${billToDelete.id}`, { method: 'DELETE' });
-            if (!res.ok) {
-                throw new Error('Xóa hóa đơn thất bại');
-            }
+            // const res = await fetch(`${apiURL.bill.delete}${billToDelete.id}`, { method: 'DELETE' });
+            // if (!res.ok) {
+            //     throw new Error('Xóa hóa đơn thất bại');
+            // }
 
             setTabs((prevTabs) => {
                 const newTabs = prevTabs.filter((_, i) => i !== tabIndex);
@@ -128,7 +136,7 @@ function SoldOfline() {
                 setIndex(index - 1);
             }
 
-            toast.success('Xóa hóa đơn thành công!');
+            toast.success(customMessage);
         } catch (error) {
             console.error(error);
             toast.error(error.message || 'Có lỗi xảy ra!');
@@ -136,7 +144,7 @@ function SoldOfline() {
     };
 
     return (
-        <BillInfoContext.Provider value={{ handleReloadFromAnother }}>
+        <BillInfoContext.Provider value={{ handleReloadFromAnother, handleCloseTab, index }}>
             <Paper elevation={3} sx={{ padding: 3, borderRadius: 2 }}>
                 <Box textAlign="center" mb={2}>
                     <Typography variant="h4">Bán hàng</Typography>

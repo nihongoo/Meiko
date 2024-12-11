@@ -1122,7 +1122,6 @@ namespace API.Services
                         if (productDetail.Quantity < billDetail.Quantity)
                             throw new Exception("Không đủ số lượng sản phẩm trong kho");
 
-                        productDetail.Quantity -= billDetail.Quantity;
 
                         await _dbcontext.BillDetails.AddAsync(billDetail);
 

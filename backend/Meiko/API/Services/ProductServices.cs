@@ -98,10 +98,11 @@ namespace API.Services
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null) throw new Exception("Product not found");
-
-            product.Name = model.Name;
+			var imgUrl = await GetAnImage(model.ImageUrl);
+			product.Name = model.Name;
+            product.ImageUrl = imgUrl;
             product.Description = model.Description;
-            product.ImageUrl = model.ImageUrl;
+            product.PublicId = model.PublicId;
             product.Status = model.Status;
 
             await _context.SaveChangesAsync();

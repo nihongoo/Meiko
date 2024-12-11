@@ -3,11 +3,13 @@ import { useState, useContext } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import apiURL from "../../routes/API/index";
 import { toast } from "react-toastify";
-import {BillInfoContext} from './SoldOfline'
+import { BillInfoContext } from './SoldOfline'
 
 function ChooseDetail({ open, onClose, item, reloadList, bill }) {
     const [quantity, setQuantity] = useState(1);
     const { handleReloadFromAnother } = useContext(BillInfoContext);
+    const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
+
     const handleIncrease = () => {
         setQuantity((prev) => Math.min(prev + 1, item.quantity));
     };
@@ -21,6 +23,11 @@ function ChooseDetail({ open, onClose, item, reloadList, bill }) {
             billId: bill.id,
             productDetailId: item.id
         }
+        const payload = {
+            statusType: 1,
+            note: 'Hóa đơn có sản phẩm, đang chờ xử lý',
+            staffWhoCreatedThis: staffInfo.id,
+        };
         try {
             const res = await fetch(apiURL.bill.addToBill, {
                 method: 'POST',
@@ -33,6 +40,13 @@ function ChooseDetail({ open, onClose, item, reloadList, bill }) {
                 toast.success('Thêm sản phẩm thành công')
                 reloadList()
                 handleReloadFromAnother()
+                await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
             }
             else {
                 toast.error('Thêm sản phẩm thất bại')

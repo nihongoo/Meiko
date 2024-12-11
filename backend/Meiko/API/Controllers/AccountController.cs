@@ -95,6 +95,16 @@ namespace API.Controllers
 
             return Ok("Mã OTP đã được gửi đến email của bạn.");
         }
+        [HttpPost("verify")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOTP model)
+        {
+			var isValid = await _tpService.VerifyOtpAsync(model.Email, model.Otp);
+			if (!isValid)
+			{
+				return BadRequest("Mã xác nhận không hợp lệ.");
+			}
+            return Ok("Mã xác thực hợp lệ");
+		}
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtpAndResetPassword([FromBody] VerifyOtpDto model)
         {
@@ -107,13 +117,6 @@ namespace API.Controllers
             if (user == null)
             {
                 return BadRequest("Không tìm thấy tài khoản với email này.");
-            }
-
-
-            var isValid = await _tpService.VerifyOtpAsync(model.Email, model.Otp);
-            if (!isValid)
-            {
-                return BadRequest("Mã xác nhận không hợp lệ.");
             }
 
             var resetResult = await _userManager.RemovePasswordAsync(user);
@@ -129,5 +132,11 @@ namespace API.Controllers
 
             return Ok("Mật khẩu của bạn đã được cập nhật thành công.");
         }
+    }
+    
+    public class VerifyOTP
+    {
+        public string Email { get; set; }
+        public string Otp { get; set; }
     }
 }

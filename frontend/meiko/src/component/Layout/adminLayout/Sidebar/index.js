@@ -13,12 +13,14 @@ import { useState } from 'react';
 import useFetchData from '../../../../customHook/useFetchData'
 import apiURL from '../../../../routes/API';
 import moment from 'moment'
+import { toast } from 'react-toastify';
 
 
 function SideBar({ collapsed }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const userId = localStorage.getItem('userId')
     const [showInfo, setShowInfo] = useState(false)
+    const [changePass, setChangePass] = useState(false)
     const { data: aStaff } = useFetchData(`${apiURL.staff.getbyid}?id=${userId}`)
     localStorage.setItem('staffInfo', JSON.stringify(aStaff))
     const nav = useNavigate()
@@ -28,7 +30,6 @@ function SideBar({ collapsed }) {
     const handleClose = () => {
         setAnchorEl(null);
     };
-    const userName = localStorage.getItem('username')
     const handleLogout = () => {
         localStorage.clear();
         nav('/SignIn');
@@ -152,7 +153,7 @@ function SideBar({ collapsed }) {
                     <Avatar
                         onClick={handleAvatarClick}
                         sx={{ cursor: 'pointer', bgcolor: 'primary.main' }}
-                        {...stringAvatar(userName)}
+                        {...stringAvatar(aStaff.staffName)}
                     >
 
                     </Avatar>
@@ -164,7 +165,7 @@ function SideBar({ collapsed }) {
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
                             }}
-                        >{userName}</h5>
+                        >{aStaff.staffName}</h5>
                     </div>
                 </div>
 
@@ -186,12 +187,12 @@ function SideBar({ collapsed }) {
                         p={2}
                         display="flex"
                         flexDirection="column"
-                        gap={1} // Tạo khoảng cách giữa các nút
+                        gap={1}
                     >
                         <Button variant="contained" color="primary" onClick={() => { setShowInfo(true) }}>
                             Thông tin tài khoản
                         </Button>
-                        <Button variant="contained" color="primary">
+                        <Button variant="contained" color="primary" onClick={() => { setChangePass(true) }}>
                             Đổi mật khẩu
                         </Button>
                         <Button variant="contained" color="error" onClick={() => handleLogout()}>
@@ -206,7 +207,10 @@ function SideBar({ collapsed }) {
                 item={aStaff}
             >
             </StaffInfo>
-            <ChangePassword />
+            <ChangePassword
+                open={changePass}
+                onClose={() => { setChangePass(false) }}
+            />
         </Box>
     );
 }
@@ -254,120 +258,214 @@ function StaffInfo({ open, onClose, item }) {
     );
 }
 
-function ChangePassword() {
-    return (
-      <Dialog open={false} maxWidth="sm" fullWidth>
-        <Box p={3}>
-          <Box mb={3}>
-            <Typography variant="h6" gutterBottom>Đổi mật khẩu</Typography>
-          </Box>
-  
-          <Box mb={3}>
-            <Typography variant="body1" gutterBottom>Email</Typography>
-            <TextField
-              placeholder="Hãy nhập email mà bạn đã đăng ký"
-              variant="outlined"
-              fullWidth
-              size="small"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Button
-                      variant="text"
-                      color="primary"
-                      size="small"
-                      sx={{ whiteSpace: 'nowrap' }}
-                    >
-                      Gửi mã
-                    </Button>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
-  
-          <Box mb={3}>
-            <Typography variant="body1" gutterBottom>Mã xác minh</Typography>
-            <TextField
-              placeholder="Hãy nhập mã xác minh được gửi về email"
-              variant="outlined"
-              fullWidth
-              size="small"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Button
-                      variant="text"
-                      color="primary"
-                      size="small"
-                      sx={{ whiteSpace: 'nowrap' }}
-                    >
-                      Xác nhận mã
-                    </Button>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Box>
-  
-          <Box mb={3}>
-            <Typography variant="body1" gutterBottom>Mật khẩu mới</Typography>
-            <TextField
-              placeholder="Hãy nhập mật khẩu mới"
-              variant="outlined"
-              fullWidth
-              size="small"
-              type="password"
-            />
-          </Box>
-  
-          <Box mb={3}>
-            <Typography variant="body1" gutterBottom>Nhập lại mật khẩu mới</Typography>
-            <TextField
-              placeholder="Hãy nhập lại mật khẩu mới"
-              variant="outlined"
-              fullWidth
-              size="small"
-              type="password"
-            />
-          </Box>
-  
-          <Box display="flex" justifyContent="flex-end" gap={2}>
-            <Button variant="outlined" color="error">
-              Hủy
-            </Button>
-            <Button variant="outlined" color="success">
-              Cập nhật mật khẩu
-            </Button>
-          </Box>
-        </Box>
-      </Dialog>
-    );
-  }
+function ChangePassword({ open, onClose }) {
+    const [email, setEmail] = useState('')
+    const [otp, setOtp] = useState('')
+    const [isChange, setIsChange] = useState(false)
+    const [password, setPassword] = useState('')
+    const [cfpassword, setCfPassword] = useState('')
+    const handleSendCode = async () => {
+        try {
+            const res = await fetch(apiURL.account.forgot_password, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+            })
+            if (!res.ok) {
+                const msg = await res.json()
+                const firstError = Object.entries(msg.errors)[0];
+                if (firstError) {
+                    const [field, messages] = firstError;
+                    toast.error(messages[0]);
+                    console.log(field);
+                }
+            }
+        } catch (error) {
+            toast.error('Đã có lỗi khi gửi mã về email, vui lòng kiểm tra lại')
+        }
+    }
+    const handleVerify = async () => {
+        try {
+            const obj = {
+                email: email,
+                otp: otp
+            }
+            const res = await fetch(apiURL.account.verify, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(obj)
+            })
+            if (!res.ok) {
+                const msg = await res.json()
+                const firstError = Object.entries(msg.errors)[0];
+                if (firstError) {
+                    const [field, messages] = firstError;
+                    toast.error(messages[0]);
+                    console.log(field);
+                }
+            }
+            setIsChange(true)
 
-  function stringAvatar(name) {
+        } catch (error) {
+            toast.error('Đã có lỗi khi xác thực mã')
+        }
+    }
+    const handleChangePass = async () => {
+        try {
+            const obj = {
+                otp: otp,
+                email: email,
+                newPassword: password
+            }
+            if(!isChange) return
+            if(password !== cfpassword) {
+                toast.warning('Mật khẩu nhập lại không khớp, vui lòng kiểm tra lại')
+                return
+            }
+            const res = await fetch(apiURL.account.verify_otp, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(obj)
+            })
+            if (!res.ok) {
+                const msg = await res.json()
+                const firstError = Object.entries(msg.errors)[0];
+                if (firstError) {
+                    const [field, messages] = firstError;
+                    toast.error(messages[0]);
+                    console.log(field);
+                }
+            }
+            toast.success('Đổi mật khẩu thành công')
+        } catch (error) {
+            toast.error('Đã có lỗi khi cập nhật mật khẩu')
+        }
+    }
+    return (
+        <Dialog open={open} maxWidth="sm" onClose={onClose} fullWidth>
+            <Box p={3}>
+                <Box mb={3}>
+                    <Typography variant="h6" gutterBottom>Đổi mật khẩu</Typography>
+                </Box>
+
+                <Box mb={3}>
+                    <Typography variant="body1" gutterBottom>Email</Typography>
+                    <TextField
+                        placeholder="Hãy nhập email mà bạn đã đăng ký"
+                        variant="outlined"
+                        fullWidth
+                        size="small"
+                        onChange={(e) => setEmail(e.target.value)}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Button
+                                        variant="text"
+                                        color="primary"
+                                        size="small"
+                                        sx={{ whiteSpace: 'nowrap' }}
+                                        onClick={() => { handleSendCode() }}
+                                    >
+                                        Gửi mã
+                                    </Button>
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+                </Box>
+
+                <Box mb={3}>
+                    <Typography variant="body1" gutterBottom>Mã xác minh</Typography>
+                    <TextField
+                        placeholder="Hãy nhập mã xác minh được gửi về email"
+                        variant="outlined"
+                        fullWidth
+                        size="small"
+                        onChange={(e) => setOtp(e.target.value)}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <Button
+                                        variant="text"
+                                        color="primary"
+                                        size="small"
+                                        sx={{ whiteSpace: 'nowrap' }}
+                                        onClick={() => { handleVerify() }}
+                                    >
+                                        Xác nhận mã
+                                    </Button>
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+                </Box>
+
+                <Box mb={3}>
+                    <Typography variant="body1" gutterBottom>Mật khẩu mới</Typography>
+                    <TextField
+                        placeholder="Hãy nhập mật khẩu mới"
+                        variant="outlined"
+                        fullWidth
+                        size="small"
+                        type="password"
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Box>
+
+                <Box mb={3}>
+                    <Typography variant="body1" gutterBottom>Nhập lại mật khẩu mới</Typography>
+                    <TextField
+                        placeholder="Hãy nhập lại mật khẩu mới"
+                        variant="outlined"
+                        fullWidth
+                        size="small"
+                        type="password"
+                        onChange={(e)=>setCfPassword(e.target.value)}
+                    />
+                </Box>
+
+                <Box display="flex" justifyContent="flex-end" gap={2}>
+                    <Button variant="outlined" color="error">
+                        Hủy
+                    </Button>
+                    <Button variant="outlined" color="success" onClick={() => { handleChangePass() }}>
+                        Cập nhật mật khẩu
+                    </Button>
+                </Box>
+            </Box>
+        </Dialog>
+    );
+}
+
+function stringAvatar(name) {
     if (!name || typeof name !== 'string') {
-      return {
-        sx: {
-          bgcolor: '#ccc',
-        },
-        children: '?',
-      };
+        return {
+            sx: {
+                bgcolor: '#ccc',
+            },
+            children: '?',
+        };
     }
 
     const initials = name
-      .split(' ')
-      .map(word => word[0])
-      .join('');
-  
+        .split(' ')
+        .map(word => word[0])
+        .join('');
+
     return {
-      sx: {
-        bgcolor: stringToColor(name),
-      },
-      children: initials.length === 1 ? initials : initials.substring(0, 2),
+        sx: {
+            bgcolor: stringToColor(name),
+        },
+        children: initials.length === 1 ? initials : initials.substring(0, 2),
     };
-  }
-  
+}
+
 function stringToColor(string) {
     let hash = 0;
     let i;
