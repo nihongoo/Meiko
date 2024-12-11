@@ -1122,8 +1122,6 @@ namespace API.Services
                         if (productDetail.Quantity < quantityToReduce)
                             throw new Exception("Không đủ số lượng sản phẩm trong kho");
 
-                        productDetail.Quantity -= quantityToReduce;
-
                         decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
 						? saleProduct.DiscountedPrice.Value
 						: productDetail.Price;
@@ -1411,19 +1409,21 @@ namespace API.Services
 
 		private async Task UpdatePrice(Guid BillId)
 		{
-			var bill = await _dbcontext.Bills.FindAsync(BillId);
+			var bill = await _dbcontext.Bills
+	.Include(b => b.BillDetails) // Nạp BillDetails cùng với Bill
+	.FirstOrDefaultAsync(b => b.Id == BillId);
+
 
 			bill.Total = bill.BillDetails == null ? 0 : bill.BillDetails.Sum(bd => bd.Price);
 			if (bill.VoucherId != null)
 			{
 				var voucher = await _dbcontext.Vouchers.FindAsync(bill.VoucherId);
-				bill.Total -= (bill.Total * (decimal)voucher.Value) / 100;
-			}
+					bill.Total -= (bill.Total * (decimal)voucher.Value) / 100;
+				}
 
 			bill.Total += bill.ShippingFee;
 
 			_dbcontext.Bills.Update(bill);
-
 			await _dbcontext.SaveChangesAsync();
 		}
 
@@ -1496,10 +1496,10 @@ namespace API.Services
 					return (false, "Không tìm thấy sản phẩm cần xóa");
 				}
 				var bill = await _dbcontext.Bills.FirstOrDefaultAsync(k => k.Id == item.BillId);
-				bill.Total -= item.Price;
 				_dbcontext.Bills.Update(bill);
 				_dbcontext.BillDetails.Remove(item);
 				await _dbcontext.SaveChangesAsync();
+				await UpdatePrice(bill.Id);
 				return (true, "Xóa thành công");
 			}
 			catch (Exception ex)
