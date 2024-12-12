@@ -27,7 +27,7 @@ const productColumns = [
 
 const Home = () => {
     const paginationModel = { page: 0, pageSize: 10 };
-    const [day, setDay] = useState(null)
+    const [day, setDay] = useState(new Date().toISOString().substr(0, 10))
     const { data: topProductForDay } = useFetchData(`${apiURL.analysis.topProduct}?date=${day}`, (r) => {
         return r.map((item, index) => ({
             ...item,
@@ -88,9 +88,10 @@ const Home = () => {
                     <Typography>Doanh thu ngày {day || 'Vui lòng chọn ngày!'}: {totalRevenue} VND</Typography>
                     <TextField
                         type='date'
-                        label='Từ ngày'
+                        label='Chọn ngày'
                         variant='outlined'
                         size='small'
+                        value={day}
                         sx={{ mr: 2 }}
                         onChange={(e) =>
                             setDay(e.target.value)

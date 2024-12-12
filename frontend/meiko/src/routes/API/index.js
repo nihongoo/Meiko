@@ -122,6 +122,9 @@ const apiURL = {
         pay: 'https://localhost:7172/api/Bills/pay-for-bill/',
         changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/',
         changeQuantity: 'https://localhost:7172/api/Bills/add-quantity-to/',
+        refund: 'https://localhost:7172/api/Bills/return',
+        listRefund: 'https://localhost:7172/api/Bills/List-Request',
+        accept: 'https://localhost:7172/api/Bills/'
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',

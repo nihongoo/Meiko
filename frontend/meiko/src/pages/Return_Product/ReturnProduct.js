@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Box, Typography, TextField, Button, Card, Divider } from "@mui/material";
+import { Box, Typography, TextField, Button, Card, Divider, Autocomplete } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useGridApiContext } from "@mui/x-data-grid";
 import NoBillDataFind from "./NoBillDataFind";
 import useFetchData from "../../customHook/useFetchData";
 import apiURL from "../../routes/API";
@@ -12,8 +11,27 @@ function ReturnProduct() {
     const [bill, setBill] = useState(null);
     const [selected, setSelected] = useState([])
     const [error, setError] = useState(null);
-    const { data: Detail, refetch: refetchData } = useFetchData(`${apiURL.bill.list}?id=${bill?.id}`);
-
+    const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${bill?.id}`);
+    const { data: allBill } = useFetchData(apiURL.bill.all)
+    const [obj, setObj] = useState({
+        billId: '',
+        requester: localStorage.getItem('userId'),
+        refundItems: [{
+            id: '',
+            name: '',
+            quantity: 0,
+            price: 0,
+            total: 0,
+            note: '',
+        }]
+    })
+    const handleNoteChange = (id, note) => {
+        setSelected((prev) =>
+            prev.map(item =>
+                item.id === id ? { ...item, note } : item
+            )
+        );
+    };
 
     const handleSearch = async () => {
         try {
@@ -27,8 +45,49 @@ function ReturnProduct() {
         } catch (err) {
             setBill(null)
             setError(err.message);
+            console.log(error);
         }
     };
+
+    const handleRefund = async () => {
+        try {
+            setObj((prev) => ({
+                ...prev,
+                billId: bill?.id,
+                refundItems: selected.map((item) => ({
+                    id: item.productDetailId,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    total: item.price * item.quantity,
+                    note: item.note
+                }))
+            }))
+            const res = await fetch(apiURL.bill.refund, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(obj)
+            })
+            if (res.ok) {
+                toast.success('Tạo mới thành công')
+            }
+            else {
+                const errorData = await res.json();
+                if (errorData.errors) {
+                    const firstErrorKey = Object.keys(errorData.errors)[0];
+                    const firstErrorMessage = errorData.errors[firstErrorKey][0];
+                    if (firstErrorMessage) {
+                        toast.error(`${firstErrorMessage}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+console.log(obj);
 
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2} minHeight={700}>
@@ -40,13 +99,25 @@ function ReturnProduct() {
                     <Typography variant="body1" fontWeight="bold" color="textPrimary">Mã hóa đơn:</Typography>
                 </Box>
                 <Box display="flex">
-                    <TextField
-                        variant="outlined"
-                        placeholder="Nhập mã hóa đơn cần trả hàng"
-                        size="small"
-                        onChange={(e) => setQuery(e.target.value)}
-                        sx={{ mr: 1, width: 400 }}
+                    <Autocomplete
+                        disablePortal
+                        options={allBill || []}
+                        onInputChange={(event, newInputValue) => {
+                            setQuery(newInputValue);
+                        }}
+                        getOptionLabel={(option) => option.billCode}
+                        renderInput={(params) => (
+                            <TextField
+                                variant="outlined"
+                                placeholder="Nhập mã hóa đơn cần trả hàng"
+                                size="small"
+                                {...params}
+                                sx={{ mr: 1, width: 400 }}
+                            />
+                        )}
+                        freeSolo
                     />
+
                     <Button variant="outlined" onClick={() => { handleSearch() }} size="small" color="warning">Tìm kiếm</Button>
                 </Box>
             </Box>
@@ -58,11 +129,11 @@ function ReturnProduct() {
                         display="flex"
                         gap={4}
                         sx={{
-                            flexDirection: { xs: "column", md: "row" }, 
+                            flexDirection: { xs: "column", md: "row" },
                         }}
                     >
-                        <ListReturn item={selected} />
-                        <BillInfo></BillInfo>
+                        <ListReturn item={selected} onNoteChange={handleNoteChange} />
+                        <BillInfo item={bill} handleRefund={handleRefund} obj={obj}></BillInfo>
                     </Box>
                 </div>) : (
                     <NoBillDataFind />
@@ -72,14 +143,18 @@ function ReturnProduct() {
     );
 }
 
-function ListReturn({ item }) {
+function ListReturn({ item, onNoteChange }) {
     const paginationModel = { page: 0, pageSize: 5 };
     const rows = item.map((item, index) => ({
         ...item,
         id: item.id || index,
         total: item.quantity * item.price,
-        note: ''
+        note: item.note || ''
     }));
+    const handleRowEdit = (updateRow) => {
+        onNoteChange(updateRow.id, updateRow.note);
+        return { ...updateRow };
+    };
 
     const columns = [
         { field: "name", headerName: "Tên sản phẩm", flex: 1 },
@@ -90,15 +165,7 @@ function ListReturn({ item }) {
             field: "note",
             headerName: "Ghi chú",
             flex: 1,
-            renderCell: (params) => (
-                <TextField
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    value={params.row.note}
-                />
-            ),
-
+            editable: true,
         },
     ];
     return (
@@ -110,6 +177,7 @@ function ListReturn({ item }) {
                 initialState={{ pagination: { paginationModel } }}
                 rowsPerPageOptions={[5, 10]}
                 autoHeight
+                processRowUpdate={handleRowEdit}
                 pageSizeOptions={[5, 10]}
                 disableRowSelectionOnClick
                 sx={{
@@ -131,7 +199,6 @@ function ListReturn({ item }) {
 
 function ListDetail({ item, setSelect }) {
     const paginationModel = { page: 0, pageSize: 5 };
-
     const columns = [
         { field: "name", headerName: "Tên sản phẩm", flex: 1 },
         { field: "quantity", headerName: "Số lượng", flex: 1 },
@@ -146,7 +213,7 @@ function ListDetail({ item, setSelect }) {
             <DataGrid
                 rows={item.map((row, index) => ({
                     ...row,
-                    id: row.id || index, // Gán id nếu không tồn tại
+                    id: row.id || index,
                 }))}
                 columns={columns}
                 pageSize={5}
@@ -179,7 +246,27 @@ function ListDetail({ item, setSelect }) {
 }
 
 
-function BillInfo({ item }) {
+function BillInfo({ item, handleRefund, obj }) {
+    const { data: info } = useFetchData(item?.id ? `${apiURL.bill.billId}${item.id}` : null);
+    const amountSpent = obj.refundItems.reduce((sum, item) => sum + item.total, 0)
+    if (!info) {
+        return (
+            <Typography variant="body1" color="textSecondary">
+                Đang tải thông tin hóa đơn...
+            </Typography>
+        );
+    }
+
+    const recipientName = Array.isArray(info?.shippingAddresses) && info.shippingAddresses[0]
+        ? info.shippingAddresses[0].recipientName
+        : 'Khách lẻ';
+
+    const address = Array.isArray(info?.shippingAddresses) && info.shippingAddresses[0]
+        ? `${info.shippingAddresses[0]?.ward || ''}, ${info.shippingAddresses[0]?.district || ''}, ${info.shippingAddresses[0]?.city || ''}`
+        : 'Không xác định';
+
+    const total = new Intl.NumberFormat('vi-VN').format(info?.total) + ' VND' || 0;
+
     return (
         <Box flex={1}>
             <Card
@@ -198,20 +285,19 @@ function BillInfo({ item }) {
                         <Typography variant="body1" fontWeight="bold" color="textPrimary" mr={1}>
                             Khách hàng:
                         </Typography>
-                        <Typography variant="body1">Hoàng Hồng Khánh</Typography>
+                        <Typography variant="body1">{recipientName}</Typography>
                     </Box>
                     <Box display="flex">
                         <Typography variant="body1" fontWeight="bold" color="textPrimary" mr={1}>
                             Địa chỉ:
                         </Typography>
-                        <Typography variant="body1">
-                            aaaaa, Xã Đông Hà, Huyện Quản Bạ, Tỉnh Hà Giang
-                        </Typography>
+                        <Typography variant="body1">{address}</Typography>
                     </Box>
                 </Box>
                 <Divider
                     sx={{
-                        my: 1, height: 2,
+                        my: 1,
+                        height: 2,
                         backgroundColor: "#000",
                     }}
                 />
@@ -225,8 +311,10 @@ function BillInfo({ item }) {
                         </Typography>
                     </Box>
                     <Box textAlign="right">
-                        <Typography variant="body1">790.000VND</Typography>
-                        <Typography variant="body1">790.000VND</Typography>
+                        <Typography variant="body1">{total}</Typography>
+                        <Typography variant="body1">
+                        {new Intl.NumberFormat('vi-VN').format(amountSpent) + ' VND'}
+                        </Typography>
                     </Box>
                 </Box>
                 <Button
@@ -234,6 +322,7 @@ function BillInfo({ item }) {
                     color="warning"
                     fullWidth
                     size="large"
+                    onClick={handleRefund}
                 >
                     Trả hàng
                 </Button>
@@ -241,5 +330,6 @@ function BillInfo({ item }) {
         </Box>
     );
 }
+
 
 export default ReturnProduct;

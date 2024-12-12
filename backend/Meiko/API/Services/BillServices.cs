@@ -1,7 +1,7 @@
 ﻿using API.DTO;
 using API.IServices;
 using API.Models;
-using API.ViewModel;	
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -576,104 +576,104 @@ namespace API.Services
 		}
 
 
-        // Bill
-        public async Task<(bool k, Guid id)> Create(bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode)
-        {
-            bool check = false;
-            Guid billId = Guid.Empty;
-            Guid Id;
+		// Bill
+		public async Task<(bool k, Guid id)> Create(bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode)
+		{
+			bool check = false;
+			Guid billId = Guid.Empty;
+			Guid Id;
 
-            using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    Bills bill = new Bills()
-                    {
-                        Id = Guid.NewGuid(),
-                        BillCode = billcode,
-                        IsShipping = IsShiping,
-                        Total = 0,
-                        CreatedDate = DateTime.Now,
-                        Status = StatusType.TaoHoaDon,
-                        PaymentAmount = 0,
-                        ShippingFee = ShippingFee,
-                        CustomerId = CustomerWhoCreateThis != null ? CustomerWhoCreateThis : null,
-                        StaffId = StaffWhoCreateThis != null ? StaffWhoCreateThis : null,
-                        VoucherId = VoucherId != null ? VoucherId : null,
-                    };
+			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					Bills bill = new Bills()
+					{
+						Id = Guid.NewGuid(),
+						BillCode = billcode,
+						IsShipping = IsShiping,
+						Total = 0,
+						CreatedDate = DateTime.Now,
+						Status = StatusType.TaoHoaDon,
+						PaymentAmount = 0,
+						ShippingFee = ShippingFee,
+						CustomerId = CustomerWhoCreateThis != null ? CustomerWhoCreateThis : null,
+						StaffId = StaffWhoCreateThis != null ? StaffWhoCreateThis : null,
+						VoucherId = VoucherId != null ? VoucherId : null,
+					};
 
-                    await _dbcontext.Bills.AddAsync(bill);
+					await _dbcontext.Bills.AddAsync(bill);
 
-                    billId = bill.Id;
+					billId = bill.Id;
 
-                    if (CartId != null)
-                    {
-                        List<CartDetails>? cartDetails = await _dbcontext.CartDetails
-                            .Where(cd => cd.CartId == CartId)
-                            .Include(cd => cd.ProductDetails)
-                            .ThenInclude(pd => pd.SaleProducts)
-                            .ToListAsync();
+					if (CartId != null)
+					{
+						List<CartDetails>? cartDetails = await _dbcontext.CartDetails
+							.Where(cd => cd.CartId == CartId)
+							.Include(cd => cd.ProductDetails)
+							.ThenInclude(pd => pd.SaleProducts)
+							.ToListAsync();
 
-                        if (cartDetails != null)
-                        {
-                            foreach (var cartDetail in cartDetails)
-                            {
-                                decimal? discountedPrice = cartDetail.ProductDetails.SaleProducts
-                                    .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-                                    .OrderByDescending(sp => sp.EffectiveDate)
-                                    .FirstOrDefault()?.DiscountedPrice;
+						if (cartDetails != null)
+						{
+							foreach (var cartDetail in cartDetails)
+							{
+								decimal? discountedPrice = cartDetail.ProductDetails.SaleProducts
+									.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+									.OrderByDescending(sp => sp.EffectiveDate)
+									.FirstOrDefault()?.DiscountedPrice;
 
-                                var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
-                                    ? discountedPrice.Value
-                                    : cartDetail.Price;
+								var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
+									? discountedPrice.Value
+									: cartDetail.Price;
 
-                                await _dbcontext.BillDetails.AddAsync(new BillDetails()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    Quantity = cartDetail.Quantity,
-                                    Price = finalPrice,
-                                    Status = cartDetail.Status,
-                                    BillId = bill.Id,
-                                    ProductDetailId = cartDetail.ProductDetailsId
-                                });
-                            }
-                        }
+								await _dbcontext.BillDetails.AddAsync(new BillDetails()
+								{
+									Id = Guid.NewGuid(),
+									Quantity = cartDetail.Quantity,
+									Price = finalPrice,
+									Status = cartDetail.Status,
+									BillId = bill.Id,
+									ProductDetailId = cartDetail.ProductDetailsId
+								});
+							}
+						}
 
-                        bill.Total = cartDetails.Sum(cd =>
-                        {
-                            decimal? discountedPrice = cd.ProductDetails.SaleProducts
-                                .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-                                .OrderByDescending(sp => sp.EffectiveDate)
-                                .FirstOrDefault()?.DiscountedPrice;
+						bill.Total = cartDetails.Sum(cd =>
+						{
+							decimal? discountedPrice = cd.ProductDetails.SaleProducts
+								.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+								.OrderByDescending(sp => sp.EffectiveDate)
+								.FirstOrDefault()?.DiscountedPrice;
 
-                            var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
-                                ? discountedPrice.Value
-                                : cd.Price;
+							var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
+								? discountedPrice.Value
+								: cd.Price;
 
-                            return finalPrice * cd.Quantity;
-                        }) + ShippingFee;
+							return finalPrice * cd.Quantity;
+						}) + ShippingFee;
 
-                        check = true;
-                    }
+						check = true;
+					}
 
-                    await _dbcontext.SaveChangesAsync();
-                    await dbTransaction.CommitAsync();
-                    Id = bill.Id;
-                }
-                catch (Exception ex)
-                {
-                    await dbTransaction.RollbackAsync();
-                    Console.WriteLine(ex.Message);
-                    return (false, Guid.Empty);
-                }
-            }
+					await _dbcontext.SaveChangesAsync();
+					await dbTransaction.CommitAsync();
+					Id = bill.Id;
+				}
+				catch (Exception ex)
+				{
+					await dbTransaction.RollbackAsync();
+					Console.WriteLine(ex.Message);
+					return (false, Guid.Empty);
+				}
+			}
 
-            if (check == true) await _cartDetailServices.ClearCart((Guid)CartId);
+			if (check == true) await _cartDetailServices.ClearCart((Guid)CartId);
 
-            return (true, Id);
-        }
+			return (true, Id);
+		}
 
-        public async Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
+		public async Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -734,7 +734,7 @@ namespace API.Services
 							status = 1,
 							message = "Hoá đơn đã xoá hoặc đã huỷ"
 						};
-					
+
 					var total = bill.PaymentAmount;
 
 					var customer = bill.CustomerId == null ? null : _dbcontext.Customers.Find(bill.CustomerId);
@@ -756,8 +756,9 @@ namespace API.Services
 
 							_dbcontext.ProductDetails.UpdateRange(query);
 						}
-					
-					}else _dbcontext.Bills.Remove(bill);
+
+					}
+					else _dbcontext.Bills.Remove(bill);
 
 					await _dbcontext.SaveChangesAsync();
 
@@ -789,7 +790,7 @@ namespace API.Services
 				try
 				{
 					var bill = await _dbcontext.Bills.Where(c => c.Id == Id).FirstOrDefaultAsync();
-					if (bill == null || bill.Status == StatusType.DaHuy ||  bill.Status == StatusType.HoanTra)
+					if (bill == null || bill.Status == StatusType.DaHuy || bill.Status == StatusType.HoanTra)
 						return new ReturnMessage()
 						{
 							status = 1,
@@ -823,7 +824,7 @@ namespace API.Services
 						message = "Đã yêu cầu hoàn trả!\nQuý khách vui lòng chờ nhân viên xác nhận qua số điện thoại hoặc email!"
 					};
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					await dbtransaction.RollbackAsync();
 					return new ReturnMessage()
@@ -1099,8 +1100,8 @@ namespace API.Services
 				try
 				{
 					var productDetail = await _dbcontext.ProductDetails.FindAsync(model.ProductDetailId);
-                    var saleProduct = await _dbcontext.SaleProducts.FirstOrDefaultAsync(sp => sp.ProductDetailId == model.ProductDetailId); 
-                    var billDetail = await _dbcontext.BillDetails.FirstOrDefaultAsync(bd => bd.BillId == model.BillId && bd.ProductDetailId == model.ProductDetailId);
+					var saleProduct = await _dbcontext.SaleProducts.FirstOrDefaultAsync(sp => sp.ProductDetailId == model.ProductDetailId);
+					var billDetail = await _dbcontext.BillDetails.FirstOrDefaultAsync(bd => bd.BillId == model.BillId && bd.ProductDetailId == model.ProductDetailId);
 
 					if (billDetail == null)
 					{
@@ -1114,16 +1115,16 @@ namespace API.Services
 							ProductDetailId = model.ProductDetailId
 						};
 
-                        decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
+						decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
 						? saleProduct.DiscountedPrice.Value
 						: productDetail.Price;
-                        billDetail.Price = billDetail.Quantity * unitPrice;
+						billDetail.Price = billDetail.Quantity * unitPrice;
 
-                        if (productDetail.Quantity < billDetail.Quantity)
-                            throw new Exception("Không đủ số lượng sản phẩm trong kho");
+						if (productDetail.Quantity < billDetail.Quantity)
+							throw new Exception("Không đủ số lượng sản phẩm trong kho");
 
 
-                        await _dbcontext.BillDetails.AddAsync(billDetail);
+						await _dbcontext.BillDetails.AddAsync(billDetail);
 
 					}
 					else
@@ -1132,21 +1133,21 @@ namespace API.Services
 						if (billDetail.Quantity >= productDetail.Quantity)
 							billDetail.Quantity = productDetail.Quantity;
 
-                        var quantityToReduce = model.Quantity;
-                        if (productDetail.Quantity < quantityToReduce)
-                            throw new Exception("Không đủ số lượng sản phẩm trong kho");
+						var quantityToReduce = model.Quantity;
+						if (productDetail.Quantity < quantityToReduce)
+							throw new Exception("Không đủ số lượng sản phẩm trong kho");
 
-                        decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
+						decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
 						? saleProduct.DiscountedPrice.Value
 						: productDetail.Price;
-                        billDetail.Price = billDetail.Quantity * unitPrice;
+						billDetail.Price = billDetail.Quantity * unitPrice;
 
 						_dbcontext.BillDetails.Update(billDetail);
 					}
 
-                    _dbcontext.ProductDetails.Update(productDetail);
+					_dbcontext.ProductDetails.Update(productDetail);
 
-                    await _dbcontext.SaveChangesAsync();
+					await _dbcontext.SaveChangesAsync();
 
 					await UpdatePrice(model.BillId);
 
@@ -1377,7 +1378,7 @@ namespace API.Services
 				.ThenInclude(pd => pd.Products)
 				.ToListAsync();
 			var bill = await _dbcontext.Bills.FindAsync(id);
-			
+
 			if (listProduct == null)
 			{
 				list.Add(new ItemData(null, 1, 0));
@@ -1432,8 +1433,8 @@ namespace API.Services
 			if (bill.VoucherId != null)
 			{
 				var voucher = await _dbcontext.Vouchers.FindAsync(bill.VoucherId);
-					bill.Total -= (bill.Total * (decimal)voucher.Value) / 100;
-				}
+				bill.Total -= (bill.Total * (decimal)voucher.Value) / 100;
+			}
 
 			bill.Total += bill.ShippingFee;
 
@@ -1484,7 +1485,8 @@ namespace API.Services
 						Color = detail?.Colors.Name,
 						Price = detail?.Price ?? 0,
 						Quantity = item.Quantity,
-						status = item.Status
+						status = item.Status,
+						ProductDetailId = item.ProductDetailId,
 					};
 
 					Data.Add(viewModel);
@@ -1595,6 +1597,180 @@ namespace API.Services
 				})
 				.ToListAsync();
 			return bills;
+		}
+
+		public async Task<(bool k, string msg)> ReturnProduct(RequestRefund request)
+		{
+			if (request == null || request.RefundItems == null || !request.RefundItems.Any())
+			{
+				return (false, "Vui lòng chọn sản phẩm cần hoàn trả");
+			}
+
+			request.Id = Guid.NewGuid();
+			// Tính tổng số tiền hoàn tiền
+			request.AmountRefund = request.RefundItems.Sum(item => item.Total);
+
+			// Cập nhật trạng thái yêu cầu hoàn tiền
+			request.Status = StatusTypeRq.ChoXuly; // Trạng thái ban đầu
+
+			// Cập nhật thời gian tạo yêu cầu
+			request.CreateTime = DateTime.UtcNow;
+
+			// Tìm hóa đơn tương ứng và cập nhật trạng thái
+			var bill = await _dbcontext.Bills.FindAsync(request.BillId);
+			if (bill == null)
+			{
+				return (false, "Hóa đơn không tồn tại"); // Hóa đơn không tồn tại
+			}
+
+			// Cập nhật trạng thái hóa đơn
+			bill.Status = StatusType.HoanTra; // Cập nhật trạng thái hóa đơn
+			await _dbcontext.StatusHistories.AddAsync(new StatusHistory()
+			{
+				Id = Guid.NewGuid(),
+				CreatedDate = DateTime.Now,
+				StatusType = (StatusType)bill.Status,
+				Note = "Trả hàng",
+				WhoCreatedThis = request.requester,
+				BillId = request.BillId
+			});
+
+			// Thêm yêu cầu hoàn tiền vào cơ sở dữ liệu
+			_dbcontext.RequestRefunds.Add(request);
+
+			// Lưu thay đổi vào cơ sở dữ liệu
+			var result = await _dbcontext.SaveChangesAsync();
+
+			// Kiểm tra xem việc lưu có thành công không
+			if (result > 0)
+			{
+				return (true, "Tạo yêu cầu hoàn trả thành công"); // Trả về true và ID của yêu cầu hoàn tiền
+			}
+
+			return (false, "Tạo yêu cầu hoàn trả thất bại");
+		}
+
+		public async Task<bool> AcceptRefundRequest(Guid requestId, Guid staff)
+		{
+			// Lấy yêu cầu hoàn trả và các RefundItems
+			var refundRequest = await _dbcontext.RequestRefunds
+				.Include(r => r.RefundItems)
+				.FirstOrDefaultAsync(r => r.Id == requestId);
+
+			if (refundRequest == null)
+			{
+				throw new ArgumentException("Refund request not found.");
+			}
+
+			// Cập nhật trạng thái yêu cầu hoàn trả
+			refundRequest.Status = StatusTypeRq.ChapNhan;
+
+			// Cộng lại số lượng sản phẩm vào kho và trừ từ BillDetails
+			foreach (var item in refundRequest.RefundItems)
+			{
+				// Tìm sản phẩm trong kho (giả sử bạn có một DbSet cho sản phẩm)
+				var product = await _dbcontext.ProductDetails.FindAsync(item.Id);
+				if (product != null)
+				{
+					product.Quantity += item.Quantity; // Cộng sản phẩm vào kho
+				}
+
+				// Trừ số lượng từ BillDetails
+				var billDetail = await _dbcontext.BillDetails
+					.FirstOrDefaultAsync(bd => bd.BillId == refundRequest.BillId && bd.ProductDetailId == item.Id);
+
+				if (billDetail != null)
+				{
+					billDetail.Quantity -= item.Quantity; // Trừ số lượng hoàn trả
+					if (billDetail.Quantity < 0)
+					{
+						throw new InvalidOperationException("Refund quantity exceeds the quantity in the bill.");
+					}
+				}
+			}
+
+			// Lưu lại trạng thái vào lịch sử
+			var bill = await _dbcontext.Bills.FindAsync(refundRequest.BillId);
+			await _dbcontext.StatusHistories.AddAsync(new StatusHistory()
+			{
+				Id = Guid.NewGuid(),
+				CreatedDate = DateTime.Now,
+				StatusType = (StatusType)bill.Status,
+				Note = "Chấp nhận trả hàng",
+				WhoCreatedThis = staff,
+				BillId = refundRequest.BillId
+			});
+
+			// Lưu thay đổi vào cơ sở dữ liệu
+			var result = await _dbcontext.SaveChangesAsync();
+
+			return result > 0;
+		}
+
+
+		public async Task<bool> RejectRefundRequest(Guid requestId, Guid staff)
+		{
+			var refundRequest = await _dbcontext.RequestRefunds.FindAsync(requestId);
+			if (refundRequest == null)
+			{
+				throw new ArgumentException("Refund request not found.");
+			}
+
+			// Cập nhật trạng thái yêu cầu hoàn trả
+			refundRequest.Status = StatusTypeRq.TuChoi;
+
+			// Tìm hóa đơn tương ứng và cập nhật trạng thái
+			var bill = await _dbcontext.Bills.FindAsync(refundRequest.BillId);
+			if (bill != null)
+			{
+				bill.Status = StatusType.HoanThanh; // Cập nhật trạng thái hóa đơn
+			}
+
+			await _dbcontext.StatusHistories.AddAsync(new StatusHistory()
+			{
+				Id = Guid.NewGuid(),
+				CreatedDate = DateTime.Now,
+				StatusType = (StatusType)bill.Status,
+				Note = "Từ chối trả hàng",
+				WhoCreatedThis = staff,
+				BillId = refundRequest.BillId
+			});
+
+			// Lưu thay đổi vào cơ sở dữ liệu
+			var result = await _dbcontext.SaveChangesAsync();
+
+			return result > 0; // Trả về true nếu thành công
+		}
+
+		public async Task<List<RequestRefundDto>> ListRequest(Guid id)
+		{
+			var requestRefunds = await _dbcontext.RequestRefunds
+			.Include(r => r.RefundItems) // Bao gồm RefundItems liên quan
+			.Where(r => r.BillId == id) // Lọc theo BillId
+			.ToListAsync();
+
+			// Chuyển đổi RequestRefund sang RequestRefundDto
+			var requestRefundDtos = requestRefunds.Select(r => new RequestRefundDto
+			{
+				Id = r.Id,
+				requester = r.requester,
+				BillId = r.BillId,
+				CreateTime = r.CreateTime,
+				Status = r.Status,
+				AmountRefund = r.RefundItems?.Sum(i => i.Total) ?? 0, // Tính tổng AmountRefund
+				RefundItems = r.RefundItems?.Select(i => new RefundItemDto
+				{
+					Id = i.Id,
+					Name = i.Name,
+					Quantity = i.Quantity,
+					Price = i.Price,
+					Total = i.Total,
+					Note = i.Note,
+					RequestId = i.RequestId
+				}).ToList()
+			}).ToList();
+
+			return requestRefundDtos;
 		}
 	}
 

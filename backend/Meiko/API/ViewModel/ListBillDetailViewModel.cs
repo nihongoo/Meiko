@@ -1,4 +1,7 @@
-﻿namespace API.ViewModel
+﻿using System;
+using DataProcessing.Models;
+
+namespace API.ViewModel
 {
 	public class ListBillDetailViewModel
 	{
@@ -10,5 +13,6 @@
 		public string Color { get; set; }//detail
 		public int Quantity { get; set; }//bill
 		public int status { get; set; }//bill
+		public Guid ProductDetailId { get; set; }
 	}
 }

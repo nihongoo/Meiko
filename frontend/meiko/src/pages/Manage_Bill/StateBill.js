@@ -14,6 +14,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import apiURL from "../../routes/API";
 import useFetchData from "../../customHook/useFetchData";
 import moment from 'moment'
+import { toast } from "react-toastify";
 
 function StateBill({ open, onClose, item, print, setItem }) {
     const paginationModel = { page: 0, pageSize: 5 };
@@ -21,18 +22,94 @@ function StateBill({ open, onClose, item, print, setItem }) {
     const sortedStatusHistories = item?.statusHistories
         ? item.statusHistories.sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
         : [];
+    const { data: listRefund } = useFetchData(`${apiURL.bill.listRefund}?id=${item?.id}`, (r) => {
+        return r.map((item) => ({
+            ...item,
+            amountRefund: new Intl.NumberFormat('vi-VN').format(item.amountRefund) + ' VND',
+            createTime: moment(item.createTime).format('DD-MM-YYYY HH:mm'),
+            status: item?.status === 1 ? 'Chờ xử lý' : item?.status === 2 ? 'Chấp nhận hoàn trả' : 'Từ chối hoàn trả'
+        }));
+    }
+    )
+    const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
+    console.log(staffInfo);
 
     const steps = sortedStatusHistories.map(history => ({
         label: history.statusType,
         description: moment(history.createdDate).format('DD-MM-YYYY HH:mm')
     }));
     const totalPaid = item?.paymentHistories?.reduce((acc, item) => acc + item.amount, 0) || 0;
+    const refundColumns = [
+        { field: "name", headerName: "Tên sản phẩm", flex: 1 },
+        { field: "price", headerName: "Giá", flex: 1 },
+        { field: "quantity", headerName: "Số lượng", flex: 1 },
+        { field: "note", headerName: "Ghi chú", flex: 1 },
+    ];
     const paymentColumns = [
         { field: "amount", headerName: "Số tiền", flex: 1 },
         { field: "createdDate", headerName: "Thời gian", flex: 1 },
         { field: "paymentMethod", headerName: "PTTT", flex: 1 },
         { field: "status", headerName: "Trạng thái", flex: 1 },
     ];
+    const handleAccept = async (id) => {
+        try {
+            const accept = {
+                id: id,
+                staff: staffInfo.id
+            }
+            const res = await fetch(`${apiURL.bill.accept}${accept.id}/accept?staff=${accept.staff}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            if (res.ok) {
+                toast.success('Đã chấp nhận hoàn trả đơn hàng')
+            }
+            else {
+                const errorData = await res.json();
+                if (errorData.errors) {
+                    const firstErrorKey = Object.keys(errorData.errors)[0];
+                    const firstErrorMessage = errorData.errors[firstErrorKey][0];
+                    if (firstErrorMessage) {
+                        toast.error(`${firstErrorMessage}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleReject = async (id) => {
+        try {
+            const accept = {
+                id: id,
+                staff: staffInfo.id
+            }
+            const res = await fetch(`${apiURL.bill.accept}${accept.id}/reject?staff=${accept.staff}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            if (res.ok) {
+                toast.success('Đã từ chối hoàn trả đơn hàng')
+            }
+            else {
+                const errorData = await res.json();
+                if (errorData.errors) {
+                    const firstErrorKey = Object.keys(errorData.errors)[0];
+                    const firstErrorMessage = errorData.errors[firstErrorKey][0];
+                    if (firstErrorMessage) {
+                        toast.error(`${firstErrorMessage}`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth >
@@ -188,6 +265,59 @@ function StateBill({ open, onClose, item, print, setItem }) {
                                 ))}
                             </Box>
                         </Box>
+                        {listRefund && listRefund.length > 0 ? (
+                            <Box>
+                                <Typography variant="h6" gutterBottom>
+                                    Yêu cầu trả hàng
+                                </Typography>
+                                {listRefund.map((refund, index) => (
+                                    <div key={refund.id}>
+                                        <Box>
+                                            <Grid container spacing={2} mb={2}>
+                                                <Grid item xs={12} sm={6}>
+                                                    <Typography>{`Tổng hoàn trả: ${refund?.amountRefund || 'N/A'}`}</Typography>
+                                                    <Typography>{`Thời gian tạo yêu cầu: ${refund?.createTime || 'N/A'}`}</Typography>
+                                                    <Typography>{`Trạng thái: ${refund?.status || 'N/A'}`}</Typography>
+                                                </Grid>
+                                                <Grid item xs={12} sm={6}>
+                                                    {refund.status === 1 && (
+                                                        <>
+                                                            <Button onClick={() => handleAccept(refund.id)} className="me-3">Chấp nhận</Button>
+                                                            <Button onClick={() => handleReject(refund.id)}>Từ chối</Button>
+                                                        </>
+                                                    )}                                                </Grid>
+                                            </Grid>
+                                        </Box>
+                                        <DataGrid
+                                            rows={refund.refundItems.map((item, i) => ({
+                                                ...item,
+                                                id: item.id,
+                                                quantity: item.quantity === 0 ? i : item.quantity,
+                                            }))}
+                                            columns={refundColumns}
+                                            autoHeight
+                                            disableSelectionOnClick
+                                            initialState={{ pagination: { paginationModel } }}
+                                            pageSize={5}
+                                            pageSizeOptions={[5, 10]}
+                                            sx={{
+                                                border: 'none',
+                                                '& .MuiDataGrid-cell': {
+                                                    borderBottom: 'none',
+                                                },
+                                                '& .MuiDataGrid-columnHeaders': {
+                                                    borderBottom: 'none',
+                                                },
+                                                backgroundColor: '#fff',
+                                                minHeight: 250,
+                                            }}
+                                        />
+                                    </div>
+                                ))}
+                            </Box>
+                        ) : (
+                            <></>
+                        )}
                     </Box>
                 </Box>
             </Box>
