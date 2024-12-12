@@ -112,7 +112,7 @@ const ProductDetails = () => {
     const token = localStorage.getItem("jwtToken"); 
       if (!token) {
         toast.error("Vui lòng đăng nhập để tiếp tục mua hàng.");
-        navigate('/login');
+        navigate('/SignIn');
         return;
       }
       if (!selectedSize || !selectedColor) {
@@ -199,8 +199,8 @@ const ProductDetails = () => {
       }
   
       if (responseText.includes("Đã thêm")) {
-        toast.success(responseText);
         window.dispatchEvent(new Event("cartUpdated"));
+        toast.success(responseText);
       } else {
         toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
       }

@@ -249,13 +249,13 @@ namespace API.Controllers
 			{
 				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
 				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
-
+				
 				if (status == "PAID")
 				{
 					var bill = await _IBillServices.GetBillById(billId);
 					// Cập nhật trạng thái đơn hàng trong hệ thống
-					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 0, billId, bill.CustomerId);
-					
+					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 11, billId);
+
 				}
 				else
 				{

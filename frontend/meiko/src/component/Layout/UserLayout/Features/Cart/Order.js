@@ -52,9 +52,39 @@ function Order({
         const billCode = generateBillCode();
 
         try {
-            // Tạo hóa đơn
-            const billData = await createBill(billCode);
-            if (!billData.id) {
+            setLoading(true);
+    
+            const generateBillCode = () => {
+                const timestamp = new Date().getTime();
+                const randomSuffix = Math.floor(Math.random() * 10000);
+                return `BILL${timestamp}${randomSuffix}`;
+            };
+            const billCode = generateBillCode();
+    
+            const createBillResponse = await fetch("https://localhost:7172/api/Bills/create-bill", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    billCode: billCode,
+                    isShipping: true,
+                    total: 0,
+                    status: 1,
+                    paymentAmount: 0,
+                    shippingFee: shippingFee,
+                    cartId: localStorage.getItem("cartId"),
+                    customerId: localStorage.getItem("customerId"),
+                    voucherId: voucherId,
+                    staffId: null
+                }),
+            });
+    
+            const createBillData = await createBillResponse.json();
+            const billId = createBillData.id;
+            console.log(billId);
+    
+            if (!billId) {
                 setLoading(false);
                 alert("Không thể tạo hóa đơn. Vui lòng thử lại.");
                 return;
