@@ -252,7 +252,7 @@ namespace API.Controllers
 
 				if (status == "PAID")
 				{
-					var bill = _IBillServices.GetBillById(billId).Result;
+					var bill = await _IBillServices.GetBillById(billId);
 					// Cập nhật trạng thái đơn hàng trong hệ thống
 					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 0, billId, bill.CustomerId);
 					

@@ -1,17 +1,23 @@
 import React, { useState } from "react";
-import { Checkbox, Modal, Box, Button, Typography } from '@mui/material';
+import { Checkbox } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import styles from './Order.module.css';
 
-function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsInfo, shippingFee, setLoading, selectedAddress, voucherId }) {
-    const [selectedPayment, setSelectedPayment] = useState(null); // Giữ selectedPayment là chuỗi
-    const [openPayModal, setOpenPayModal] = useState(false);
+function Order({
+    selectedItems, 
+    total, 
+    voucherDetailIdd, 
+    coupon, 
+    productDetailsInfo, 
+    shippingFee, 
+    setLoading, 
+    selectedAddress, 
+    voucherId 
+}) {
+    const [selectedPayment, setSelectedPayment] = useState(null);
     const navigate = useNavigate();
 
-    const handlePaymentChange = (option) => {
-        setSelectedPayment(selectedPayment === option ? null : option);
-    };
-
+    // Format tiền tệ
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
@@ -19,6 +25,19 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
         }).format(amount);
     };
 
+    // Xử lý thay đổi hình thức thanh toán
+    const handlePaymentChange = (option) => {
+        setSelectedPayment(selectedPayment === option ? null : option);
+    };
+
+    // Tạo mã hóa đơn
+    const generateBillCode = () => {
+        const timestamp = new Date().getTime();
+        const randomSuffix = Math.floor(Math.random() * 10000);
+        return `BILL${timestamp}${randomSuffix}`;
+    };
+
+    // Xử lý đặt hàng
     const handlePlaceOrder = async () => {
         if (!selectedPayment) {
             alert("Vui lòng chọn hình thức thanh toán.");
@@ -29,113 +48,44 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
             return;
         }
 
-        // Nếu thanh toán online, mở modal
-        if (selectedPayment === "Online") {
-            setOpenPayModal(true);  // Mở modal thanh toán
-        } else {
-            await proceedWithOrder(selectedPayment === "Online"); // Pass true for online payment
-        }
-    };
+        setLoading(true);
+        const billCode = generateBillCode();
 
-    const proceedWithOrder = async (isOnlinePayment) => {
         try {
-            setLoading(true);
-    
-            const generateBillCode = () => {
-                const timestamp = new Date().getTime();
-                const randomSuffix = Math.floor(Math.random() * 10000);
-                return `BILL${timestamp}${randomSuffix}`;
-            };
-            const billCode = generateBillCode();
-    
-            const createBillResponse = await fetch("https://localhost:7172/api/Bills/create-bill", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    billCode: billCode,
-                    isShipping: true,
-                    total: 0,
-                    status: 1,
-                    paymentAmount: 0,
-                    shippingFee: shippingFee,
-                    cartId: localStorage.getItem("cartId"),
-                    customerId: localStorage.getItem("customerId"),
-                    voucherId: voucherId,
-                    staffId: null
-                }),
-            });
-    
-            const createBillData = await createBillResponse.json();
-            const billId = createBillData.id;
-    
-            if (!billId) {
+            // Tạo hóa đơn
+            const billData = await createBill(billCode);
+            if (!billData.id) {
                 setLoading(false);
                 alert("Không thể tạo hóa đơn. Vui lòng thử lại.");
                 return;
             }
-    
-            await fetch(`https://localhost:7172/api/Bills/change-status-from-bill/${billId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    statusType: 1,
-                    note: "Bill Status",
-                    staffWhoCreatedThis: localStorage.getItem("customerId")
-                }),
-            });
-    
-            await fetch("https://localhost:7172/api/Bills/add-address-to-bill", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    billId: billId,
-                    recipientName: selectedAddress.recipientName,
-                    phoneNumber: selectedAddress.phoneNumber,
-                    addressDetail: selectedAddress.addressDetail,
-                    city: selectedAddress.city,
-                    district: selectedAddress.district,
-                    ward: selectedAddress.ward,
-                    status: 1
-                }),
-            });
-    
-            if (voucherDetailIdd) {
-                await fetch(`https://localhost:7172/api/Voucher/UpdateVoucherStatus/${voucherDetailIdd}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-            }
-    
+
+            // Cập nhật trạng thái hóa đơn và địa chỉ giao hàng
+            await updateBillStatus(billData.id);
+            await addAddressToBill(billData.id);
+            
+            // Cập nhật trạng thái voucher nếu có
+            if (voucherDetailIdd) await updateVoucherStatus(voucherDetailIdd);
+
             setLoading(false);
-            alert("Đặt hàng thành công!");
+
+            // Lưu mã hóa đơn vào localStorage
             localStorage.setItem("billCode", billCode);
-    
-            if (isOnlinePayment) {
-                const response = await fetch(`https://localhost:7172/api/Bills/CreatePaymentWithPayOS/${billId}?descrtiption=Thanh%20toán%20đơn%20hàng`, {
-                    method: 'POST',
-                });
-    
-                const data = await response.json();
-                
-                if (data.paymentUrl) {
-                    window.location.href = data.paymentUrl;
+
+            // Xử lý thanh toán online
+            if (selectedPayment === "Online") {
+                const paymentResponse = await createOnlinePayment(billData.id);
+                if (paymentResponse.checkoutUrl) {
+                    // Chuyển hướng đến trang thanh toán của PayOS
+                    window.location.href = paymentResponse.checkoutUrl;
                 } else {
                     alert("Có lỗi xảy ra khi tạo thanh toán.");
                 }
             } else {
                 resetForm();
                 navigate("/order-success");
+                window.dispatchEvent(new Event('cartUpdated'));
             }
-    
-            window.dispatchEvent(new Event('cartUpdated'));
         } catch (error) {
             setLoading(false);
             console.error("Error placing order:", error);
@@ -143,19 +93,85 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
         }
     };
 
+    // Tạo hóa đơn
+    const createBill = async (billCode) => {
+        const response = await fetch("https://localhost:7172/api/Bills/create-bill", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                billCode,
+                isShipping: true,
+                total: 0,
+                status: 1,
+                paymentAmount: 0,
+                shippingFee,
+                cartId: localStorage.getItem("cartId"),
+                customerId: localStorage.getItem("customerId"),
+                voucherId,
+                staffId: null
+            }),
+        });
+        return await response.json();
+    };
+
+    // Cập nhật trạng thái hóa đơn
+    const updateBillStatus = async (billId) => {
+        await fetch(`https://localhost:7172/api/Bills/change-status-from-bill/${billId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                statusType: 1,
+                note: "Bill Status",
+                staffWhoCreatedThis: localStorage.getItem("customerId"),
+            }),
+        });
+    };
+
+    // Thêm địa chỉ vào hóa đơn
+    const addAddressToBill = async (billId) => {
+        await fetch("https://localhost:7172/api/Bills/add-address-to-bill", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                billId,
+                recipientName: selectedAddress.recipientName,
+                phoneNumber: selectedAddress.phoneNumber,
+                addressDetail: selectedAddress.addressDetail,
+                city: selectedAddress.city,
+                district: selectedAddress.district,
+                ward: selectedAddress.ward,
+                status: 1,
+            }),
+        });
+    };
+
+    // Cập nhật trạng thái voucher
+    const updateVoucherStatus = async (voucherDetailIdd) => {
+        await fetch(`https://localhost:7172/api/Voucher/UpdateVoucherStatus/${voucherDetailIdd}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+        });
+    };
+
+    // Tạo thanh toán online
+    const createOnlinePayment = async (billId) => {
+        const response = await fetch(`https://localhost:7172/api/Bills/CreatePaymentWithPayOS/${billId}?descrtiption=Thanh%20toán%20đơn%20hàng`, {
+            method: 'POST',
+        });
+        return await response.json();
+    };
+
+    // Xác nhận thanh toán online
+    const confirmOnlinePayment = async (billId) => {
+        const response = await fetch(`https://localhost:7172/api/Bills/confirm-payment/${billId}`, {
+            method: 'GET',
+        });
+        return await response.json();
+    };
+
+    // Reset form sau khi đặt hàng
     const resetForm = () => {
         setSelectedPayment(null);
-    };
-
-    const handlePaymentClose = () => {
-        setOpenPayModal(false);
-    };
-
-    // Hàm xử lý khi thanh toán thành công
-    const handlePaymentSuccess = () => {
-        alert("Thanh toán thành công!");
-        setOpenPayModal(false);  // Đóng modal thanh toán
-        navigate("/order-success");  // Điều hướng đến trang thành công
     };
 
     return (
@@ -202,56 +218,21 @@ function Order({ selectedItems, total, voucherDetailIdd, coupon, productDetailsI
                 <hr className={styles.separator} />
                 <span className={styles.paymentLabel}>Hình thức thanh toán</span>
                 <div className={styles.paymentOptions}>
-                    <Checkbox 
-                        checked={selectedPayment === "COD"} 
-                        onChange={() => handlePaymentChange("COD")} 
+                    <Checkbox
+                        checked={selectedPayment === "COD"}
+                        onChange={() => handlePaymentChange("COD")}
                     />
                     <span className={styles.paymentOption}>Thanh toán khi nhận hàng</span>
                 </div>
                 <div className={styles.paymentOptions}>
-                    <Checkbox 
-                        checked={selectedPayment === "Online"} 
-                        onChange={() => handlePaymentChange("Online")} 
+                    <Checkbox
+                        checked={selectedPayment === "Online"}
+                        onChange={() => handlePaymentChange("Online")}
                     />
                     <span className={styles.paymentOption}>Thanh toán online</span>
                 </div>
                 <button onClick={handlePlaceOrder} className={styles.orderButton}>Đặt hàng</button>
             </div>
-
-            {/* Modal thanh toán PayOS */}
-            <Modal
-                open={openPayModal}
-                onClose={handlePaymentClose}
-                aria-labelledby="payment-modal-title"
-                aria-describedby="payment-modal-description"
-            >
-                <Box className={styles.modalContent}>
-                    <Typography id="payment-modal-title" variant="h6" component="h2">
-                        Thanh toán online
-                    </Typography>
-                    <Typography id="payment-modal-description" sx={{ mt: 2 }}>
-                        Đang chuyển hướng tới cổng thanh toán...
-                    </Typography>
-                    <div className={styles.modalActions}>
-                        <Button 
-                            variant="contained" 
-                            color="primary" 
-                            onClick={handlePaymentSuccess} 
-                            sx={{ mt: 2, mr: 2 }}
-                        >
-                            Xác nhận thanh toán thành công
-                        </Button>
-                        <Button 
-                            variant="outlined" 
-                            color="secondary" 
-                            onClick={handlePaymentClose} 
-                            sx={{ mt: 2 }}
-                        >
-                            Hủy bỏ
-                        </Button>
-                    </div>
-                </Box>
-            </Modal>
         </div>
     );
 }

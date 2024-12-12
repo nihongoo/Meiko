@@ -6,7 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import ProductDescriptionTab from "../Features/Product/ProductDescriptionTab";
 import styles from "./ProductDetails.module.css";
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const ProductDetails = () => {
   const { productId } = useParams();
@@ -264,6 +264,7 @@ const ProductDetails = () => {
 
   return (
     <main className="my-4">
+      <ToastContainer/>
       <div style={{ marginTop: "150px" }}>
         <Breadcrumb items={breadcrumbItems} />
       </div>
