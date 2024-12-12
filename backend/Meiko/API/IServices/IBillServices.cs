@@ -46,7 +46,7 @@ namespace API.IServices
 		Task<ReturnMessage> DeleteAddress(Guid Id);
 
 		//PaymentHistory
-		Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId, Guid? WhoDoThis);
+		Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId);
 		Task<ReturnMessage> CancelPaymentById(Guid id, long billCode);
 
 		//BillDetails

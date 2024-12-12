@@ -963,7 +963,7 @@ namespace API.Services
 
 
 		//Payment History
-		public async Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId, Guid? WhoDoThis)
+		public async Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -972,13 +972,14 @@ namespace API.Services
 					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.ProductDetails).ToListAsync();
 					var bill = _dbcontext.Bills.FirstOrDefault(b => b.Id == BillId);
 					var billCode = bill.BillCode;
+					
 
-					if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
-						return new ReturnMessage()
-						{
-							status = 3,
-							message = "Đơn hàng đã được thanh toán đủ"
-						};
+					//if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
+					//	return new ReturnMessage()
+					//	{
+					//		status = 3,
+					//		message = "Đơn hàng đã được thanh toán đủ"
+					//	};
 
 					if (bill.Status == StatusType.DaHuy)
 						return new ReturnMessage()
@@ -986,12 +987,7 @@ namespace API.Services
 							status = 4,
 							message = "Đơn hàng đã bị huỷ, không thể thanh toán"
 						};
-					if (WhoDoThis == null)
-						return new ReturnMessage()
-						{
-							status = 4,
-							message = "Không tìm thấy người thực hiên hành dộng"
-						};
+
 					await _dbcontext.PaymentHistories.AddAsync(new PaymentHistory()
 					{
 						Id = Guid.NewGuid(),
@@ -999,15 +995,6 @@ namespace API.Services
 						Amount = AmountInput,
 						PaymentMethod = (PaymentMethods)PaymentMethod,
 						Status = (StatusForPayment)Status,
-						BillId = BillId
-					});
-
-					await _dbcontext.StatusHistories.AddAsync(new StatusHistory()
-					{
-						Id = Guid.NewGuid(),
-						CreatedDate = DateTime.Now,
-						StatusType = StatusType.DaThanhToan,
-						WhoCreatedThis = (Guid)WhoDoThis,
 						BillId = BillId
 					});
 
@@ -1030,7 +1017,6 @@ namespace API.Services
 
 					bill.PaymentDate = DateTime.Now;
 					bill.PaymentAmount = AmountInput;
-					bill.Status = StatusType.DaThanhToan;
 
 					_dbcontext.Bills.Update(bill);
 
@@ -1373,7 +1359,7 @@ namespace API.Services
 		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(Guid id, string description)
 		{
 			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{id}";
-			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}";
+			
 
 			PayOS payment = new(_clientId, _apiKey, _checkSum);
 			var list = new List<ItemData>();
@@ -1395,6 +1381,7 @@ namespace API.Services
 				};
 			}
 
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId}";
 			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)(bill.Total - bill.PaymentAmount),
 				description,

@@ -181,7 +181,15 @@ namespace API.Controllers
 		[HttpPost("pay-for-bill/{id}")]
 		public async Task<IActionResult> PayForBill(Guid id, [FromQuery] decimal paymentAmount, [FromQuery] Guid staffWhoDoThis)
 		{
-			var result = await _IBillServices.Pay(paymentAmount, 0, 0, id, staffWhoDoThis);
+			var result = await _IBillServices.Pay(paymentAmount, 0, 0, id);
+			if (result.status == 0)
+			{
+				await _IBillServices.ChangeStatusTo(id, 11, null, staffWhoDoThis);
+				var bill = _IBillServices.GetBillById(id).Result;
+
+				if (bill.PaymentAmount >= bill.Total && bill.IsShipping == true)
+					await _IBillServices.ChangeStatusTo(id, 5, null, staffWhoDoThis);
+			}
 			return Ok(result);
 		}
 
@@ -225,6 +233,17 @@ namespace API.Controllers
 			return Ok(response);
 		}
 
+		[HttpPost("Momo/Notify")]
+		public async Task<IActionResult> GetCallBack([FromBody] MomoExecuteResponseModel collection)
+		{
+			if (collection.ResultCode == 0)
+			{
+				await _IBillServices.Pay(collection.Amount, 0, 1, Guid.Parse(collection.OrderId));
+			}
+
+			return Ok(collection);
+		}
+
 		//PayOS API
 		[HttpPost("CreatePaymentWithPayOS/{id}")]
 		public async Task<IActionResult> CreatePayOS(Guid id, [FromQuery] string descrtiption)
@@ -232,8 +251,8 @@ namespace API.Controllers
 			return Ok(await _IBillServices.CreatePayOSRequestAsync(id, descrtiption));
 		}
 
-		[HttpGet("PayOS/ReturnPayOS/{billId}")]
-		public async Task<IActionResult> ReturnData(Guid billId, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
+		[HttpGet("PayOS/ReturnPayOS/{billId}/{whodothis}")]
+		public async Task<IActionResult> ReturnData(Guid billId, [FromRoute]Guid whodothis, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
 		{
 			try
 			{
@@ -242,10 +261,9 @@ namespace API.Controllers
 
 				if (status == "PAID")
 				{
-					var bill = _IBillServices.GetBillById(billId).Result;
 					// Cập nhật trạng thái đơn hàng trong hệ thống
-					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 0, billId, bill.CustomerId);
-					
+					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 11, billId);
+					await _IBillServices.ChangeStatusTo(billId, 11, null, whodothis);
 				}
 				else
 				{
