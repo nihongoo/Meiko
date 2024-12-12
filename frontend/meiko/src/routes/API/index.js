@@ -137,6 +137,11 @@ const apiURL = {
     },
     payHistory:{
         byBillId: 'https://localhost:7172/api/Bills/get-paymentHistories-by-billId/'
+    },
+    analysis: {
+        all: 'https://localhost:7172/api/DataAnalysis/General',
+        topProduct: 'https://localhost:7172/api/DataAnalysis/top-products',
+        topCustomer: 'https://localhost:7172/api/DataAnalysis/Top-Customer',
     }
     
 };

@@ -119,7 +119,7 @@ function ListProductDetail() {
             // Kiểm tra nếu có hình ảnh được chọn
             let uploadImageResponse;
             if (image) {
-                const fileName = image.name.split('.').slice(0, -1).join('.');
+                //const fileName = image.name.split('.').slice(0, -1).join('.');
                 const formData = new FormData();
                 formData.append('file', image);
                 formData.append('upload_preset', 'datnMeiko');
@@ -142,18 +142,41 @@ function ListProductDetail() {
                 };
     
                 // Gửi dữ liệu hình ảnh lên server
-                const apiResponse = await fetch(apiURL.image.base, {
-                    method: apiImg,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(uploadImageResponse),
-                });    
-                if (!apiResponse.ok) {
-                    toast.error("Cập nhật hình ảnh thất bại");
-                    console.log(apiResponse);
+                if(apiImg === 'POST'){
+                    const apiResponse = await fetch(apiURL.image.create, {
+                        method: apiImg,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(uploadImageResponse),
+                    });    
                     
-                    throw new Error("Image API call failed");
+                    if (!apiResponse.ok) {
+                        toast.error("Cập nhật hình ảnh thất bại");
+                        console.log(apiResponse);
+                        
+                        throw new Error("Image API call failed");
+                    }
+                    URL.revokeObjectURL(preview);
+                    setPreview(null)
+                }
+                else if(apiImg === 'PUT'){
+                    const apiResponse = await fetch(apiURL.image.base, {
+                        method: apiImg,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(uploadImageResponse),
+                    });    
+                    
+                    if (!apiResponse.ok) {
+                        toast.error("Cập nhật hình ảnh thất bại");
+                        console.log(apiResponse);
+                        
+                        throw new Error("Image API call failed");
+                    }
+                    URL.revokeObjectURL(preview);
+                    setPreview(null)
                 }
             }
     
@@ -183,7 +206,6 @@ function ListProductDetail() {
         }
     };
     
-
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2}>
             <Typography variant="h5" align="center" gutterBottom>Thông tin sản phẩm</Typography>
