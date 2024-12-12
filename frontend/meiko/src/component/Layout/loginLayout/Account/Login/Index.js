@@ -18,7 +18,7 @@ function LoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Reset lỗi cũ
+    setError(null);
     const loginData = { username, password };
   
     try {
@@ -36,20 +36,18 @@ function LoginForm() {
   
       const data = await response.json();
   
-      // Lưu JWT Token và thông tin user vào localStorage
       localStorage.setItem("jwtToken", data.token);
       localStorage.setItem("username", data.username);
+      localStorage.setItem("Email", data.email);
       localStorage.setItem("userRole", data.role);
-      localStorage.setItem("userId", data.id); // Lưu id của account
+      localStorage.setItem("userId", data.id);
   
-      // Kiểm tra role và điều hướng trang
       if (data.role === "admin") {
         navigate("/admin-dashboard");
       } else if (data.role === "Customer") {
         const token = data.token;
         const accountId = data.id;
-  
-        // Lấy customerId từ API
+
         const customerResponse = await fetch(`https://localhost:7172/api/Customer/${accountId}`, {
           method: "GET",
           headers: {

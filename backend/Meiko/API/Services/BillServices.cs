@@ -987,13 +987,14 @@ namespace API.Services
 					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.ProductDetails).ToListAsync();
 					var bill = _dbcontext.Bills.FirstOrDefault(b => b.Id == BillId);
 					var billCode = bill.BillCode;
+					
 
-					if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
-						return new ReturnMessage()
-						{
-							status = 3,
-							message = "Đơn hàng đã được thanh toán đủ"
-						};
+					//if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
+					//	return new ReturnMessage()
+					//	{
+					//		status = 3,
+					//		message = "Đơn hàng đã được thanh toán đủ"
+					//	};
 
 					if (bill.Status == StatusType.DaHuy)
 						return new ReturnMessage()
@@ -1001,6 +1002,7 @@ namespace API.Services
 							status = 4,
 							message = "Đơn hàng đã bị huỷ, không thể thanh toán"
 						};
+
 					await _dbcontext.PaymentHistories.AddAsync(new PaymentHistory()
 					{
 						Id = Guid.NewGuid(),
@@ -1369,7 +1371,7 @@ namespace API.Services
 		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(Guid id, string description)
 		{
 			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{id}";
-			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}";
+			
 
 			PayOS payment = new(_clientId, _apiKey, _checkSum);
 			var list = new List<ItemData>();
@@ -1391,6 +1393,7 @@ namespace API.Services
 				};
 			}
 
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId}";
 			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)(bill.Total - bill.PaymentAmount),
 				description,
@@ -1427,7 +1430,6 @@ namespace API.Services
 			var bill = await _dbcontext.Bills
 	.Include(b => b.BillDetails) // Nạp BillDetails cùng với Bill
 	.FirstOrDefaultAsync(b => b.Id == BillId);
-
 
 			bill.Total = bill.BillDetails == null ? 0 : bill.BillDetails.Sum(bd => bd.Price);
 			if (bill.VoucherId != null)

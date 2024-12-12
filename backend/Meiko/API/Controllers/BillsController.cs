@@ -137,7 +137,9 @@ namespace API.Controllers
 		[HttpPost("create-bill")]
 		public async Task<ActionResult<object>> CreateBill(BillInfoModel model)
 		{
+
 			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId, model.BillCode);
+
 			if (result.k)
 			{
 				return Ok(new { success = result.k, id = result.id });
@@ -251,19 +253,19 @@ namespace API.Controllers
 			return Ok(await _IBillServices.CreatePayOSRequestAsync(id, descrtiption));
 		}
 
-		[HttpGet("PayOS/ReturnPayOS/{billId}")]
-		public async Task<IActionResult> ReturnData(Guid billId, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] int orderCode)
+		[HttpGet("PayOS/ReturnPayOS/{billId}/{whodothis}")]
+		public async Task<IActionResult> ReturnData(Guid billId, [FromRoute]Guid whodothis, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
 		{
 			try
 			{
 				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
 				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
-
+				
 				if (status == "PAID")
 				{
 					// Cập nhật trạng thái đơn hàng trong hệ thống
-					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 0, 0, billId);
-
+					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 11, billId);
+					await _IBillServices.ChangeStatusTo(billId, 11, null, whodothis);
 				}
 				else
 				{
