@@ -182,14 +182,6 @@ namespace API.Controllers
 		public async Task<IActionResult> PayForBill(Guid id, [FromQuery] decimal paymentAmount, [FromQuery] Guid staffWhoDoThis)
 		{
 			var result = await _IBillServices.Pay(paymentAmount, 0, 0, id, staffWhoDoThis);
-			if (result.status == 0)
-			{
-				await _IBillServices.ChangeStatusTo(id, 11, null, staffWhoDoThis);
-				var bill = _IBillServices.GetBillById(id).Result;
-
-				if (bill.PaymentAmount >= bill.Total && bill.IsShipping == true)
-					await _IBillServices.ChangeStatusTo(id, 5, null, staffWhoDoThis);
-			}
 			return Ok(result);
 		}
 
