@@ -977,7 +977,7 @@ namespace API.Services
 
 
 		//Payment History
-		public async Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId)
+		public async Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId, Guid? WhoDoThis)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
@@ -1000,6 +1000,12 @@ namespace API.Services
 							status = 4,
 							message = "Đơn hàng đã bị huỷ, không thể thanh toán"
 						};
+					if (WhoDoThis == null)
+						return new ReturnMessage()
+						{
+							status = 4,
+							message = "Không tìm thấy người thực hiên hành dộng"
+						};
 					await _dbcontext.PaymentHistories.AddAsync(new PaymentHistory()
 					{
 						Id = Guid.NewGuid(),
@@ -1007,6 +1013,15 @@ namespace API.Services
 						Amount = AmountInput,
 						PaymentMethod = (PaymentMethods)PaymentMethod,
 						Status = (StatusForPayment)Status,
+						BillId = BillId
+					});
+
+					await _dbcontext.StatusHistories.AddAsync(new StatusHistory()
+					{
+						Id = Guid.NewGuid(),
+						CreatedDate = DateTime.Now,
+						StatusType = StatusType.DaThanhToan,
+						WhoCreatedThis = (Guid)WhoDoThis,
 						BillId = BillId
 					});
 
@@ -1029,6 +1044,7 @@ namespace API.Services
 
 					bill.PaymentDate = DateTime.Now;
 					bill.PaymentAmount = AmountInput;
+					bill.Status = StatusType.DaThanhToan;
 
 					_dbcontext.Bills.Update(bill);
 
@@ -1426,7 +1442,6 @@ namespace API.Services
 			var bill = await _dbcontext.Bills
 	.Include(b => b.BillDetails) // Nạp BillDetails cùng với Bill
 	.FirstOrDefaultAsync(b => b.Id == BillId);
-
 
 			bill.Total = bill.BillDetails == null ? 0 : bill.BillDetails.Sum(bd => bd.Price);
 			if (bill.VoucherId != null)
