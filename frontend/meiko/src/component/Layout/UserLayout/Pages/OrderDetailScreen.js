@@ -22,8 +22,10 @@ const OrderDetailScreen = () => {
   const [error, setError] = useState(null);
   const [voucherInfo, setVoucherInfo] = useState(null);
   const [statusHistory, setStatusHistory] = useState([]);
-  const [isAddressVisible, setAddressVisible] = useState(false);
-  const [isEditingAddress, setIsEditingAddress] = useState(false); // State to control editing form visibility
+  const [isEditingAddress, setIsEditingAddress] = useState(false); 
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelError, setCancelError] = useState('');
   const [newAddress, setNewAddress] = useState({
     recipientName: "",
     phoneNumber: "",
@@ -32,10 +34,6 @@ const OrderDetailScreen = () => {
     district: "",
     ward: ""
   });
-
-  const toggleAddressVisibility = () => {
-    setAddressVisible(prevState => !prevState);
-  };
 
   const statusMapping = {
     "Chờ xử lý": {
@@ -118,6 +116,12 @@ const OrderDetailScreen = () => {
     fetchOrderDetails();
   }, [billId]);
 
+  const latestStatus = statusHistory
+  .slice()
+  .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))[0];
+
+  const isPending = latestStatus?.statusType === "Chờ xử lý";
+
   const handleAddressChange = async () => {
     try {
       const shippingAddressId = order.shippingAddresses[0]?.id;
@@ -142,8 +146,8 @@ const OrderDetailScreen = () => {
         }),
       });
       const result = await response.json();
-      if (result.success) {
-        alert("Địa chỉ đã được cập nhật thành công!");
+      if (result.status === 0) {
+        alert("Sửa thành công địa chỉ giao hàng!");
         setIsEditingAddress(false); 
       } else {
         alert("Có lỗi xảy ra khi cập nhật địa chỉ.");
@@ -151,6 +155,44 @@ const OrderDetailScreen = () => {
     } catch (error) {
       console.error("Error updating address:", error);
       alert("Không thể cập nhật địa chỉ.");
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!cancelReason) {
+      setCancelError('Vui lòng nhập lý do hủy.');
+      return;
+    }
+  
+    try {
+      const response = await fetch(`https://localhost:7172/api/Bills/change-status-from-bill/${billId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          statusType: 10,
+          note: cancelReason,
+          staffWhoCreatedThis: localStorage.getItem("customerId")
+        }),
+      });
+      
+      const result = await response.json();
+      if (result.status === 0) {
+        alert('Đơn hàng đã được hủy thành công!');
+        setIsCanceling(false); 
+        setCancelReason(''); 
+        setCancelError('');  
+        setOrder(prevState => ({
+          ...prevState,
+          status: 'Đã hủy',
+        }));
+      } else {
+        alert('Có lỗi xảy ra khi hủy đơn hàng.');
+      }
+    } catch (error) {
+      console.error("Lỗi khi hủy đơn:", error);
+      alert('Không thể hủy đơn hàng.');
     }
   };
 
@@ -192,11 +234,45 @@ const OrderDetailScreen = () => {
                   ) : (
                     <p className="text-md text-muted">Không có mã giảm giá</p>
                   )}
+                  <p className="text-md text-muted">
+                    Phí vận chuyển: <span className="text-dark">{currencyFormat(order.shippingFee)}</span>
+                  </p>
                 </div>
                 <div className="order-d-top-r text-xl text-primary font-semibold">
                   Tổng cộng: <span className="text-dark">{currencyFormat(order.total)}</span>
                 </div>
               </div>
+              {isPending && !isCanceling && (
+                <div className="d-flex justify-content-end">
+                  <button
+                    onClick={() => setIsCanceling(true)}
+                    className="btn btn-danger"
+                  >
+                    Hủy đơn
+                  </button>
+                </div>
+              )}
+              {isCanceling && (
+                <div className="cancel-confirmation">
+                  <h5>Xác nhận hủy đơn</h5>
+                  <div>
+                    <label>Lý do hủy:</label>
+                    <textarea
+                      name="cancelReason"
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      className="form-control"
+                    />
+                  </div>
+                  {cancelError && <div className="text-danger">{cancelError}</div>}
+                  <button onClick={handleCancelOrder} className="btn btn-danger mt-3">
+                    Xác nhận hủy
+                  </button>
+                  <button onClick={() => setIsCanceling(false)} className="btn btn-link mt-3">
+                    Hủy
+                  </button>
+                </div>
+              )}
 
               {/* Địa chỉ giao hàng */}
               <div className={styles.orderAddressWrapper}>
@@ -296,23 +372,23 @@ const OrderDetailScreen = () => {
               {/* Timeline */}
               <div className={styles.timelineWrapper}>
                 {statusHistory.map((status, index) => {
-                  const { color, icon } = statusMapping[status.statusType] || {}; 
-                  const stepClass = `${styles.timelineStep} ${styles[color] || ""}`;
-                  const stepCircleClass = `${styles.stepCircle} ${styles[color + "Circle"] || ""}`;
-                  const stepLineClass = `${styles.stepLine} ${styles[color] || ""}`;
-                
-                  return (
-                    <div key={index} className={stepClass}>
-                      <div className={stepCircleClass}>
-                        <i className={`fa ${icon || "fa-question-circle"}`}></i>
+                    const { color, icon } = statusMapping[status.statusType] || {}; 
+                    const stepClass = `${styles.timelineStep} ${styles[color] || ""}`;
+                    const stepCircleClass = `${styles.stepCircle} ${styles[color + "Circle"] || ""}`;
+                    const stepLineClass = `${styles.stepLine} ${styles[color] || ""}`;
+                  
+                    return (
+                      <div key={index} className={stepClass}>
+                        <div className={stepCircleClass}>
+                          <i className={`fa ${icon || "fa-question-circle"}`}></i>
+                        </div>
+                        <div className={stepLineClass}></div>
+                        <div className={styles.bottomLine}></div>
+                        <p className={styles.stepText}>{status.statusType}</p>
+                        <p className={styles.stepTime}>{new Date(status.createdDate).toLocaleString()}</p>
                       </div>
-                      <div className={stepLineClass}></div>
-                      <div className={styles.bottomLine}></div>
-                      <p className={styles.stepText}>{status.statusType}</p>
-                      <p className={styles.stepTime}>{new Date(status.createdDate).toLocaleString()}</p>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
 
               {/* Các sản phẩm trong đơn hàng */}
