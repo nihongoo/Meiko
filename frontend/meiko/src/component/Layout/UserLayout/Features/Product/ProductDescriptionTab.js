@@ -96,7 +96,7 @@ const ProductDescriptionTab = ({ productId }) => {
                   <li><strong>Thương hiệu:</strong> {product.brands.name}</li>
                   <li><strong>Bảo hành:</strong> {product.warrantyPeriod}</li>
                 </ul>
-                <p><strong>*Lưu ý:</strong> Vui lòng điền số điện thoại chính xác.</p>
+                <p><strong>*Mô tả:</strong> {product.description}</p>
                 <h4>Tại sao nên mua sắm tại Outfit store?</h4>
                 <ul>
                   <li>Chất lượng vật liệu đảm bảo</li>

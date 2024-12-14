@@ -8,7 +8,6 @@ import { currencyFormat } from "../utils/helper";
 import styles from './OrderDetailScreen.module.css';
 import { useEffect, useState } from "react";
 
-
 const breadcrumbItems = [
   { label: "Trang chủ", link: "/" },
   { label: "Đơn hàng", link: "/order" },
@@ -23,8 +22,16 @@ const OrderDetailScreen = () => {
   const [error, setError] = useState(null);
   const [voucherInfo, setVoucherInfo] = useState(null);
   const [statusHistory, setStatusHistory] = useState([]);
-
   const [isAddressVisible, setAddressVisible] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false); // State to control editing form visibility
+  const [newAddress, setNewAddress] = useState({
+    recipientName: "",
+    phoneNumber: "",
+    addressDetail: "",
+    city: "",
+    district: "",
+    ward: ""
+  });
 
   const toggleAddressVisibility = () => {
     setAddressVisible(prevState => !prevState);
@@ -101,7 +108,6 @@ const OrderDetailScreen = () => {
         const statusResponse = await fetch(`https://localhost:7172/api/Bills/get-statusHistories-by-billId/${billId}`);
         const statusData = await statusResponse.json();
         setStatusHistory(statusData);
-        console.log(statusHistory);
         setLoading(false);
       } catch (err) {
         setError("Có lỗi xảy ra khi tải thông tin đơn hàng.");
@@ -111,6 +117,50 @@ const OrderDetailScreen = () => {
 
     fetchOrderDetails();
   }, [billId]);
+
+  const handleAddressChange = async () => {
+    try {
+      const shippingAddressId = order.shippingAddresses[0]?.id;
+      if (!shippingAddressId) {
+        alert("Không tìm thấy địa chỉ để cập nhật.");
+        return;
+      }
+      const response = await fetch(`https://localhost:7172/api/Bills/edit-address-from-id/${shippingAddressId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          recipientName: newAddress.recipientName,
+          phoneNumber: newAddress.phoneNumber,
+          addressDetail: newAddress.addressDetail,
+          city: newAddress.city,
+          district: newAddress.district,
+          ward: newAddress.ward,
+          status: 5,
+          billId: billId,
+        }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert("Địa chỉ đã được cập nhật thành công!");
+        setIsEditingAddress(false); 
+      } else {
+        alert("Có lỗi xảy ra khi cập nhật địa chỉ.");
+      }
+    } catch (error) {
+      console.error("Error updating address:", error);
+      alert("Không thể cập nhật địa chỉ.");
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAddress({
+      ...newAddress,
+      [name]: value,
+    });
+  };
 
   if (loading) return <div>Đang tải...</div>;
   if (error) return <div>{error}</div>;
@@ -152,14 +202,89 @@ const OrderDetailScreen = () => {
               <div className={styles.orderAddressWrapper}>
                 <div className="d-flex justify-content-between align-items-center">
                   <h5>Địa chỉ giao hàng</h5>
-                  <button
-                    onClick={toggleAddressVisibility}
-                    className="btn btn-link text-primary"
-                  >
-                    {isAddressVisible ? "Ẩn địa chỉ" : "Hiển thị địa chỉ"}
-                  </button>
+                  {order.status === "Chờ xử lý" && 
+                   !isEditingAddress && 
+                   (order.paymentHistories?.length === 0 || 
+                    order.paymentHistories[0]?.paymentMethod !== "chuyển khoản") && (
+                    <button
+                      onClick={() => setIsEditingAddress(true)}
+                      className="btn btn-link text-primary"
+                    >
+                      Thay đổi địa chỉ
+                    </button>
+                  )}
                 </div>
-                {isAddressVisible && (
+
+                {isEditingAddress ? (
+                  <div>
+                    <div>
+                      <label>Người nhận:</label>
+                      <input
+                        type="text"
+                        name="recipientName"
+                        value={newAddress.recipientName}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Số điện thoại:</label>
+                      <input
+                        type="text"
+                        name="phoneNumber"
+                        value={newAddress.phoneNumber}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Địa chỉ:</label>
+                      <input
+                        type="text"
+                        name="addressDetail"
+                        value={newAddress.addressDetail}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Thành phố:</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={newAddress.city}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Quận/Huyện:</label>
+                      <input
+                        type="text"
+                        name="district"
+                        value={newAddress.district}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Xã/Phường:</label>
+                      <input
+                        type="text"
+                        name="ward"
+                        value={newAddress.ward}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <button onClick={handleAddressChange} className="btn btn-success mt-3">
+                      Cập nhật địa chỉ
+                    </button>
+                    <button onClick={() => setIsEditingAddress(false)} className="btn btn-link mt-3">
+                      Hủy
+                    </button>
+                  </div>
+                ) : (
                   <div>
                     <p><span className={styles.addressPart}>Người nhận:</span> {order.shippingAddresses[0]?.recipientName}</p>
                     <p><span className={styles.addressPart}>Địa chỉ:</span> {order.shippingAddresses[0]?.addressDetail}, {order.shippingAddresses[0]?.ward}, {order.shippingAddresses[0]?.district}, {order.shippingAddresses[0]?.city}</p>
@@ -171,10 +296,7 @@ const OrderDetailScreen = () => {
               {/* Timeline */}
               <div className={styles.timelineWrapper}>
                 {statusHistory.map((status, index) => {
-
                   const { color, icon } = statusMapping[status.statusType] || {}; 
-                  console.log(`Status: ${status.statusType}, Color: ${color}, Icon: ${icon}`); 
-                
                   const stepClass = `${styles.timelineStep} ${styles[color] || ""}`;
                   const stepCircleClass = `${styles.stepCircle} ${styles[color + "Circle"] || ""}`;
                   const stepLineClass = `${styles.stepLine} ${styles[color] || ""}`;

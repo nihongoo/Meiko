@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Checkbox } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import styles from './Order.module.css';
+import Swal from 'sweetalert2';
+import '@sweetalert2/theme-material-ui/material-ui.css';
 
 function Order({
     selectedItems, 
@@ -48,8 +50,22 @@ function Order({
             return;
         }
 
+        if (selectedPayment === "Online") {
+            const result = await Swal.fire({
+                title: 'Xác nhận thanh toán online',
+                text: "Khi thanh toán online bạn không thể sửa số lượng hoặc địa chỉ của đơn hàng, bạn chắc chắn chứ?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy bỏ',
+            });
+    
+            if (!result.isConfirmed) {
+                return;
+            }
+        }
+
         setLoading(true);
-        const billCode = generateBillCode();
 
         try {
             setLoading(true);
@@ -91,8 +107,8 @@ function Order({
             }
 
             // Cập nhật trạng thái hóa đơn và địa chỉ giao hàng
-            await updateBillStatus(billData.id);
-            await addAddressToBill(billData.id);
+            await updateBillStatus(createBillData.id);
+            await addAddressToBill(createBillData.id);
             
             // Cập nhật trạng thái voucher nếu có
             if (voucherDetailIdd) await updateVoucherStatus(voucherDetailIdd);
@@ -104,7 +120,7 @@ function Order({
 
             // Xử lý thanh toán online
             if (selectedPayment === "Online") {
-                const paymentResponse = await createOnlinePayment(billData.id);
+                const paymentResponse = await createOnlinePayment(createBillData.id);
                 if (paymentResponse.checkoutUrl) {
                     // Chuyển hướng đến trang thanh toán của PayOS
                     window.location.href = paymentResponse.checkoutUrl;
