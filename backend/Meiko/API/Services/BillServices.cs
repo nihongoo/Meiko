@@ -972,14 +972,14 @@ namespace API.Services
 					var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.ProductDetails).ToListAsync();
 					var bill = _dbcontext.Bills.FirstOrDefault(b => b.Id == BillId);
 					var billCode = bill.BillCode;
-					
 
-					//if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
-					//	return new ReturnMessage()
-					//	{
-					//		status = 3,
-					//		message = "Đơn hàng đã được thanh toán đủ"
-					//	};
+
+					if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
+						return new ReturnMessage()
+						{
+							status = 3,
+							message = "Đơn hàng đã được thanh toán đủ"
+						};
 
 					if (bill.Status == StatusType.DaHuy)
 						return new ReturnMessage()

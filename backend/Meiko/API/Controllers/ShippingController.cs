@@ -1,101 +1,87 @@
 ﻿using API.IServices;
+using API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ShippingController : Controller
-    {
-        private readonly IGHNService _ghnService;
-        public ShippingController(IGHNService iGHNService)
-        {
-            _ghnService = iGHNService;
-        }
-        [HttpPost("calculate-fee")]
-        public async Task<IActionResult> CalculateShippingFee([FromBody] CalculateFeeRequest request)
-        {
-            var result = await _ghnService.CalculateShippingFeeAsync(
-                request.FromDistrictID,
-                request.ToDistrictID,
-                request.Weight,
-                request.Length,
-                request.Width,
-                request.Height);
+	[Route("api/[controller]")]
+	[ApiController]
+	public class ShippingController : Controller
+	{
+		private readonly IGHNService _shippingService;
+		public ShippingController(IGHNService iGHNService)
+		{
+			_shippingService = iGHNService;
+		}
 
-            return Ok(result);
-        }
-        [HttpPost("track-order")]
-        public async Task<IActionResult> TrackOrder([FromBody] TrackOrderRequest request)
-        {
-            var result = await _ghnService.TrackOrderAsync(request.OrderCode);
-            return Ok(result);
-        }
-    }
-    public class CalculateFeeRequest
-    {
-        [JsonProperty("from_district_id")]
-        public int FromDistrictID { get; set; }
+		[HttpPost("calculate-shipping-fee")]
+		public async Task<IActionResult> CalculateShippingFeeAsync([FromBody] ShippingRequest shippingRequest)
+		{
+			try
+			{
+				// Tính phí giao hàng thông qua Service
+				decimal fee = await _shippingService.CalculateShippingFeeAsync(
+					shippingRequest.FromCityName,
+					shippingRequest.FromDistrictName,
+					shippingRequest.ToCityName,
+					shippingRequest.ToDistrictName,
+					shippingRequest.ToWardName
+				);
 
-        [JsonProperty("from_ward_code")]
-        public string FromWardCode { get; set; } = "DefaultWardCode";
+				return Ok(new { Fee = fee });
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
 
-        [JsonProperty("to_district_id")]
-        public int ToDistrictID { get; set; }
+		// API để lấy danh sách tỉnh/thành phố
+		[HttpGet("provinces")]
+		public async Task<IActionResult> GetProvincesAsync()
+		{
+			try
+			{
+				var provinces = await _shippingService.GetProvinceListAsync();
+				return Ok(provinces);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
 
-        [JsonProperty("to_ward_code")]
-        public string ToWardCode { get; set; } = "DefaultWardCode";
+		// API để lấy danh sách quận/huyện theo tỉnh
+		[HttpGet("districts")]
+		public async Task<IActionResult> GetDistrictsAsync(int provinceId)
+		{
+			try
+			{
+				var districts = await _shippingService.GetDistrictListAsync(provinceId);
+				return Ok(districts);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
 
-        [JsonProperty("service_id")]
-        public int ServiceID { get; set; }
-
-        [JsonProperty("height")]
-        public int Height { get; set; }
-
-        [JsonProperty("length")]
-        public int Length { get; set; }
-
-        [JsonProperty("weight")]
-        public int Weight { get; set; }
-
-        [JsonProperty("width")]
-        public int Width { get; set; }
-
-        [JsonProperty("insurance_value")]
-        public int InsuranceValue { get; set; }
-
-        [JsonProperty("cod_failed_amount")]
-        public int CODFailedAmount { get; set; }
-
-        [JsonProperty("items")]
-        public List<Item> Items { get; set; }
-    }
-
-    public class Item
-    {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("quantity")]
-        public int Quantity { get; set; }
-
-        [JsonProperty("height")]
-        public int Height { get; set; }
-
-        [JsonProperty("weight")]
-        public int Weight { get; set; }
-
-        [JsonProperty("length")]
-        public int Length { get; set; }
-
-        [JsonProperty("width")]
-        public int Width { get; set; }
-    }
-
-    public class TrackOrderRequest
-    {
-        public string OrderCode { get; set; }
-    }
+		// API để lấy danh sách xã/phường theo quận
+		[HttpGet("wards")]
+		public async Task<IActionResult> GetWardsAsync(int districtId)
+		{
+			try
+			{
+				var wards = await _shippingService.GetWardListAsync(districtId);
+				return Ok(wards);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
+	}
+	
 }

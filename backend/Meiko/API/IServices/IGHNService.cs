@@ -1,8 +1,16 @@
 ﻿namespace API.IServices
 {
-    public interface IGHNService
-    {
-        Task<string> CalculateShippingFeeAsync(int fromDistrict, int toDistrict, int weight, int length, int width, int height);
-        Task<string> TrackOrderAsync(string orderCode);
-    }
+	public interface IGHNService
+	{
+		Task<decimal> CalculateShippingFeeAsync(
+		string fromCityName,
+		string fromDistrictName,
+		string toCityName,
+		string toDistrictName,
+		string toWardName);
+
+		Task<List<Province>> GetProvinceListAsync();
+		Task<List<District>> GetDistrictListAsync(int provinceId);
+		Task<List<Ward>> GetWardListAsync(int districtId);
+	}
 }

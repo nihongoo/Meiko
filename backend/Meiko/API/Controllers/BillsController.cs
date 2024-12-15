@@ -272,7 +272,7 @@ namespace API.Controllers
 				}
 
 				// 3. Trả về trạng thái thành công
-				return Ok(paymentLinkInfo);
+				return Redirect("http://localhost:3000/order-success");
 			}
 			catch (Exception ex)
 			{
