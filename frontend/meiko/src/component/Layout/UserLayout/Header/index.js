@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import 'font-awesome/css/font-awesome.min.css';
 import styles from '../main_styles.module.css';
+import { useNavigate } from "react-router-dom";
 
 function Header () {
   const [cartItemCount, setCartItemCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
+  const navigate = useNavigate();
 
   // Hàm lấy số lượng sản phẩm trong giỏ hàng từ API
   const fetchCartItemCount = async () => {
@@ -88,6 +90,7 @@ function Header () {
     setUsername("");
     setCartItemCount(0);
     fetchCartItemCount();
+    navigate("/SignIn");
   };
 
   const truncatedUsername = username.length > 7 ? username.slice(0, 7) : username;
@@ -148,12 +151,12 @@ function Header () {
                       {isLoggedIn ? (
                         <>
                           <li><a href="/accountUser"><i className="fa fa-user" aria-hidden="true"></i> Thông tin</a></li>
-                          <li><a href="/homeUser" onClick={handleLogout}><i className="fa fa-sign-out" aria-hidden="true"></i> Đăng xuất</a></li>
+                          <li><a href="#" onClick={handleLogout}><i className="fa fa-sign-out" aria-hidden="true"></i> Đăng xuất</a></li>
                         </>
                       ) : (
                         <>
                           <li><a href="/SignIn"><i className="fa fa-sign-in" aria-hidden="true"></i> Đăng nhập</a></li>
-                          <li><a href="#"><i className="fa fa-user-plus" aria-hidden="true"></i> Đăng ký</a></li>
+                          <li><a href="/SignUp"><i className="fa fa-user-plus" aria-hidden="true"></i> Đăng ký</a></li>
                         </>
                       )}
                     </ul>

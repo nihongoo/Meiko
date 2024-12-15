@@ -173,7 +173,9 @@ const OrderItem = ({ order }) => {
           </div>
           <div className="order-info-item">
             <span className="text-gray font-semibold">Phương thức thanh toán:</span>
-            <span className="text-silver">{order.paymentAmount === 0 ? "Chưa thanh toán" : "Đã thanh toán"}</span>
+            <span className="text-silver">
+              {order.paymentHistories.length > 0 ? order.paymentHistories[0].paymentMethod : 'Thanh toán khi nhận hàng'}
+            </span>
           </div>
         </div>
       </div>

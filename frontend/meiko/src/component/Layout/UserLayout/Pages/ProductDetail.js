@@ -5,8 +5,7 @@ import ProductPreview from "../Features/Product/ProductPreview";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductDescriptionTab from "../Features/Product/ProductDescriptionTab";
 import styles from "./ProductDetails.module.css";
-import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
+import { Toast } from "react-bootstrap";
 
 const ProductDetails = () => {
   const { productId } = useParams();
@@ -111,12 +110,12 @@ const ProductDetails = () => {
   const handleAddToCart = async () => {
     const token = localStorage.getItem("jwtToken"); 
       if (!token) {
-        toast.error("Vui lòng đăng nhập để tiếp tục mua hàng.");
+        Toast.error("Vui lòng đăng nhập để tiếp tục mua hàng.");
         navigate('/SignIn');
         return;
       }
       if (!selectedSize || !selectedColor) {
-        toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
+        Toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
         return;
       }
     
@@ -125,13 +124,13 @@ const ProductDetails = () => {
       );
     
       if (!selectedProductDetail) {
-        toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
+        Toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
         return;
       }
   
     const customerId = localStorage.getItem("customerId");
     if (!customerId) {
-      toast.error("Không tìm thấy thông tin khách hàng.");
+      Toast.error("Không tìm thấy thông tin khách hàng.");
       return;
     }
   
@@ -143,20 +142,20 @@ const ProductDetails = () => {
   
       if (!cartResponse.ok) {
         const errorText = await cartResponse.text();
-        toast.error(`Không thể lấy giỏ hàng của bạn: ${errorText}`);
+        Toast.error(`Không thể lấy giỏ hàng của bạn: ${errorText}`);
         return;
       }
   
       const cartData = await cartResponse.json();
       if (!cartData || !cartData.id) {
-        toast.error("Không có giỏ hàng cho tài khoản này.");
+        Toast.error("Không có giỏ hàng cho tài khoản này.");
         return;
       }
   
       const cartId = cartData.id;
   
       if (!selectedSize || !selectedColor) {
-        toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
+        Toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
         return;
       }
   
@@ -171,7 +170,7 @@ const ProductDetails = () => {
           imageUrlToUse = product.imageUrl; // Sử dụng ảnh mặc định của sản phẩm
         }
       } else {
-        toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
+        Toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
         return;
       }
   
@@ -194,15 +193,15 @@ const ProductDetails = () => {
   
       const responseText = await addToCartResponse.text();
       if (!addToCartResponse.ok) {
-        toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
+        Toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
         return;
       }
   
       if (responseText.includes("Đã thêm")) {
         window.dispatchEvent(new Event("cartUpdated"));
-        toast.success(responseText);
+        alert(responseText);
       } else {
-        toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
+        Toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
       }
   
     } catch (error) {
@@ -264,7 +263,6 @@ const ProductDetails = () => {
 
   return (
     <main className="my-4">
-      <ToastContainer/>
       <div style={{ marginTop: "150px" }}>
         <Breadcrumb items={breadcrumbItems} />
       </div>

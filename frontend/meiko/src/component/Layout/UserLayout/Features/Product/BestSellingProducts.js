@@ -11,7 +11,6 @@ const FeaturedProducts = () => {
   const [error, setError] = useState(null);
   const [selectedColors, setSelectedColors] = useState({});
 
-  // Kiểm tra sản phẩm có mới không
   const isNewProduct = (createdAt) => {
     const currentDate = new Date();
     const productDate = new Date(createdAt);

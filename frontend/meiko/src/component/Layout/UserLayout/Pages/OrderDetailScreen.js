@@ -8,7 +8,6 @@ import { currencyFormat } from "../utils/helper";
 import styles from './OrderDetailScreen.module.css';
 import { useEffect, useState } from "react";
 
-
 const breadcrumbItems = [
   { label: "Trang chủ", link: "/" },
   { label: "Đơn hàng", link: "/order" },
@@ -23,12 +22,18 @@ const OrderDetailScreen = () => {
   const [error, setError] = useState(null);
   const [voucherInfo, setVoucherInfo] = useState(null);
   const [statusHistory, setStatusHistory] = useState([]);
-
-  const [isAddressVisible, setAddressVisible] = useState(false);
-
-  const toggleAddressVisibility = () => {
-    setAddressVisible(prevState => !prevState);
-  };
+  const [isEditingAddress, setIsEditingAddress] = useState(false); 
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelError, setCancelError] = useState('');
+  const [newAddress, setNewAddress] = useState({
+    recipientName: "",
+    phoneNumber: "",
+    addressDetail: "",
+    city: "",
+    district: "",
+    ward: ""
+  });
 
   const statusMapping = {
     "Chờ xử lý": {
@@ -101,7 +106,6 @@ const OrderDetailScreen = () => {
         const statusResponse = await fetch(`https://localhost:7172/api/Bills/get-statusHistories-by-billId/${billId}`);
         const statusData = await statusResponse.json();
         setStatusHistory(statusData);
-        console.log(statusHistory);
         setLoading(false);
       } catch (err) {
         setError("Có lỗi xảy ra khi tải thông tin đơn hàng.");
@@ -111,6 +115,94 @@ const OrderDetailScreen = () => {
 
     fetchOrderDetails();
   }, [billId]);
+
+  const latestStatus = statusHistory
+  .slice()
+  .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))[0];
+
+  const isPending = latestStatus?.statusType === "Chờ xử lý";
+
+  const handleAddressChange = async () => {
+    try {
+      const shippingAddressId = order.shippingAddresses[0]?.id;
+      if (!shippingAddressId) {
+        alert("Không tìm thấy địa chỉ để cập nhật.");
+        return;
+      }
+      const response = await fetch(`https://localhost:7172/api/Bills/edit-address-from-id/${shippingAddressId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          recipientName: newAddress.recipientName,
+          phoneNumber: newAddress.phoneNumber,
+          addressDetail: newAddress.addressDetail,
+          city: newAddress.city,
+          district: newAddress.district,
+          ward: newAddress.ward,
+          status: 5,
+          billId: billId,
+        }),
+      });
+      const result = await response.json();
+      if (result.status === 0) {
+        alert("Sửa thành công địa chỉ giao hàng!");
+        setIsEditingAddress(false); 
+      } else {
+        alert("Có lỗi xảy ra khi cập nhật địa chỉ.");
+      }
+    } catch (error) {
+      console.error("Error updating address:", error);
+      alert("Không thể cập nhật địa chỉ.");
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!cancelReason) {
+      setCancelError('Vui lòng nhập lý do hủy.');
+      return;
+    }
+  
+    try {
+      const response = await fetch(`https://localhost:7172/api/Bills/change-status-from-bill/${billId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          statusType: 10,
+          note: cancelReason,
+          staffWhoCreatedThis: localStorage.getItem("customerId")
+        }),
+      });
+      
+      const result = await response.json();
+      if (result.status === 0) {
+        alert('Đơn hàng đã được hủy thành công!');
+        setIsCanceling(false); 
+        setCancelReason(''); 
+        setCancelError('');  
+        setOrder(prevState => ({
+          ...prevState,
+          status: 'Đã hủy',
+        }));
+      } else {
+        alert('Có lỗi xảy ra khi hủy đơn hàng.');
+      }
+    } catch (error) {
+      console.error("Lỗi khi hủy đơn:", error);
+      alert('Không thể hủy đơn hàng.');
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAddress({
+      ...newAddress,
+      [name]: value,
+    });
+  };
 
   if (loading) return <div>Đang tải...</div>;
   if (error) return <div>{error}</div>;
@@ -142,24 +234,133 @@ const OrderDetailScreen = () => {
                   ) : (
                     <p className="text-md text-muted">Không có mã giảm giá</p>
                   )}
+                  <p className="text-md text-muted">
+                    Phí vận chuyển: <span className="text-dark">{currencyFormat(order.shippingFee)}</span>
+                  </p>
                 </div>
                 <div className="order-d-top-r text-xl text-primary font-semibold">
                   Tổng cộng: <span className="text-dark">{currencyFormat(order.total)}</span>
                 </div>
               </div>
+              {isPending && !isCanceling && (
+                <div className="d-flex justify-content-end">
+                  <button
+                    onClick={() => setIsCanceling(true)}
+                    className="btn btn-danger"
+                  >
+                    Hủy đơn
+                  </button>
+                </div>
+              )}
+              {isCanceling && (
+                <div className="cancel-confirmation">
+                  <h5>Xác nhận hủy đơn</h5>
+                  <div>
+                    <label>Lý do hủy:</label>
+                    <textarea
+                      name="cancelReason"
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      className="form-control"
+                    />
+                  </div>
+                  {cancelError && <div className="text-danger">{cancelError}</div>}
+                  <button onClick={handleCancelOrder} className="btn btn-danger mt-3">
+                    Xác nhận hủy
+                  </button>
+                  <button onClick={() => setIsCanceling(false)} className="btn btn-link mt-3">
+                    Hủy
+                  </button>
+                </div>
+              )}
 
               {/* Địa chỉ giao hàng */}
               <div className={styles.orderAddressWrapper}>
                 <div className="d-flex justify-content-between align-items-center">
                   <h5>Địa chỉ giao hàng</h5>
-                  <button
-                    onClick={toggleAddressVisibility}
-                    className="btn btn-link text-primary"
-                  >
-                    {isAddressVisible ? "Ẩn địa chỉ" : "Hiển thị địa chỉ"}
-                  </button>
+                  {order.status === "Chờ xử lý" && 
+                   !isEditingAddress && 
+                   (order.paymentHistories?.length === 0 || 
+                    order.paymentHistories[0]?.paymentMethod !== "chuyển khoản") && (
+                    <button
+                      onClick={() => setIsEditingAddress(true)}
+                      className="btn btn-link text-primary"
+                    >
+                      Thay đổi địa chỉ
+                    </button>
+                  )}
                 </div>
-                {isAddressVisible && (
+
+                {isEditingAddress ? (
+                  <div>
+                    <div>
+                      <label>Người nhận:</label>
+                      <input
+                        type="text"
+                        name="recipientName"
+                        value={newAddress.recipientName}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Số điện thoại:</label>
+                      <input
+                        type="text"
+                        name="phoneNumber"
+                        value={newAddress.phoneNumber}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Địa chỉ:</label>
+                      <input
+                        type="text"
+                        name="addressDetail"
+                        value={newAddress.addressDetail}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Thành phố:</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={newAddress.city}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Quận/Huyện:</label>
+                      <input
+                        type="text"
+                        name="district"
+                        value={newAddress.district}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <div>
+                      <label>Xã/Phường:</label>
+                      <input
+                        type="text"
+                        name="ward"
+                        value={newAddress.ward}
+                        onChange={handleInputChange}
+                        className="form-control"
+                      />
+                    </div>
+                    <button onClick={handleAddressChange} className="btn btn-success mt-3">
+                      Cập nhật địa chỉ
+                    </button>
+                    <button onClick={() => setIsEditingAddress(false)} className="btn btn-link mt-3">
+                      Hủy
+                    </button>
+                  </div>
+                ) : (
                   <div>
                     <p><span className={styles.addressPart}>Người nhận:</span> {order.shippingAddresses[0]?.recipientName}</p>
                     <p><span className={styles.addressPart}>Địa chỉ:</span> {order.shippingAddresses[0]?.addressDetail}, {order.shippingAddresses[0]?.ward}, {order.shippingAddresses[0]?.district}, {order.shippingAddresses[0]?.city}</p>
@@ -171,26 +372,23 @@ const OrderDetailScreen = () => {
               {/* Timeline */}
               <div className={styles.timelineWrapper}>
                 {statusHistory.map((status, index) => {
-
-                  const { color, icon } = statusMapping[status.statusType] || {}; 
-                  console.log(`Status: ${status.statusType}, Color: ${color}, Icon: ${icon}`); 
-                
-                  const stepClass = `${styles.timelineStep} ${styles[color] || ""}`;
-                  const stepCircleClass = `${styles.stepCircle} ${styles[color + "Circle"] || ""}`;
-                  const stepLineClass = `${styles.stepLine} ${styles[color] || ""}`;
-                
-                  return (
-                    <div key={index} className={stepClass}>
-                      <div className={stepCircleClass}>
-                        <i className={`fa ${icon || "fa-question-circle"}`}></i>
+                    const { color, icon } = statusMapping[status.statusType] || {}; 
+                    const stepClass = `${styles.timelineStep} ${styles[color] || ""}`;
+                    const stepCircleClass = `${styles.stepCircle} ${styles[color + "Circle"] || ""}`;
+                    const stepLineClass = `${styles.stepLine} ${styles[color] || ""}`;
+                  
+                    return (
+                      <div key={index} className={stepClass}>
+                        <div className={stepCircleClass}>
+                          <i className={`fa ${icon || "fa-question-circle"}`}></i>
+                        </div>
+                        <div className={stepLineClass}></div>
+                        <div className={styles.bottomLine}></div>
+                        <p className={styles.stepText}>{status.statusType}</p>
+                        <p className={styles.stepTime}>{new Date(status.createdDate).toLocaleString()}</p>
                       </div>
-                      <div className={stepLineClass}></div>
-                      <div className={styles.bottomLine}></div>
-                      <p className={styles.stepText}>{status.statusType}</p>
-                      <p className={styles.stepTime}>{new Date(status.createdDate).toLocaleString()}</p>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
 
               {/* Các sản phẩm trong đơn hàng */}

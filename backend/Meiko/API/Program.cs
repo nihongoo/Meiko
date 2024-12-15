@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Net;
 using Precious.core.Extention;
 using System.Text;
+using RestSharp;
 
 namespace Meiko
 {
@@ -49,6 +50,8 @@ namespace Meiko
 
 			builder.Services.AddScoped<IImageServices, ImageServices>();
 			builder.Services.AddScoped<IBillServices, BillServices>();
+
+
 
 			builder.Services.AddExtentionsService(builder.Configuration);
 
