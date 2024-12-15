@@ -254,6 +254,7 @@ function ManageBill() {
                 item={item}
                 setItem={setItem}
                 print={handlePrint}
+                reloadBill={refetch}
             />
         </Box>
     );

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Dialog,
     Stepper,
@@ -15,13 +15,16 @@ import apiURL from "../../routes/API";
 import useFetchData from "../../customHook/useFetchData";
 import moment from 'moment'
 import { toast } from "react-toastify";
+import NotePrevStatus from "./NotePrevStatus";
 
-function StateBill({ open, onClose, item, print, setItem }) {
+function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
     const paginationModel = { page: 0, pageSize: 5 };
     const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${item?.id}`);
-    const sortedStatusHistories = item?.statusHistories
-        ? item.statusHistories.sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
+    const { data: hist, refetch } = useFetchData(`${apiURL.bill.statusHis}${item?.id}`)
+    const sortedStatusHistories = hist
+        ? hist.sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
         : [];
+const [prev, setPrev] = useState(false)
     const { data: listRefund } = useFetchData(`${apiURL.bill.listRefund}?id=${item?.id}`, (r) => {
         return r.map((item) => ({
             ...item,
@@ -31,9 +34,116 @@ function StateBill({ open, onClose, item, print, setItem }) {
         }));
     }
     )
-    const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
-    console.log(staffInfo);
+    const [note, setNote] =useState('')
+    const handleNext = async () => {
+        try {
+            const statusMapping = {
+                "Tạo hoá đơn": 0,
+                "Chờ xử lý": 1,
+                "Đang chuẩn bị hàng": 2,
+                "Đang giao hàng": 3,
+                "Đã giao tới": 4,
+            };
+            const lastStatus = sortedStatusHistories[sortedStatusHistories.length - 1];
+            const currentStatus = statusMapping[lastStatus.statusType];  
+            const newStatus = currentStatus + 1;
+            const statusType = Object.keys(statusMapping).find(
+                (key) => statusMapping[key] === newStatus
+            );
+            if (!statusType) {
+                throw new Error("Trạng thái tiếp theo không hợp lệ");
+            }
+            const payload = {
+                statusType: newStatus,
+                note: `Trạng thái đã thay đổi thành "${statusType}"`,
+                staffWhoCreatedThis: staffInfo.id,
+            };
+            await fetch(`${apiURL.bill.changeStatus}${item.id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+            reloadBill()
+            refetch()
+            toast.success(`Trạng thái đã thay đổi thành "${statusType}"`);
+        } catch (error) {
+            console.error("Lỗi khi thay đổi trạng thái:", error);
+            toast.error("Không thể thay đổi trạng thái");
+        }
+    };
+console.log(note);
 
+    const handlePrev = async () => {
+        try {
+            if (note.length < 30) {
+                toast.error("Ghi chú phải có tối thiểu 30 ký tự.");
+                return;
+            }
+    
+            const statusMapping = {
+                "Tạo hoá đơn": 0,
+                "Chờ xử lý": 1,
+                "Đang chuẩn bị hàng": 2,
+                "Đang giao hàng": 3,
+                "Đã giao tới": 4,
+            };
+    
+            const lastStatus = sortedStatusHistories[sortedStatusHistories.length - 1];
+            const currentStatus = statusMapping[lastStatus.statusType];  // Trạng thái hiện tại của đơn hàng
+            const prevStatus = currentStatus - 1;
+    
+            if (prevStatus < 0) {
+                throw new Error("Không thể quay lại trạng thái trước đó");
+            }
+    
+            const statusType = Object.keys(statusMapping).find(
+                (key) => statusMapping[key] === prevStatus
+            );
+    
+            if (!statusType) {
+                throw new Error("Trạng thái trước đó không hợp lệ");
+            }
+    
+            const payload = {
+                statusType: prevStatus,
+                note: note,
+                staffWhoCreatedThis: staffInfo.id,
+            };
+    
+            const response = await fetch(`${apiURL.bill.changeStatus}${item.id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+    
+            if (response.ok) {
+                reloadBill(); // Reload dữ liệu sau khi thay đổi trạng thái
+                refetch(); // Refetch để cập nhật thông tin
+                toast.success(`Trạng thái đã thay đổi thành "${statusType}"`);
+            } else {
+                toast.error("Không thể thay đổi trạng thái");
+            }
+    
+        } catch (error) {
+            console.error("Lỗi khi thay đổi trạng thái:", error);
+            toast.error("Không thể thay đổi trạng thái");
+        }
+    };
+    
+    
+    const nextStepBtn = [
+        'Tạo hoá đơn',
+        'Chờ xử lý',
+        'Đang chuẩn bị hàng',
+        'Đang giao hàng',
+        'Đã giao tới',
+    ]
+
+    const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
     const steps = sortedStatusHistories.map(history => ({
         label: history.statusType,
         description: moment(history.createdDate).format('DD-MM-YYYY HH:mm')
@@ -80,7 +190,6 @@ function StateBill({ open, onClose, item, print, setItem }) {
             console.log(error);
         }
     }
-
     const handleReject = async (id) => {
         try {
             const accept = {
@@ -113,6 +222,14 @@ function StateBill({ open, onClose, item, print, setItem }) {
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth >
+            <NotePrevStatus 
+            item={note} 
+            setItem={setNote} 
+            open={prev} 
+            onClose={()=>{setPrev(false)}}
+            onSave={handlePrev}
+            >
+            </NotePrevStatus>
             <Box display="flex" sx={{
                 height: '100%',
                 width: '100%'
@@ -132,16 +249,69 @@ function StateBill({ open, onClose, item, print, setItem }) {
                     }}
                 >
                     {/* Stepper Section */}
-                    <Box>
-                        <Stepper activeStep={steps.length - 1} orientation="vertical">
-                            {steps.map((step, index) => (
-                                <Step key={index}>
-                                    <StepLabel>{step.label}</StepLabel>
-                                    <StepContent>{step.description}</StepContent>
-                                </Step>
-                            ))}
-                        </Stepper>
+                    <Box display="flex">
+                        <Box flex={1}
+                        sx={{
+                            minHeight: '519px',
+                        }}
+                        >
+                            <Stepper 
+                            nonLinear 
+                            orientation="vertical"
+                            sx={{
+                                overflowY: 'auto',
+                                maxHeight: 'calc(100vh - 300px)',
+                                p: 2,
+                                "&::-webkit-scrollbar": {
+                                    width: "6px",
+                                },
+                                "&::-webkit-scrollbar-thumb": {
+                                    backgroundColor: "#888",
+                                    borderRadius: "10px",
+                                },
+                                "&::-webkit-scrollbar-thumb:hover": {
+                                    backgroundColor: "#555",
+                                },
+                                "&::-webkit-scrollbar-track": {
+                                    backgroundColor: "#f1f1f1",
+                                },
+                            }}
+                            >
+                                {steps.map((step, index) => (
+                                    <Step key={index} active={true} completed={true}>
+                                        <StepLabel>{step.label}</StepLabel>
+                                        <StepContent>
+                                            <Typography>{step.description}</Typography>
+                                        </StepContent>
+                                    </Step>
+                                ))}
+                            </Stepper>
+                        </Box>
+                        <Box
+                            display="flex"
+                            flexDirection="column"
+                            justifyContent="space-between"
+                            ml={2}
+                            flex={1}
+                        >
+                            <Button
+                                variant="contained"
+                                onClick={()=>{setPrev(true)}}
+                                disabled={!nextStepBtn.includes(item?.status) || steps[steps.length-1]?.label === 'Chờ xử lý'}
+                                sx={{ mb: 1 }}
+                            >
+                                Trạng thái trước
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={handleNext}
+                                disabled={!nextStepBtn.includes(item?.status) || steps[steps.length-1]?.label === 'Đã giao tới'}
+                            >
+                                Trạng thái tiếp
+                            </Button>
+                        </Box>
                     </Box>
+
 
                     {/* Summary Section */}
                     <Box mt={2} pt={2} borderTop={`1px solid rgba(0, 0, 0, 0.12)`}>
@@ -321,7 +491,7 @@ function StateBill({ open, onClose, item, print, setItem }) {
                     </Box>
                 </Box>
             </Box>
-        </Dialog>
+        </Dialog >
     );
 }
 

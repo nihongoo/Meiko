@@ -91,8 +91,8 @@ function Order({
             }
 
             // Cập nhật trạng thái hóa đơn và địa chỉ giao hàng
-            await updateBillStatus(billData.id);
-            await addAddressToBill(billData.id);
+            // await updateBillStatus(billData.id);
+            // await addAddressToBill(billData.id);
             
             // Cập nhật trạng thái voucher nếu có
             if (voucherDetailIdd) await updateVoucherStatus(voucherDetailIdd);
@@ -104,7 +104,7 @@ function Order({
 
             // Xử lý thanh toán online
             if (selectedPayment === "Online") {
-                const paymentResponse = await createOnlinePayment(billData.id);
+                const paymentResponse = await createOnlinePayment();
                 if (paymentResponse.checkoutUrl) {
                     // Chuyển hướng đến trang thanh toán của PayOS
                     window.location.href = paymentResponse.checkoutUrl;
