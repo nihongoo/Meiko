@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
     Dialog,
     Stepper,
@@ -16,15 +16,12 @@ import useFetchData from "../../customHook/useFetchData";
 import moment from 'moment'
 import { toast } from "react-toastify";
 import NotePrevStatus from "./NotePrevStatus";
+import { useNavigate } from "react-router-dom";
 
 function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
     const paginationModel = { page: 0, pageSize: 5 };
     const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${item?.id}`);
     const { data: hist, refetch } = useFetchData(`${apiURL.bill.statusHis}${item?.id}`)
-    const sortedStatusHistories = hist
-        ? hist.sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
-        : [];
-const [prev, setPrev] = useState(false)
     const { data: listRefund } = useFetchData(`${apiURL.bill.listRefund}?id=${item?.id}`, (r) => {
         return r.map((item) => ({
             ...item,
@@ -32,9 +29,39 @@ const [prev, setPrev] = useState(false)
             createTime: moment(item.createTime).format('DD-MM-YYYY HH:mm'),
             status: item?.status === 1 ? 'Chờ xử lý' : item?.status === 2 ? 'Chấp nhận hoàn trả' : 'Từ chối hoàn trả'
         }));
-    }
-    )
-    const [note, setNote] =useState('')
+    })
+    const sortedStatusHistories = hist
+        ? hist.sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
+        : [];
+    const steps = sortedStatusHistories.map(history => ({
+        label: history.statusType,
+        description: moment(history.createdDate).format('DD-MM-YYYY HH:mm')
+    }));
+    const totalPaid = item?.paymentHistories?.reduce((acc, item) => acc + item.amount, 0) || 0;
+    const [prev, setPrev] = useState(false)
+    const [note, setNote] = useState('')
+    const storedTabs = localStorage.getItem('tabs');
+    const navigate = useNavigate();
+    const nextStepBtn = [
+        'Tạo hoá đơn',
+        'Chờ xử lý',
+        'Đang chuẩn bị hàng',
+        'Đang giao hàng',
+        'Đã giao tới',
+    ]
+    const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
+    const refundColumns = [
+        { field: "name", headerName: "Tên sản phẩm", flex: 1 },
+        { field: "price", headerName: "Giá", flex: 1 },
+        { field: "quantity", headerName: "Số lượng", flex: 1 },
+        { field: "note", headerName: "Ghi chú", flex: 1 },
+    ];
+    const paymentColumns = [
+        { field: "amount", headerName: "Số tiền", flex: 1 },
+        { field: "createdDate", headerName: "Thời gian", flex: 1 },
+        { field: "paymentMethod", headerName: "PTTT", flex: 1 },
+        { field: "status", headerName: "Trạng thái", flex: 1 },
+    ];
     const handleNext = async () => {
         try {
             const statusMapping = {
@@ -45,7 +72,7 @@ const [prev, setPrev] = useState(false)
                 "Đã giao tới": 4,
             };
             const lastStatus = sortedStatusHistories[sortedStatusHistories.length - 1];
-            const currentStatus = statusMapping[lastStatus.statusType];  
+            const currentStatus = statusMapping[lastStatus.statusType];
             const newStatus = currentStatus + 1;
             const statusType = Object.keys(statusMapping).find(
                 (key) => statusMapping[key] === newStatus
@@ -73,15 +100,13 @@ const [prev, setPrev] = useState(false)
             toast.error("Không thể thay đổi trạng thái");
         }
     };
-console.log(note);
-
     const handlePrev = async () => {
         try {
             if (note.length < 30) {
                 toast.error("Ghi chú phải có tối thiểu 30 ký tự.");
                 return;
             }
-    
+
             const statusMapping = {
                 "Tạo hoá đơn": 0,
                 "Chờ xử lý": 1,
@@ -89,29 +114,29 @@ console.log(note);
                 "Đang giao hàng": 3,
                 "Đã giao tới": 4,
             };
-    
+
             const lastStatus = sortedStatusHistories[sortedStatusHistories.length - 1];
             const currentStatus = statusMapping[lastStatus.statusType];  // Trạng thái hiện tại của đơn hàng
             const prevStatus = currentStatus - 1;
-    
+
             if (prevStatus < 0) {
                 throw new Error("Không thể quay lại trạng thái trước đó");
             }
-    
+
             const statusType = Object.keys(statusMapping).find(
                 (key) => statusMapping[key] === prevStatus
             );
-    
+
             if (!statusType) {
                 throw new Error("Trạng thái trước đó không hợp lệ");
             }
-    
+
             const payload = {
                 statusType: prevStatus,
                 note: note,
                 staffWhoCreatedThis: staffInfo.id,
             };
-    
+
             const response = await fetch(`${apiURL.bill.changeStatus}${item.id}`, {
                 method: "POST",
                 headers: {
@@ -119,7 +144,7 @@ console.log(note);
                 },
                 body: JSON.stringify(payload),
             });
-    
+
             if (response.ok) {
                 reloadBill(); // Reload dữ liệu sau khi thay đổi trạng thái
                 refetch(); // Refetch để cập nhật thông tin
@@ -127,40 +152,12 @@ console.log(note);
             } else {
                 toast.error("Không thể thay đổi trạng thái");
             }
-    
+
         } catch (error) {
             console.error("Lỗi khi thay đổi trạng thái:", error);
             toast.error("Không thể thay đổi trạng thái");
         }
     };
-    
-    
-    const nextStepBtn = [
-        'Tạo hoá đơn',
-        'Chờ xử lý',
-        'Đang chuẩn bị hàng',
-        'Đang giao hàng',
-        'Đã giao tới',
-    ]
-
-    const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
-    const steps = sortedStatusHistories.map(history => ({
-        label: history.statusType,
-        description: moment(history.createdDate).format('DD-MM-YYYY HH:mm')
-    }));
-    const totalPaid = item?.paymentHistories?.reduce((acc, item) => acc + item.amount, 0) || 0;
-    const refundColumns = [
-        { field: "name", headerName: "Tên sản phẩm", flex: 1 },
-        { field: "price", headerName: "Giá", flex: 1 },
-        { field: "quantity", headerName: "Số lượng", flex: 1 },
-        { field: "note", headerName: "Ghi chú", flex: 1 },
-    ];
-    const paymentColumns = [
-        { field: "amount", headerName: "Số tiền", flex: 1 },
-        { field: "createdDate", headerName: "Thời gian", flex: 1 },
-        { field: "paymentMethod", headerName: "PTTT", flex: 1 },
-        { field: "status", headerName: "Trạng thái", flex: 1 },
-    ];
     const handleAccept = async (id) => {
         try {
             const accept = {
@@ -219,15 +216,37 @@ console.log(note);
             console.log(error);
         }
     }
+    const openBill = async (billId) => {
+        if (!billId) {
+            console.log('Không có id hóa đơn');
+            return;
+        }
+        try {
+            const currentBills = JSON.parse(localStorage.getItem('bills')) || [];
+            const updatedBills = [...currentBills, { id: billId }];
+            localStorage.setItem('bills', JSON.stringify(updatedBills));
 
+            const currentTabs = JSON.parse(localStorage.getItem('tabs')) || [];
+            const newTabs = [...currentTabs, `Hóa đơn ${item?.billCode}`];
+            localStorage.setItem('tabs', JSON.stringify(newTabs));
+
+            navigate('/soldoffline');
+
+        } catch (error) {
+            console.error('Lỗi khi mở hóa đơn: ', error);
+            toast.error('Không thể mở hóa đơn');
+        }
+    };
+
+    console.log(item);
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth >
-            <NotePrevStatus 
-            item={note} 
-            setItem={setNote} 
-            open={prev} 
-            onClose={()=>{setPrev(false)}}
-            onSave={handlePrev}
+            <NotePrevStatus
+                item={note}
+                setItem={setNote}
+                open={prev}
+                onClose={() => { setPrev(false) }}
+                onSave={handlePrev}
             >
             </NotePrevStatus>
             <Box display="flex" sx={{
@@ -251,31 +270,31 @@ console.log(note);
                     {/* Stepper Section */}
                     <Box display="flex">
                         <Box flex={1}
-                        sx={{
-                            minHeight: '519px',
-                        }}
-                        >
-                            <Stepper 
-                            nonLinear 
-                            orientation="vertical"
                             sx={{
-                                overflowY: 'auto',
-                                maxHeight: 'calc(100vh - 300px)',
-                                p: 2,
-                                "&::-webkit-scrollbar": {
-                                    width: "6px",
-                                },
-                                "&::-webkit-scrollbar-thumb": {
-                                    backgroundColor: "#888",
-                                    borderRadius: "10px",
-                                },
-                                "&::-webkit-scrollbar-thumb:hover": {
-                                    backgroundColor: "#555",
-                                },
-                                "&::-webkit-scrollbar-track": {
-                                    backgroundColor: "#f1f1f1",
-                                },
+                                minHeight: '519px',
                             }}
+                        >
+                            <Stepper
+                                nonLinear
+                                orientation="vertical"
+                                sx={{
+                                    overflowY: 'auto',
+                                    maxHeight: 'calc(100vh - 300px)',
+                                    p: 2,
+                                    "&::-webkit-scrollbar": {
+                                        width: "6px",
+                                    },
+                                    "&::-webkit-scrollbar-thumb": {
+                                        backgroundColor: "#888",
+                                        borderRadius: "10px",
+                                    },
+                                    "&::-webkit-scrollbar-thumb:hover": {
+                                        backgroundColor: "#555",
+                                    },
+                                    "&::-webkit-scrollbar-track": {
+                                        backgroundColor: "#f1f1f1",
+                                    },
+                                }}
                             >
                                 {steps.map((step, index) => (
                                     <Step key={index} active={true} completed={true}>
@@ -296,8 +315,8 @@ console.log(note);
                         >
                             <Button
                                 variant="contained"
-                                onClick={()=>{setPrev(true)}}
-                                disabled={!nextStepBtn.includes(item?.status) || steps[steps.length-1]?.label === 'Chờ xử lý'}
+                                onClick={() => { setPrev(true) }}
+                                disabled={!nextStepBtn.includes(item?.status) || steps[steps.length - 1]?.label === 'Chờ xử lý'}
                                 sx={{ mb: 1 }}
                             >
                                 Trạng thái trước
@@ -305,7 +324,7 @@ console.log(note);
                             <Button
                                 variant="contained"
                                 onClick={handleNext}
-                                disabled={!nextStepBtn.includes(item?.status) || steps[steps.length-1]?.label === 'Đã giao tới'}
+                                disabled={!nextStepBtn.includes(item?.status) || steps[steps.length - 1]?.label === 'Đã giao tới'}
                             >
                                 Trạng thái tiếp
                             </Button>
@@ -327,7 +346,12 @@ console.log(note);
                                 <Typography variant="body1">{totalPaid || '0'}VND</Typography>
                             </Grid>
                         </Grid>
-                        <Box>
+                        <Box className='justify-content-between d-flex'>
+                            {steps[steps.length - 1]?.label === 'Chờ xử lý' && item?.billType === 'Tại quầy' && (
+                                <Button onClick={() => openBill(item?.id)}>
+                                    Tiếp tục bán
+                                </Button>
+                            )}
                             <Button variant="outlined" onClick={() => { print(item) }}>
                                 In
                             </Button>

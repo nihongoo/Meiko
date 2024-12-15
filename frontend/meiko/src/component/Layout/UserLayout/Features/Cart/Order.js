@@ -120,7 +120,7 @@ function Order({
 
             // Xử lý thanh toán online
             if (selectedPayment === "Online") {
-                const paymentResponse = await createOnlinePayment(billData.id);
+                const paymentResponse = await createOnlinePayment();
                 if (paymentResponse.checkoutUrl) {
                     // Chuyển hướng đến trang thanh toán của PayOS
                     window.location.href = paymentResponse.checkoutUrl;
