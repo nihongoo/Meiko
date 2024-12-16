@@ -7,6 +7,7 @@ using System.Net;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using API.IServices;
+using Newtonsoft.Json;
 
 public class GHNService : IGHNService
 {
@@ -57,7 +58,7 @@ public class GHNService : IGHNService
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var feeResponse = JsonSerializer.Deserialize<FeeResponse>(response.Content);
+		var feeResponse = JsonConvert.DeserializeObject<FeeResponse>(response.Content);
 		return feeResponse?.Data?.Total ?? 0;
 	}
 
@@ -100,7 +101,7 @@ public class GHNService : IGHNService
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var result = JsonSerializer.Deserialize<ApiResponse<Province>>(response.Content);
+		var result = JsonConvert.DeserializeObject<ApiResponse<Province>>(response.Content);
 		return result?.Data ?? new List<Province>();
 	}
 
@@ -115,7 +116,7 @@ public class GHNService : IGHNService
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var result = JsonSerializer.Deserialize<ApiResponse<District>>(response.Content);
+		var result = JsonConvert.DeserializeObject<ApiResponse<District>>(response.Content);
 		return result?.Data ?? new List<District>();
 	}
 
@@ -130,7 +131,7 @@ public class GHNService : IGHNService
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var result = JsonSerializer.Deserialize<ApiResponse<Ward>>(response.Content);
+		var result = JsonConvert.DeserializeObject<ApiResponse<Ward>>(response.Content);
 		return result?.Data ?? new List<Ward>();
 	}
 

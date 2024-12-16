@@ -1381,7 +1381,7 @@ namespace API.Services
 				};
 			}
 
-			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId}";
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId??bill.StaffId}";
 			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)(bill.Total - bill.PaymentAmount),
 				description,
