@@ -7,10 +7,11 @@ import Title from "../Features/common/Title";
 import { currencyFormat } from "../utils/helper";
 import styles from './OrderDetailScreen.module.css';
 import { useEffect, useState } from "react";
+import EditAddress from "../Features/Cart/EditAddress";
 
-const breadcrumbItems = [
-  { label: "Trang chủ", link: "/" },
-  { label: "Đơn hàng", link: "/order" },
+const breadcrumbItems = [ 
+  { label: "Trang chủ", link: "/homeUser" },
+  { label: "Đơn hàng", link: "/orderlistscreen/:customerId" },
   { label: "Chi tiết đơn hàng", link: "/order_detail" },
 ];
 
@@ -26,6 +27,7 @@ const OrderDetailScreen = () => {
   const [isCanceling, setIsCanceling] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelError, setCancelError] = useState('');
+  const [shippingFee, setShippingFee] = useState(null);
   const [newAddress, setNewAddress] = useState({
     recipientName: "",
     phoneNumber: "",
@@ -84,14 +86,12 @@ const OrderDetailScreen = () => {
             const productResponse = await fetch(`https://localhost:7172/api/Product/Get/${productId}`);
             const productData = await productResponse.json();
 
-            if (productDetailData.sale_products?.length > 0) {
-              const voucherId = productDetailData.sale_products[0].voucherId;
+            const voucherId = billData.voucherId;
               if (voucherId) {
                 const voucherResponse = await fetch(`https://localhost:7172/api/Voucher/Get/${voucherId}`);
                 const voucherData = await voucherResponse.json();
                 setVoucherInfo(voucherData);
               }
-            }
 
             return {
               ...productDetailData,
@@ -129,35 +129,116 @@ const OrderDetailScreen = () => {
         alert("Không tìm thấy địa chỉ để cập nhật.");
         return;
       }
-      const response = await fetch(`https://localhost:7172/api/Bills/edit-address-from-id/${shippingAddressId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          recipientName: newAddress.recipientName,
-          phoneNumber: newAddress.phoneNumber,
-          addressDetail: newAddress.addressDetail,
-          city: newAddress.city,
-          district: newAddress.district,
-          ward: newAddress.ward,
-          status: 5,
-          billId: billId,
-        }),
-      });
-      const result = await response.json();
-      if (result.status === 0) {
-        alert("Sửa thành công địa chỉ giao hàng!");
-        setIsEditingAddress(false); 
-      } else {
-        alert("Có lỗi xảy ra khi cập nhật địa chỉ.");
+  
+      const addressUpdateData = {
+        recipientName: newAddress.recipientName,
+        phoneNumber: newAddress.phoneNumber,
+        addressDetail: newAddress.addressDetail,
+        city: newAddress.city,
+        district: newAddress.district,
+        ward: newAddress.ward,
+        status: 5,
+        billId: billId,
+      };
+
+      const response = await updateAddress(shippingAddressId, addressUpdateData);
+      if (response.status !== 0) {
+        alert("Có lỗi xảy ra khi cập nhật địa chỉ. Lỗi: " + response.message);
+        return;
       }
+  
+      alert("Sửa thành công địa chỉ giao hàng!");
+      setOrder((prevOrder) => ({
+        ...prevOrder,
+        shippingAddresses: prevOrder.shippingAddresses.map((address) =>
+          address.id === shippingAddressId ? { ...address, ...newAddress } : address
+        ),
+      }));
+      const shippingFee = await fetchShippingFee(
+        "Hà Nội",
+        "Quận Nam Từ Liêm",
+        newAddress.city,
+        newAddress.district,
+        newAddress.ward
+      );
+  
+      if (shippingFee === null) {
+        alert("Không thể tính phí vận chuyển.");
+        return;
+      }
+      const updateFeeResponse = await updateShippingFeeInBill(billId, shippingFee);
+      if (updateFeeResponse) {
+        setShippingFee(shippingFee);
+      }
+      await reloadOrderData();
     } catch (error) {
-      console.error("Error updating address:", error);
-      alert("Không thể cập nhật địa chỉ.");
+      console.error("Lỗi trong quy trình cập nhật địa chỉ và phí vận chuyển:", error);
+      alert("Có lỗi xảy ra. Vui lòng thử lại.");
+    } finally {
+      setIsEditingAddress(false);
     }
   };
 
+  const updateAddress = async (shippingAddressId, addressData) => {
+    try {
+      const response = await fetch(`https://localhost:7172/api/Bills/edit-address-from-id/${shippingAddressId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(addressData),
+      });
+      return await response.json(); // Trả về kết quả từ API
+    } catch (error) {
+      console.error("Error updating address:", error);
+      throw new Error("Không thể cập nhật địa chỉ.");
+    }
+  };
+
+  const fetchShippingFee = async (fromCity, fromDistrict, toCity, toDistrict, toWard) => {
+    try {
+      const response = await fetch('https://localhost:7172/api/Shipping/calculate-shipping-fee', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fromCityName: fromCity,
+          fromDistrictName: fromDistrict,
+          toCityName: toCity,
+          toDistrictName: toDistrict,
+          toWardName: toWard,
+        }),
+      });
+      if (!response.ok) return null;
+      const data = await response.json();
+      console.log("Shipping fee fetched:", data);
+      return data.fee ?? null;
+    } catch (error) {
+      console.error('Lỗi khi gọi API tính phí vận chuyển:', error);
+      return null;
+    }
+  };
+
+  const updateShippingFeeInBill = async (billId, shippingFee) => {
+    try {
+      const response = await fetch(`https://localhost:7172/api/Bills/update-shipping-fee/${billId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newShippingFee:shippingFee }),
+      });
+  
+      const result = await response.json();
+      if (result.status === 0) {
+        alert("Cập nhật phí vận chuyển thành công!");
+        return true;
+      } else {
+        alert("Có lỗi khi cập nhật phí vận chuyển.");
+        return false;
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật phí vận chuyển:", error);
+      alert("Không thể cập nhật phí vận chuyển.");
+      return false;
+    }
+  };
+  
   const handleCancelOrder = async () => {
     if (!cancelReason) {
       setCancelError('Vui lòng nhập lý do hủy.');
@@ -187,12 +268,28 @@ const OrderDetailScreen = () => {
           ...prevState,
           status: 'Đã hủy',
         }));
+        await reloadOrderData();
       } else {
         alert('Có lỗi xảy ra khi hủy đơn hàng.');
       }
     } catch (error) {
       console.error("Lỗi khi hủy đơn:", error);
       alert('Không thể hủy đơn hàng.');
+    }
+  };
+
+  const reloadOrderData = async () => {
+    try {
+      const response = await fetch(`https://localhost:7172/api/Bills/get-bill-by-id/${billId}`);
+      if (!response.ok) {
+        alert("Có lỗi khi tải lại dữ liệu.");
+        return;
+      }
+      const data = await response.json();
+      setOrder(data);
+    } catch (error) {
+      console.error("Lỗi khi tải lại dữ liệu:", error);
+      alert("Có lỗi khi tải lại dữ liệu.");
     }
   };
 
@@ -209,7 +306,7 @@ const OrderDetailScreen = () => {
 
   return (
     <div>
-      <Container style={{ paddingTop: "220px" }}>
+      <Container style={{ paddingTop: "140px" }}>
         <Breadcrumb items={breadcrumbItems} />
         <UserDashboardWrapper>
           <UserMenu />
@@ -292,74 +389,11 @@ const OrderDetailScreen = () => {
                 </div>
 
                 {isEditingAddress ? (
-                  <div>
-                    <div>
-                      <label>Người nhận:</label>
-                      <input
-                        type="text"
-                        name="recipientName"
-                        value={newAddress.recipientName}
-                        onChange={handleInputChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div>
-                      <label>Số điện thoại:</label>
-                      <input
-                        type="text"
-                        name="phoneNumber"
-                        value={newAddress.phoneNumber}
-                        onChange={handleInputChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div>
-                      <label>Địa chỉ:</label>
-                      <input
-                        type="text"
-                        name="addressDetail"
-                        value={newAddress.addressDetail}
-                        onChange={handleInputChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div>
-                      <label>Thành phố:</label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={newAddress.city}
-                        onChange={handleInputChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div>
-                      <label>Quận/Huyện:</label>
-                      <input
-                        type="text"
-                        name="district"
-                        value={newAddress.district}
-                        onChange={handleInputChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div>
-                      <label>Xã/Phường:</label>
-                      <input
-                        type="text"
-                        name="ward"
-                        value={newAddress.ward}
-                        onChange={handleInputChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <button onClick={handleAddressChange} className="btn btn-success mt-3">
-                      Cập nhật địa chỉ
-                    </button>
-                    <button onClick={() => setIsEditingAddress(false)} className="btn btn-link mt-3">
-                      Hủy
-                    </button>
-                  </div>
+                  <EditAddress newAddress={newAddress} 
+                  setNewAddress={setNewAddress} 
+                  handleAddressChange={handleAddressChange}
+                  setIsEditingAddress={setIsEditingAddress}
+                  />
                 ) : (
                   <div>
                     <p><span className={styles.addressPart}>Người nhận:</span> {order.shippingAddresses[0]?.recipientName}</p>
@@ -371,12 +405,15 @@ const OrderDetailScreen = () => {
 
               {/* Timeline */}
               <div className={styles.timelineWrapper}>
-                {statusHistory.map((status, index) => {
+                {statusHistory
+                  .slice() 
+                  .sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
+                  .map((status, index) => {
                     const { color, icon } = statusMapping[status.statusType] || {}; 
                     const stepClass = `${styles.timelineStep} ${styles[color] || ""}`;
                     const stepCircleClass = `${styles.stepCircle} ${styles[color + "Circle"] || ""}`;
                     const stepLineClass = `${styles.stepLine} ${styles[color] || ""}`;
-                  
+
                     return (
                       <div key={index} className={stepClass}>
                         <div className={stepCircleClass}>
@@ -390,6 +427,7 @@ const OrderDetailScreen = () => {
                     );
                   })}
               </div>
+
 
               {/* Các sản phẩm trong đơn hàng */}
               {order.billDetails.map((detail, index) => {

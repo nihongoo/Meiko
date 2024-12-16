@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Box, TextField, Button, Fade, Autocomplete, CircularProgress, Checkbox, FormControlLabel } from "@mui/material";
+import { Modal, Box, TextField, Button, Fade, Autocomplete, CircularProgress } from "@mui/material";
 import { AddLocationAlt } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import styles from "./RecipientModal.module.css";
 import "react-toastify/dist/ReactToastify.css";
 
-function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, existingAddresses = [] }) { // Default empty array for existingAddresses
+function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, existingAddresses = [] }) {
     const [formData, setFormData] = useState({
         recipientName: "",
         phoneNumber: "",
@@ -23,45 +23,72 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
     const [wards, setWards] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Lấy dữ liệu các tỉnh
     useEffect(() => {
-    if (open) {
-        fetchCities();
-        if (selectedAddress) {
-            setFormData({
-                ...selectedAddress,
-                customerId: localStorage.getItem("customerId") || "", 
-            });
-            // Set districts and wards based on selectedAddress
-            const selectedCityData = cities.find((city) => city.name === selectedAddress.city);
-            setDistricts(selectedCityData ? selectedCityData.districts : []);
-            const selectedDistrictData = selectedCityData?.districts.find((district) => district.name === selectedAddress.district);
-            setWards(selectedDistrictData ? selectedDistrictData.wards : []);
+        if (open) {
+            fetchProvinces();
+            if (selectedAddress) {
+                // Nếu có địa chỉ đã chọn, điền thông tin vào form
+                setFormData({
+                    ...selectedAddress,
+                    customerId: localStorage.getItem("customerId") || "",
+                });
+                fetchDistricts(selectedAddress.city); // Gọi API để lấy quận
+                fetchWards(selectedAddress.district); // Gọi API để lấy phường
+            } else {
+                resetForm();
+            }
         } else {
             resetForm();
         }
-    } else {
-        resetForm();
-    }
-}, [open, selectedAddress]);
+    }, [open, selectedAddress]);
 
-
-    const fetchCities = async () => {
+    // Lấy dữ liệu các tỉnh
+    const fetchProvinces = async () => {
         try {
-            const response = await fetch("https://provinces.open-api.vn/api/?depth=3");
-            const data = await response.json();
-            if (Array.isArray(data)) {
+            const response = await fetch("https://localhost:7172/api/Shipping/provinces");
+            if (response.ok) {
+                const data = await response.json();
                 setCities(data);
             } else {
-                console.error("Invalid city data format:", data);
-                setCities([]);
+                console.error("Failed to fetch provinces");
             }
         } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu thành phố:", error);
-            toast.error("Không thể tải dữ liệu thành phố. Vui lòng thử lại.");
-            setCities([]);
+            console.error("Error fetching provinces:", error);
         }
     };
 
+    // Lấy các quận theo provinceId
+    const fetchDistricts = async (provinceId) => {
+        try {
+            const response = await fetch(`https://localhost:7172/api/Shipping/districts?provinceId=${provinceId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setDistricts(data);
+            } else {
+                console.error("Failed to fetch districts");
+            }
+        } catch (error) {
+            console.error("Error fetching districts:", error);
+        }
+    };
+
+    // Lấy các phường theo districtId
+    const fetchWards = async (districtId) => {
+        try {
+            const response = await fetch(`https://localhost:7172/api/Shipping/wards?districtId=${districtId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setWards(data);
+            } else {
+                console.error("Failed to fetch wards");
+            }
+        } catch (error) {
+            console.error("Error fetching wards:", error);
+        }
+    };
+
+    // Reset form
     const resetForm = () => {
         setFormData({
             recipientName: "",
@@ -78,6 +105,7 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
         setWards([]);
     };
 
+    // Xử lý khi chọn thành phố
     const handleCityChange = (event, newValue) => {
         setFormData({
             ...formData,
@@ -85,22 +113,26 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
             district: "",
             ward: "",
         });
-        const selectedCityData = cities.find((city) => city.name === newValue);
-        setDistricts(selectedCityData ? selectedCityData.districts : []);
-        setWards([]);
+        const selectedCity = cities.find((city) => city.provinceName === newValue);
+        if (selectedCity) {
+            fetchDistricts(selectedCity.provinceID); // Gọi API để lấy quận
+        }
     };
 
+    // Xử lý khi chọn quận
     const handleDistrictChange = (event, newValue) => {
         setFormData({
             ...formData,
             district: newValue,
             ward: "",
         });
-    
-        const selectedDistrictData = districts.find((district) => district.name === newValue);
-        setWards(selectedDistrictData ? selectedDistrictData.wards : []);
+        const selectedDistrict = districts.find((district) => district.districtName === newValue);
+        if (selectedDistrict) {
+            fetchWards(selectedDistrict.districtID); // Gọi API để lấy phường
+        }
     };
 
+    // Xử lý khi chọn phường
     const handleWardChange = (event, newValue) => {
         setFormData({
             ...formData,
@@ -108,20 +140,19 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
         });
     };
 
+    // Xử lý thay đổi các trường khác
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleStatusChange = (event) => {
-        setFormData({ ...formData, status: event.target.checked ? 2 : 1 });
-    };
-
+    // Kiểm tra số điện thoại hợp lệ
     const validatePhoneNumber = (phoneNumber) => {
         const phoneRegex = /^(0[3|5|7|8|9])\d{8}$/;
         return phoneRegex.test(phoneNumber);
     };
 
+    // Kiểm tra form hợp lệ
     const validateForm = () => {
         if (
             !formData.recipientName ||
@@ -142,15 +173,16 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
         return true;
     };
 
+    // Gửi dữ liệu
     const handleSubmit = async () => {
         if (!validateForm()) return;
         setLoading(true);
         const endpoint = selectedAddress
             ? `https://localhost:7172/api/Address/update/${selectedAddress.id}`
             : `https://localhost:7172/api/Address/create?customerId=${formData.customerId}`;
-    
+
         const method = selectedAddress ? "PUT" : "POST";
-    
+
         try {
             const response = await fetch(endpoint, {
                 method,
@@ -159,19 +191,12 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
                 },
                 body: JSON.stringify(formData),
             });
-    
+
             setLoading(false);
             if (response.ok) {
-                const contentType = response.headers.get("Content-Type");
-                if (contentType && contentType.includes("application/json")) {
-                    const result = await response.json();
-                    toast.success(selectedAddress ? "Địa chỉ đã được cập nhật!" : "Địa chỉ đã được thêm thành công!");
-                } else {
-                    toast.success(selectedAddress ? "Địa chỉ đã được cập nhật!" : "Địa chỉ đã được thêm thành công!");
-                }
-    
+                toast.success(selectedAddress ? "Địa chỉ đã được cập nhật!" : "Địa chỉ đã được thêm thành công!");
                 onClose();
-                window.location.reload();
+                onUpdate(); // Update address list without reloading the page
             } else {
                 const errorText = await response.text();
                 toast.error(`Đã có lỗi xảy ra: ${errorText}. Vui lòng thử lại.`);
@@ -182,7 +207,6 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
             toast.error("Đã có lỗi xảy ra, vui lòng thử lại.");
         }
     };
-    
 
     return (
         <Modal open={open} onClose={onClose} closeAfterTransition>
@@ -226,7 +250,7 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
                             className={styles.inputField}
                         />
                         <Autocomplete
-                            options={(cities || []).map((city) => city.name)}
+                            options={(cities || []).map((city) => city.provinceName)}
                             value={formData.city}
                             onChange={handleCityChange}
                             renderInput={(params) => (
@@ -241,7 +265,7 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
                             )}
                         />
                         <Autocomplete
-                            options={(districts || []).map((district) => district.name)}
+                            options={(districts || []).map((district) => district.districtName)}
                             value={formData.district}
                             onChange={handleDistrictChange}
                             renderInput={(params) => (
@@ -257,7 +281,7 @@ function RecipientModal({ open, onClose, selectedAddress, onUpdate, onAddNew, ex
                             )}
                         />
                         <Autocomplete
-                            options={(wards || []).map((ward) => ward.name)}
+                            options={(wards || []).map((ward) => ward.wardName)}
                             value={formData.ward}
                             onChange={handleWardChange}
                             renderInput={(params) => (

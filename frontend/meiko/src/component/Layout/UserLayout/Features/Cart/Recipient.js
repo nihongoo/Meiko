@@ -14,96 +14,6 @@ function Recipient({ setShippingFee, onSelectAddress }) {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const apiKey = "97f81af44199486f994b1c4eae5fb437";
-
-    const getCoordinatesFromAddress = async (address) => {
-        try {
-            const centralCities = {
-                "Hà Nội": "Hà Nội",
-                "Hồ Chí Minh": "TP Hồ Chí Minh",
-                "Đà Nẵng": "Đà Nẵng",
-                "Cần Thơ": "Cần Thơ",
-                "Hải Phòng": "Hải Phòng",
-                "Bình Dương": "Bình Dương",
-            };
-            let addressQuery;
-            if (centralCities[address.city]) {
-                addressQuery = `${address.addressDetail}, ${address.ward}, ${address.district}, ${centralCities[address.city]}`;
-            } else {
-                addressQuery = `${address.addressDetail}, ${address.ward}, ${address.district}, ${address.city}`;
-            }
-            const encodedAddress = encodeURIComponent(addressQuery);
-            const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodedAddress}&key=${apiKey}`);
-            const data = await response.json();
-    
-            if (data.results && data.results.length > 0) {
-                const result = data.results[0];
-                if (result.geometry && result.geometry.lat && result.geometry.lng) {
-                    const district = result.components.district || ''; 
-                    const city = result.components.city || result.components.state || ''; 
-                    return {
-                        lat: result.geometry.lat,
-                        lng: result.geometry.lng,
-                        district: district,
-                        city: city
-                    };
-                } else {
-                    throw new Error("Không tìm thấy tọa độ hợp lệ từ địa chỉ.");
-                }
-            } else {
-                throw new Error("Không tìm thấy địa chỉ trong kết quả OpenCage.");
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy tọa độ từ OpenCage API:", error);
-            return null;
-        }
-    };
-    const calculateDistance = (store, user) => {
-        const R = 6371;
-        const dLat = (user.lat - store.lat) * Math.PI / 180;
-        const dLon = (user.lng - store.lng) * Math.PI / 180;
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(store.lat * Math.PI / 180) * Math.cos(user.lat * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        let distance = R * c;
-        distance *= 0.55; 
-    
-        return distance;
-    };
-    const calculateShippingFee = async (address) => {
-        setLoading(true);
-        const userLocation = await getCoordinatesFromAddress(address);
-
-        if (userLocation) {
-            const storeLocation = { lat: 21.0285, lng: 105.8542 };
-
-            const shippingDistance = calculateDistance(storeLocation, userLocation);
-
-            if (shippingDistance < 12) {
-                setShippingFee(0); 
-                setLoading(false);
-                return 0; 
-            }
-
-            const feePerKm = 1000; 
-            let fee = shippingDistance * feePerKm;
-
-            fee = fee < 10000 ? 10000 : fee;
-
-            const roundedFee = Math.round(fee); 
-
-            setShippingFee(roundedFee); 
-            setLoading(false);
-            return roundedFee;
-        } else {
-            setShippingFee(0); 
-            setLoading(false);
-            return 0;
-        }
-    };
-
     const handleOpenModal = (address = null) => {
         setSelectedAddress(address);
         setIsModalOpen(true);
@@ -131,12 +41,58 @@ function Recipient({ setShippingFee, onSelectAddress }) {
         fetchAddresses();
     }, [customerId]);
 
+    // Hàm tính tiền ship
+    const calculateShippingFee = async (toCity, toDistrict, toWard) => {
+        const fromCity = "Hà Nội";
+        const fromDistrict = "Quận Nam Từ Liêm";
+        try {
+            const response = await fetch('https://localhost:7172/api/Shipping/calculate-shipping-fee', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    fromCityName: fromCity,
+                    fromDistrictName: fromDistrict,
+                    toCityName: toCity,
+                    toDistrictName: toDistrict,
+                    toWardName: toWard,
+                }),
+            });
+    
+            if (response.ok) {
+                const data = await response.json();
+                setShippingFee(data.fee); 
+                if (data.fee !== null) {
+                    setShippingFee(data.fee); 
+                } else {
+                    console.error('API trả về phí vận chuyển là null');
+                }
+            } else {
+                console.error('API không thành công');
+            }
+        } catch (error) {
+            console.error('Lỗi khi gọi API:', error);
+        } finally {
+            setLoading(false); 
+        }
+    };
+    
     const handleSelectChange = (event, address) => {
         setSelectedAddressId(address.id);
         setSelectedAddress(address);
-        calculateShippingFee(address);
         onSelectAddress(address);
+    
+        // Gọi API tính phí vận chuyển khi chọn địa chỉ
+        if (address) {
+            calculateShippingFee(
+                address.city, 
+                address.district, 
+                address.ward
+            );
+        }
     };
+    
 
     const handleUpdateAddress = async (updatedAddress) => {
         try {

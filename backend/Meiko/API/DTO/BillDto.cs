@@ -27,5 +27,6 @@ namespace API.DTO
 		public List<ShippingAddressDto>? ShippingAddresses { get; set; }
 		public List<StatusHistoryDto>? StatusHistories { get; set; }
 		public List<PaymentHistoryDto>? PaymentHistories { get; set; }
+		public VoucherDto? Voucherss { get; set; }
 	}
 }

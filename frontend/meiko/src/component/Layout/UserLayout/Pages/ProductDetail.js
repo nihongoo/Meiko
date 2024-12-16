@@ -108,6 +108,10 @@ const ProductDetails = () => {
   };
 
   const handleAddToCart = async () => {
+    if (availableQuantity === 0) {
+      alert("Sản phẩm này đã hết hàng.");
+      return;
+    }
     const token = localStorage.getItem("jwtToken"); 
       if (!token) {
         Toast.error("Vui lòng đăng nhập để tiếp tục mua hàng.");
@@ -406,20 +410,30 @@ const ProductDetails = () => {
                 <span className="prod-add-btn-text">Thêm vào giỏ</span>
               </button>
               <span className={`${styles.prodPrice} ms-2`}>
-                {discountedPrice !== null ? (
+                {availableQuantity === 0 ? (
+                  <span className="text-danger" style={{ fontWeight: 'bold' }}>
+                    Sản phẩm này đã hết hàng
+                  </span>
+                ) : (
                   <>
-                    <span style={{color:"red"}} className={styles.discountedPrice}>
-                      {discountedPrice.toLocaleString('vi-VN')} VND
-                    </span>
-                    <span className={`${styles.originalPrice} text-muted mx-2`} style={{ textDecoration: "line-through" }}>
-                      {selectedPrice !== null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND
-                    </span>
-                    <span style={{color: "#5bc0de"}} className={styles.discountPercentage}>
-                      {discountPercentage !== null ? `(-${discountPercentage}%)` : ''}
+                    <span className={`${styles.prodPrice}`}>
+                      {discountedPrice !== null ? (
+                        <>
+                          <span style={{ color: "red" }} className={styles.discountedPrice}>
+                            {discountedPrice.toLocaleString('vi-VN')} VND
+                          </span>
+                          <span className={`${styles.originalPrice} text-muted mx-2`} style={{ textDecoration: "line-through" }}>
+                            {selectedPrice !== null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND
+                          </span>
+                          <span style={{ color: "#5bc0de" }} className={styles.discountPercentage}>
+                            {discountPercentage !== null ? `(-${discountPercentage}%)` : ''}
+                          </span>
+                        </>
+                      ) : (
+                        <span>{selectedPrice !== null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND</span>
+                      )}
                     </span>
                   </>
-                ) : (
-                  <span>{selectedPrice !== null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND</span>
                 )}
               </span>
             </div>
