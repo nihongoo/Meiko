@@ -45,7 +45,7 @@ namespace API.Services
         public async Task Update(Guid id,TargretCustomerViewModel targretCustomers)
         {
             var targetCustimer = await _dbcontext.TargretCustomers.FindAsync(id);
-            if (targetCustimer == null) throw new Exception("Brand not found");
+            if (targetCustimer == null) throw new Exception("targret customers not found");
 
             targetCustimer.Name = targretCustomers.Name;
             targetCustimer.Status = 1;

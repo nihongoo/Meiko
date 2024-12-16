@@ -49,6 +49,5 @@ namespace DataProcessing.Models
 
         [JsonIgnore]
         public virtual ICollection<Bills>? Bills { get; set; }
-
     }
 }

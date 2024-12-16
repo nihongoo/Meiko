@@ -7,6 +7,7 @@ using System.Net;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using API.IServices;
+using Newtonsoft.Json;
 
 public class GHNService : IGHNService
 {
@@ -32,37 +33,71 @@ public class GHNService : IGHNService
 		int fromDistrictID = await GetDistrictIDAsync(fromCityName, fromDistrictName);
 		int toDistrictID = await GetDistrictIDAsync(toCityName, toDistrictName);
 
-		// Bước 2: Lấy WardCode của nơi nhận (dựa trên quận/huyện)
-		string toWardCode = await GetWardCodeAsync(toDistrictID, toWardName);
+        // Bước 2: Lấy WardCode của nơi nhận (dựa trên quận/huyện)
+        string toWardCode = await GetWardCodeAsync(toDistrictID, toWardName);
 
-		// Bước 3: Chuẩn bị request tính phí
-		var feeRequest = new FeeRequest
-		{
-			ServiceID = 53320, // Ví dụ: Dịch vụ GHN mặc định
-			FromDistrictID = fromDistrictID,
-			ToDistrictID = toDistrictID,
-			ToWardCode = toWardCode,
-			Weight = 1000, // Trọng lượng gói hàng (gram)
-			Length = 20,   // Kích thước gói hàng
-			Width = 20,
-			Height = 20
-		};
+        // Bước 3: Lấy danh sách dịch vụ khả dụng
+        var serviceRequest = new
+        {
+            shop_id = 5120610,
+            from_district = fromDistrictID,
+            to_district = toDistrictID,
+        };
 
-		var request = new RestRequest("v2/shipping-order/fee", Method.Post);
+        var serviceEndpoint = new RestRequest("v2/shipping-order/available-services", Method.Post);
+        AddHeaders(serviceEndpoint);
+        serviceEndpoint.AddJsonBody(serviceRequest);
+        var serviceResponse = await _client.ExecuteAsync(serviceEndpoint);
+        if (!serviceResponse.IsSuccessful)
+            throw new Exception($"Lỗi API lấy danh sách dịch vụ: {serviceResponse.StatusCode} - {serviceResponse.Content}");
+
+        var availableServices = JsonConvert.DeserializeObject<AvailableServicesResponse>(serviceResponse.Content); 
+        var selectedService = availableServices?.Data?.FirstOrDefault();
+        if (selectedService == null)
+            throw new Exception("Không có dịch vụ vận chuyển khả dụng cho tuyến đường này.");
+
+        int serviceId = selectedService.ServiceId;
+        var request = new RestRequest("v2/shipping-order/fee", Method.Post);
 		AddHeaders(request);
-		request.AddJsonBody(feeRequest);
-
-		// Bước 4: Gửi request và parse kết quả
-		var response = await _client.ExecuteAsync(request);
+        request.AddHeader("ShopId", "5120610");
+        var payload = new
+        {
+            from_district_id = fromDistrictID,
+            service_id = serviceId,
+            service_type_id = (int?)null, 
+            to_district_id = toDistrictID,
+            to_ward_code = toWardCode,
+            height = 50,
+            length = 20,
+            weight = 200,
+            width = 20,
+            insurance_value = 10000,
+            cod_failed_amount = 2000,
+            coupon = (string)null, // null
+            items = new[]
+            {
+                new {
+                    name = "TEST1",
+                    quantity = 1,
+                    height = 200,
+                    weight = 1000,
+                    length = 200,
+                    width = 200
+                }
+            }
+        };
+		request.AddJsonBody(payload);
+        // Bước 4: Gửi request và parse kết quả
+        var response = await _client.ExecuteAsync(request);
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var feeResponse = JsonSerializer.Deserialize<FeeResponse>(response.Content);
+		var feeResponse = JsonConvert.DeserializeObject<FeeResponse>(response.Content);
 		return feeResponse?.Data?.Total ?? 0;
 	}
 
-	// Hàm lấy DistrictID dựa trên tên thành phố và quận/huyện
-	private async Task<int> GetDistrictIDAsync(string cityName, string districtName)
+    // Hàm lấy DistrictID dựa trên tên thành phố và quận/huyện
+    private async Task<int> GetDistrictIDAsync(string cityName, string districtName)
 	{
 		// Gọi API để lấy danh sách thành phố
 		var cityList = await GetProvinceListAsync();
@@ -100,10 +135,9 @@ public class GHNService : IGHNService
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var result = JsonSerializer.Deserialize<ApiResponse<Province>>(response.Content);
+		var result = JsonConvert.DeserializeObject<ApiResponse<Province>>(response.Content);
 		return result?.Data ?? new List<Province>();
 	}
-
 	// Hàm lấy danh sách quận/huyện theo ProvinceID
 	public async Task<List<District>> GetDistrictListAsync(int provinceId)
 	{
@@ -115,7 +149,7 @@ public class GHNService : IGHNService
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var result = JsonSerializer.Deserialize<ApiResponse<District>>(response.Content);
+		var result = JsonConvert.DeserializeObject<ApiResponse<District>>(response.Content);
 		return result?.Data ?? new List<District>();
 	}
 
@@ -130,7 +164,7 @@ public class GHNService : IGHNService
 		if (!response.IsSuccessful)
 			throw new Exception($"Lỗi API: {response.StatusCode} - {response.Content}");
 
-		var result = JsonSerializer.Deserialize<ApiResponse<Ward>>(response.Content);
+		var result = JsonConvert.DeserializeObject<ApiResponse<Ward>>(response.Content);
 		return result?.Data ?? new List<Ward>();
 	}
 
@@ -189,6 +223,50 @@ public class FeeData
 
 public class ApiResponse<T>
 {
-	public int Code { get; set; } // Mã phản hồi (200 nếu thành công)
-	public List<T> Data { get; set; } // Dữ liệu trả về (List hoặc object tùy theo API)
+    public List<T> Data { get; set; }
+    public string Message { get; set; }
+    public bool Success { get; set; }
+}
+
+public class AvailableServicesResponse
+{
+    public int Code { get; set; } // Mã trạng thái (200, 400,...)
+    public string CodeMessageValue { get; set; } // Giá trị thông điệp mã lỗi (nếu có)
+    public List<ServiceData> Data { get; set; }
+    public string Message { get; set; } // Thông điệp từ API
+}
+public class ServiceData
+{
+    [JsonProperty("service_id")]
+    public int ServiceId { get; set; }
+
+    [JsonProperty("short_name")]
+    public string ShortName { get; set; }
+
+    [JsonProperty("service_type_id")]
+    public int ServiceTypeId { get; set; }
+
+    [JsonProperty("config_fee_id")]
+    public string ConfigFeeId { get; set; }
+
+    [JsonProperty("extra_cost_id")]
+    public string ExtraCostId { get; set; }
+
+    [JsonProperty("standard_config_fee_id")]
+    public string StandardConfigFeeId { get; set; }
+
+    [JsonProperty("standard_extra_cost_id")]
+    public string StandardExtraCostId { get; set; }
+
+    [JsonProperty("ecom_config_fee_id")]
+    public int EcomConfigFeeId { get; set; }
+
+    [JsonProperty("ecom_extra_cost_id")]
+    public int EcomExtraCostId { get; set; }
+
+    [JsonProperty("ecom_standard_config_fee_id")]
+    public int EcomStandardConfigFeeId { get; set; }
+
+    [JsonProperty("ecom_standard_extra_cost_id")]
+    public int EcomStandardExtraCostId { get; set; }
 }

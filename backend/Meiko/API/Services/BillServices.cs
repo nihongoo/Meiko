@@ -1,4 +1,5 @@
-﻿using API.DTO;
+﻿using API;
+using API.DTO;
 using API.IServices;
 using API.Models;
 using API.ViewModel;
@@ -43,7 +44,8 @@ namespace API.Services
 					.Include(b => b.ShippingAddresses)
 					.Include(b => b.StatusHistories)
 					.Include(b => b.PaymentHistories)
-					.Select(b => new BillDto
+                    .Include(b => b.Vouchers)
+                    .Select(b => new BillDto
 					{
 						Id = b.Id,
 						BillCode = b.BillCode,
@@ -62,8 +64,22 @@ namespace API.Services
 						VoucherId = b.VoucherId,
 						StaffId = b.StaffId,
 
-						// Ánh xạ bảng con
-						BillDetails = b.BillDetails.Select(d => new BillDetailDto
+                        // Ánh xạ bảng con
+
+                        Voucherss = b.Vouchers != null ? new VoucherDto
+                        {
+                            Id = b.Vouchers.Id,
+                            VoucherCode = b.Vouchers.VoucherCode,
+                            Value = b.Vouchers.Value,
+                            MinimumOrderAmount = b.Vouchers.MinimumOrderAmount,
+                            Quantity = b.Vouchers.Quantity,
+                            StartDay = b.Vouchers.StartDay,
+                            EndDay = b.Vouchers.EndDay,
+                            Status = b.Vouchers.Status,
+                            IsPublic = b.Vouchers.IsPublic
+                        } : null,
+
+                        BillDetails = b.BillDetails.Select(d => new BillDetailDto
 						{
 							Id = d.Id,
 							BillId = d.BillId,
@@ -652,6 +668,20 @@ namespace API.Services
                             return finalPrice;
                         });
 
+                        if (VoucherId != null)
+                        {
+                            var voucher = await _dbcontext.Vouchers
+                                .Where(v => v.Id == VoucherId)
+                                .FirstOrDefaultAsync();
+
+                            if (voucher != null && voucher.Value > 0)
+                            {
+                                decimal discountPercentage = (decimal)voucher.Value;
+                                decimal discountAmount = (productsTotal * discountPercentage) / 100;
+                                productsTotal -= discountAmount;
+                            }
+                        }
+
                         bill.Total = productsTotal + ShippingFee;
 
                         check = true;
@@ -674,6 +704,61 @@ namespace API.Services
             return (true, Id);
         }
 
+        public async Task<(bool k, Guid billId)> UpdateBill(Guid billId, decimal newShippingFee)
+        {
+            bool isSuccess = false;
+            Guid billIdResult = Guid.Empty;
+
+            using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var bill = await _dbcontext.Bills
+                        .Include(b => b.BillDetails)
+                        .ThenInclude(bd => bd.ProductDetails)
+                        .ThenInclude(pd => pd.SaleProducts)
+                        .FirstOrDefaultAsync(b => b.Id == billId);
+
+                    if (bill == null)
+                    {
+                        return (false, Guid.Empty);
+                    }
+
+                    decimal oldShippingFee = bill.ShippingFee;
+                    bill.ShippingFee = newShippingFee;
+
+                    decimal productsTotal = bill.BillDetails?.Sum(bd =>
+                    {
+                        if (bd.ProductDetails == null || bd.ProductDetails.SaleProducts == null)
+                            return bd.Price;
+
+                        decimal? discountedPrice = bd.ProductDetails.SaleProducts
+                            .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+                            .OrderByDescending(sp => sp.EffectiveDate)
+                            .FirstOrDefault()?.DiscountedPrice;
+
+                        return discountedPrice.HasValue && discountedPrice.Value > 0
+                            ? discountedPrice.Value
+                            : bd.Price;
+                    }) ?? 0;
+
+                    bill.Total = productsTotal + newShippingFee;
+
+                    await _dbcontext.SaveChangesAsync();
+                    await dbTransaction.CommitAsync();
+
+                    billIdResult = bill.Id;
+                    isSuccess = true;
+                }
+                catch (Exception ex)
+                {
+                    await dbTransaction.RollbackAsync();
+                    Console.WriteLine($"Error in UpdateBill: {ex.Message}");
+                    return (false, Guid.Empty);
+                }
+            }
+            return (k: isSuccess, billId: billIdResult);
+        }
         public async Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())

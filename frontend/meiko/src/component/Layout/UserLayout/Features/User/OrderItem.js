@@ -133,7 +133,6 @@ const OrderItemWrapper = styled.div`
 `;
 
 const OrderItem = ({ order }) => {
-  console.log("Hóa đơn:", order);
   return (
     <OrderItemWrapper>
       <div className="order-item-details">

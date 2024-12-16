@@ -97,6 +97,11 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = async () => {
+    console.log(quantity)
+    if (quantity === 0) {
+      alert("Loại sản phẩm này đã hết hàng.");
+      return;
+    }
     const token = localStorage.getItem("jwtToken");
     if (!token) {
       toast.error("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
@@ -244,21 +249,24 @@ const ProductDetail = () => {
               </p>
 
               <h4 className={styles.price}>
-                Giá:  
-                {discountedPrice ? (
-                  <>
-                    <span className={styles.discountedPrice}>
-                      {selectedPrice != null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND
-                    </span>
-                    <span className={styles.discount}>
-                      {discountedPrice != null ? discountedPrice.toLocaleString('vi-VN') : '0'} VND
-                    </span>
-                    <span className={styles.discountPercentage}>
-                      {discountPercentage ? `${discountPercentage}%` : '0%'}
-                    </span>
-                  </>
+              {quantity === 0 ? (
+                  <span></span>
                 ) : (
-                  <span>{selectedPrice != null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND</span>
+                  discountedPrice ? (
+                    <>
+                      <span className={styles.discountedPrice}>
+                        {selectedPrice != null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND
+                      </span>
+                      <span className={styles.discount}>
+                        {discountedPrice != null ? discountedPrice.toLocaleString('vi-VN') : '0'} VND
+                      </span>
+                      <span className={styles.discountPercentage}>
+                        {discountPercentage ? `${discountPercentage}%` : '0%'}
+                      </span>
+                    </>
+                  ) : (
+                    <span>{selectedPrice != null ? selectedPrice.toLocaleString('vi-VN') : '0'} VND</span>
+                  )
                 )}
               </h4>
 
@@ -327,6 +335,7 @@ const ProductDetail = () => {
                   className={`${styles.addToCart} btn btn-default`}
                   type="button"
                   onClick={handleAddToCart}
+                  disabled={quantity === 0}
                 >
                   Thêm vào giỏ hàng
                 </button>
