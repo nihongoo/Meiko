@@ -126,6 +126,7 @@ const apiURL = {
         listRefund: 'https://localhost:7172/api/Bills/List-Request',
         accept: 'https://localhost:7172/api/Bills/',
         statusHis: 'https://localhost:7172/api/Bills/get-statusHistories-by-billId/',
+        payOnline: 'https://localhost:7172/api/Bills/CreatePaymentWithPayOS/',
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',

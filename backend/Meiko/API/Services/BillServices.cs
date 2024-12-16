@@ -1704,6 +1704,11 @@ namespace API.Services
 			// Cập nhật thời gian tạo yêu cầu
 			request.CreateTime = DateTime.UtcNow;
 
+			foreach (var item in request.RefundItems)
+			{
+				item.Id = Guid.NewGuid();
+			}
+
 			// Tìm hóa đơn tương ứng và cập nhật trạng thái
 			var bill = await _dbcontext.Bills.FindAsync(request.BillId);
 			if (bill == null)
@@ -1757,7 +1762,7 @@ namespace API.Services
 			foreach (var item in refundRequest.RefundItems)
 			{
 				// Tìm sản phẩm trong kho (giả sử bạn có một DbSet cho sản phẩm)
-				var product = await _dbcontext.ProductDetails.FindAsync(item.Id);
+				var product = await _dbcontext.ProductDetails.FindAsync(item.ProductId);
 				if (product != null)
 				{
 					product.Quantity += item.Quantity; // Cộng sản phẩm vào kho

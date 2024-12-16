@@ -173,8 +173,9 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 },
             })
             if (res.ok) {
-                toast.success('Đã chấp nhận hoàn trả đơn hàng')
                 onClose()
+                reloadBill()
+                toast.success('Đã chấp nhận hoàn trả đơn hàng')
             }
             else {
                 const errorData = await res.json();
@@ -203,8 +204,9 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 },
             })
             if (res.ok) {
-                toast.success('Đã từ chối hoàn trả đơn hàng')
                 onClose()
+                reloadBill()
+                toast.success('Đã từ chối hoàn trả đơn hàng')
             }
             else {
                 const errorData = await res.json();

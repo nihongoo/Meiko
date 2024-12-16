@@ -7,7 +7,7 @@ import useFetchData from '../../customHook/useFetchData';
 import { BillInfoContext } from './SoldOfline';
 
 function CheckOut({ open, onClose, bill, billInfo, reload }) {
-    const {handleCloseTab, index} = useContext(BillInfoContext)
+    const { handleCloseTab, index } = useContext(BillInfoContext)
     const [paymentMethod, setPaymentMethod] = useState('transfer');
     const [cashAmount, setCashAmount] = useState('');
     const [remaining, setRemaining] = useState(0);
@@ -69,6 +69,26 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             }
         }
     };
+
+    const handleCheckOutOnline = async () => {
+        try {
+            if (paymentMethod === 'transfer') {
+                const res = await fetch(`${apiURL.bill.payOnline}${bill.id}?descrtiption=${'Thanh toán đơn hàng'}`, {
+                    method: 'POST',
+                })
+                const msg = await res.json()
+                console.log(msg);
+                
+                if (msg.checkoutUrl) {
+                    window.location.href = msg.checkoutUrl;
+                } else {
+                    toast.error("Có lỗi xảy ra khi tạo thanh toán.");
+                }
+            }
+        } catch (error) {
+
+        }
+    }
 
     const columns = [
         { field: 'id', headerName: 'STT', flex: 1 },
@@ -173,7 +193,7 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
                 </Box>
             </DialogContent>
             <DialogActions className="justify-content-center">
-                <Button variant="outlined" color="success" onClick={handleCheckout}>
+                <Button variant="outlined" color="success" onClick={()=>{handleCheckout();handleCheckOutOnline()}}>
                     Xác nhận
                 </Button>
             </DialogActions>
