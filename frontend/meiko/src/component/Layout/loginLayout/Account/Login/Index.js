@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
+import { useNavigate, useLocation } from 'react-router-dom'; 
 import Header from '../../../UserLayout/Header/index.js';
 import styles from './index.module.css';
 import Footer from '../../../UserLayout/Footer/index.js';
@@ -10,7 +10,7 @@ function LoginForm() {
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation(); // Khai báo useLocation
+  const location = useLocation();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword); 
@@ -102,7 +102,7 @@ function LoginForm() {
           </div>
           <div className={styles.form}>
             <h1>Chào Mừng</h1>
-            {message && <div className="alert alert-success" role="alert">{message}</div>} {/* Hiển thị thông báo thành công */}
+            {message && <div className="alert alert-success" role="alert">{message}</div>}
             <div className={styles.formPage}>
               <div className={styles.segmented}>
                 <button onClick={handleLoginClick} className={styles.segmentedBtn} aria-selected="true">

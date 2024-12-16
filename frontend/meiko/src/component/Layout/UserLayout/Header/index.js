@@ -150,7 +150,7 @@ function Header () {
                     <ul className={styles.accountSelection}>
                       {isLoggedIn ? (
                         <>
-                          <li><a href="/accountUser"><i className="fa fa-user" aria-hidden="true"></i> Thông tin</a></li>
+                          <li><a href={`/accountUser/${localStorage.getItem("customerId")}`}><i className="fa fa-user" aria-hidden="true"></i> Thông tin</a></li>
                           <li><a href="#" onClick={handleLogout}><i className="fa fa-sign-out" aria-hidden="true"></i> Đăng xuất</a></li>
                         </>
                       ) : (

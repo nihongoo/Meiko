@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom"; // Import Link để sử dụng chuyển hướng
 import styled from "styled-components";
 import { Container } from "../styles/styles";
 import Breadcrumb from "../Features/common/Breadcrumb";
@@ -6,7 +8,6 @@ import UserMenu from "../Features/User/UserMenu";
 import Title from "../Features/common/Title";
 import { breakpoints, defaultTheme } from "../styles/themes/default";
 import OrderItemList from "../Features/User/OrderItemList";
-import { useState, useEffect } from "react";
 
 const OrderListScreenWrapper = styled.div`
   .order-tabs-contents {
@@ -52,7 +53,6 @@ const breadcrumbItems = [
   { label: "Đơn hàng", link: "/order" },
 ];
 
-// Chuyển các trạng thái thành số cho dễ lọc
 const statusLabels = {
   0: "Chờ xử lý",
   1: "Đang chuẩn bị hàng",
@@ -63,10 +63,11 @@ const statusLabels = {
 };
 
 const OrderListScreen = () => {
-  const [activeTab, setActiveTab] = useState(0); // Thay đổi activeTab thành số
+  const [activeTab, setActiveTab] = useState(0);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllOrders, setShowAllOrders] = useState(false); // State để hiển thị tất cả đơn hàng
 
   const customerId = localStorage.getItem("customerId");
 
@@ -79,7 +80,6 @@ const OrderListScreen = () => {
         }
   
         const data = await response.json();
-        console.log("Fetched Orders: ", data);
         setOrders(data);
         setLoading(false);
       } catch (err) {
@@ -99,10 +99,13 @@ const OrderListScreen = () => {
       const latestStatusHistory = order.statusHistories
         .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))[0];
       const latestStatus = latestStatusHistory?.statusType?.trim();
-      console.log(latestStatus); 
-      console.log(statusLabels[statusNumber]);
       return latestStatus === statusLabels[statusNumber]; 
     });
+  };
+
+  // Hiển thị tất cả đơn hàng
+  const showAllOrdersHandler = () => {
+    setShowAllOrders(true); // Thay đổi trạng thái để hiển thị tất cả đơn hàng
   };
 
   return (
@@ -113,7 +116,22 @@ const OrderListScreen = () => {
           <UserDashboardWrapper>
             <UserMenu />
             <UserContent>
-              <Title titleText={"Đơn hàng của tôi"} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Title titleText={"Đơn hàng của tôi"} />
+                <button
+                  onClick={showAllOrdersHandler}
+                  style={{
+                    fontSize: "16px",
+                    color: defaultTheme.color_outerspace,
+                    fontWeight: "bold",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer"
+                  }}
+                >
+                  Tất cả đơn hàng
+                </button>
+              </div>
               <div className="order-tabs">
                 <div className="order-tabs-heads d-flex">
                   {Object.keys(statusLabels).map((statusNumber) => (
@@ -122,7 +140,8 @@ const OrderListScreen = () => {
                       type="button"
                       className={`order-tabs-head text-lg font-italic ${activeTab === parseInt(statusNumber) ? "order-tabs-head-active" : ""}`}
                       onClick={() => {
-                        setActiveTab(parseInt(statusNumber)); // Cập nhật trạng thái tab khi người dùng nhấn
+                        setActiveTab(parseInt(statusNumber)); 
+                        setShowAllOrders(false); // Khi chọn trạng thái đơn hàng, không hiển thị tất cả đơn hàng nữa
                       }}
                     >
                       {statusLabels[statusNumber]} 
@@ -132,6 +151,15 @@ const OrderListScreen = () => {
                 <div className="order-tabs-contents">
                   {loading && <div>Đang tải đơn hàng...</div>}
                   {error && <div>{error}</div>}
+
+                  {/* Nếu nhấn "Tất cả đơn hàng", hiển thị tất cả đơn hàng */}
+                  <div
+                    className={`order-tabs-content ${showAllOrders ? "active" : ""}`}
+                  >
+                    <OrderItemList orders={orders} />
+                  </div>
+
+                  {/* Hiển thị theo trạng thái đơn hàng */}
                   {Object.keys(statusLabels).map((statusNumber) => (
                     <div
                       key={statusNumber}

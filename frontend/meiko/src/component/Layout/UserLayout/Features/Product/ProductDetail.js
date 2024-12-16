@@ -251,7 +251,7 @@ const ProductDetail = () => {
 
               <h4 className={styles.price}>
               {quantity === 0 ? (
-                  <span>Loại sản phẩm này đã hết hàng</span>
+                  <span></span>
                 ) : (
                   discountedPrice ? (
                     <>

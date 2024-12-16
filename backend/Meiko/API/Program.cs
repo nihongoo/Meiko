@@ -50,7 +50,7 @@ namespace Meiko
 
 			builder.Services.AddScoped<IImageServices, ImageServices>();
 			builder.Services.AddScoped<IBillServices, BillServices>();
-
+			builder.Services.AddScoped<FavoriteProductsService>();
 
 
 			builder.Services.AddExtentionsService(builder.Configuration);
