@@ -30,6 +30,8 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             status: item?.status === 1 ? 'Chờ xử lý' : item?.status === 2 ? 'Chấp nhận hoàn trả' : 'Từ chối hoàn trả'
         }));
     })
+    console.log(listRefund);
+    
     const sortedStatusHistories = hist
         ? hist.sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
         : [];
@@ -172,6 +174,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             })
             if (res.ok) {
                 toast.success('Đã chấp nhận hoàn trả đơn hàng')
+                onClose()
             }
             else {
                 const errorData = await res.json();
@@ -201,6 +204,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             })
             if (res.ok) {
                 toast.success('Đã từ chối hoàn trả đơn hàng')
+                onClose()
             }
             else {
                 const errorData = await res.json();
@@ -238,7 +242,6 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
         }
     };
 
-    console.log(item);
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth >
             <NotePrevStatus
@@ -474,7 +477,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                                                     <Typography>{`Trạng thái: ${refund?.status || 'N/A'}`}</Typography>
                                                 </Grid>
                                                 <Grid item xs={12} sm={6}>
-                                                    {refund.status === 1 && (
+                                                    {refund.status === 'Chờ xử lý' && (
                                                         <>
                                                             <Button onClick={() => handleAccept(refund.id)} className="me-3">Chấp nhận</Button>
                                                             <Button onClick={() => handleReject(refund.id)}>Từ chối</Button>

@@ -13,6 +13,7 @@ function ReturnProduct() {
     const [error, setError] = useState(null);
     const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${bill?.id}`);
     const { data: allBill } = useFetchData(apiURL.bill.all)
+    const completedBills = allBill.filter(bill => bill.status === 'Hoàn thành');
     const [obj, setObj] = useState({
         billId: '',
         requester: localStorage.getItem('userId'),
@@ -32,7 +33,6 @@ function ReturnProduct() {
             )
         );
     };
-
     const handleSearch = async () => {
         try {
             setError(null);
@@ -48,7 +48,6 @@ function ReturnProduct() {
             console.log(error);
         }
     };
-
     const handleRefund = async () => {
         try {
             setObj((prev) => ({
@@ -63,6 +62,8 @@ function ReturnProduct() {
                     note: item.note
                 }))
             }))
+            console.log(obj);
+            
             const res = await fetch(apiURL.bill.refund, {
                 method: 'POST',
                 headers: {
@@ -87,7 +88,6 @@ function ReturnProduct() {
             console.log(error);
         }
     }
-console.log(obj);
 
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2} minHeight={700}>
@@ -101,7 +101,7 @@ console.log(obj);
                 <Box display="flex">
                     <Autocomplete
                         disablePortal
-                        options={allBill || []}
+                        options={completedBills || []}
                         onInputChange={(event, newInputValue) => {
                             setQuery(newInputValue);
                         }}
