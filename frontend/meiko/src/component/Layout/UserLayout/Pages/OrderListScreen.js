@@ -52,25 +52,18 @@ const breadcrumbItems = [
   { label: "Đơn hàng", link: "/order" },
 ];
 
-// Định nghĩa trạng thái tiếng Việt và mã trạng thái
+// Chuyển các trạng thái thành số cho dễ lọc
 const statusLabels = {
-  pending: "Chờ xử lý",
-  preparing: "Đang chuẩn bị hàng",
-  shipping: "Đang giao hàng",
-  completed: "Hoàn thành",
-  cancelled: "Đã hủy",
-  returned: "Hoàn trả",
+  0: "Chờ xử lý",
+  1: "Đang chuẩn bị hàng",
+  2: "Đang giao hàng",
+  3: "Hoàn thành",
+  4: "Đã huỷ",
+  5: "Hoàn trả",
 };
 
 const OrderListScreen = () => {
-  const [activeTab, setActiveTab] = useState("");
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabFromUrl = urlParams.get("tab") || "pending";
-    setActiveTab(tabFromUrl);
-  }, []);
-
+  const [activeTab, setActiveTab] = useState(0); // Thay đổi activeTab thành số
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -84,9 +77,9 @@ const OrderListScreen = () => {
         if (!response.ok) {
           throw new Error("Không thể tải đơn hàng. Vui lòng thử lại sau.");
         }
-
+  
         const data = await response.json();
-        console.log("Dữ liệu API trả về:", data);
+        console.log("Fetched Orders: ", data);
         setOrders(data);
         setLoading(false);
       } catch (err) {
@@ -94,25 +87,21 @@ const OrderListScreen = () => {
         setLoading(false);
       }
     };
-
+  
     fetchOrders();
   }, [customerId]);
 
-  const filteredOrders = (status) => {
-    const vietnameseStatusMap = {
-      pending: "Chờ xử lý",
-      preparing: "Đang chuẩn bị hàng",
-      shipping: "Đang giao hàng",
-      completed: "Hoàn thành",
-      cancelled: "Đã hủy",
-      returned: "Hoàn trả",
-    };
-    const statusInVietnamese = vietnameseStatusMap[status.toLowerCase()];
+  const filteredOrders = (statusNumber) => {
     return orders.filter((order) => {
+      if (!order.statusHistories || order.statusHistories.length === 0) {
+        return false;
+      }
       const latestStatusHistory = order.statusHistories
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-      const latestStatus = latestStatusHistory?.statusType;
-      return latestStatus === statusInVietnamese; 
+        .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))[0];
+      const latestStatus = latestStatusHistory?.statusType?.trim();
+      console.log(latestStatus); 
+      console.log(statusLabels[statusNumber]);
+      return latestStatus === statusLabels[statusNumber]; 
     });
   };
 
@@ -127,27 +116,28 @@ const OrderListScreen = () => {
               <Title titleText={"Đơn hàng của tôi"} />
               <div className="order-tabs">
                 <div className="order-tabs-heads d-flex">
-                  {Object.keys(statusLabels).map((status) => (
+                  {Object.keys(statusLabels).map((statusNumber) => (
                     <button
-                      key={status}
+                      key={statusNumber}
                       type="button"
-                      className={`order-tabs-head text-lg font-italic ${activeTab === status ? "order-tabs-head-active" : ""}`}
-                      onClick={() => setActiveTab(status)}
+                      className={`order-tabs-head text-lg font-italic ${activeTab === parseInt(statusNumber) ? "order-tabs-head-active" : ""}`}
+                      onClick={() => {
+                        setActiveTab(parseInt(statusNumber)); // Cập nhật trạng thái tab khi người dùng nhấn
+                      }}
                     >
-                      {statusLabels[status]}
+                      {statusLabels[statusNumber]} 
                     </button>
                   ))}
                 </div>
                 <div className="order-tabs-contents">
                   {loading && <div>Đang tải đơn hàng...</div>}
                   {error && <div>{error}</div>}
-
-                  {Object.keys(statusLabels).map((status) => (
+                  {Object.keys(statusLabels).map((statusNumber) => (
                     <div
-                      key={status}
-                      className={`order-tabs-content ${activeTab === status ? "active" : ""}`}
+                      key={statusNumber}
+                      className={`order-tabs-content ${activeTab === parseInt(statusNumber) ? "active" : ""}`}
                     >
-                      <OrderItemList orders={filteredOrders(status)} />
+                      <OrderItemList orders={filteredOrders(parseInt(statusNumber))} />
                     </div>
                   ))}
                 </div>

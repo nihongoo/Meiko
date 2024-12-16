@@ -73,7 +73,6 @@ const ListProducts = ({ selectedFilters }) => {
     // Lọc theo giá
     if (selectedFilters.priceRanges && selectedFilters.priceRanges.length > 0) {
       const price = product.Product_detail?.[0]?.price || 0;
-      // Định nghĩa phạm vi giá
       const priceRanges = {
         "under-20k": { min: 0, max: 20000 },
         "20k-100k": { min: 20000, max: 100000 },
@@ -81,20 +80,17 @@ const ListProducts = ({ selectedFilters }) => {
         "200k-500k": { min: 200000, max: 500000 },
         "500k-above": { min: 500000, max: Infinity },
       };
-    
-      const isPriceInSelectedRange = selectedFilters.priceRanges.some((range) => {
+  
+      // Nếu không khớp bất kỳ phạm vi nào, loại bỏ
+      const matchesPrice = selectedFilters.priceRanges.some((range) => {
         const { min, max } = priceRanges[range] || {};
         return price >= min && price <= max;
       });
-    
-      if (!isPriceInSelectedRange) {
-        isFiltered = false;
-      }
+      if (!matchesPrice) return false;
     }
     // Các điều kiện lọc khác (material, category, color, size)
     if (selectedFilters.materials && selectedFilters.materials.length > 0) {
-      const productMaterialIds = product.Product_detail?.map(detail => detail.materialId) || [];
-      if (!productMaterialIds.some(id => selectedFilters.materials.includes(id))) {
+      if (!selectedFilters.materials.includes(product.materialId)) {
         isFiltered = false;
       }
     }
@@ -113,9 +109,7 @@ const ListProducts = ({ selectedFilters }) => {
   
     if (selectedFilters.colors && selectedFilters.colors.length > 0) {
       const hasMatchingColor = product.Product_detail?.some(detail =>
-        selectedFilters.colors.some(colorFilter => {
-          return detail.colors?.hex === colorFilter;
-        })
+        selectedFilters.colors.includes(detail.colorId)
       );
       if (!hasMatchingColor) {
         isFiltered = false;

@@ -3,6 +3,7 @@ using API.Extention;
 using API.IServices;
 using API.Models;
 using API.Services;
+using API.ViewModel;
 using DataProcessing.Models;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -150,8 +151,36 @@ namespace API.Controllers
 			}
 		}
 
+        [HttpPut("update-shipping-fee/{billId}")]
+        public async Task<IActionResult> UpdateShippingFee(Guid billId, [FromBody] UpdateShippingFeeViewModel request)
+        {
+            if (billId == Guid.Empty || request == null || request.NewShippingFee < 0)
+            {
+                return BadRequest("Thông tin không hợp lệ.");
+            }
 
-		[HttpDelete("delete-bill/{id}")]
+            try
+            {
+                // Gọi service để cập nhật hóa đơn
+                var (success, updatedBillId) = await _IBillServices.UpdateBill(billId, request.NewShippingFee);
+
+                if (success)
+                {
+                    return Ok(new { Status = 0 });
+                }
+                else
+                {
+                    return NotFound("Hóa đơn không tồn tại hoặc không thể cập nhật.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi máy chủ: {ex.Message}");
+            }
+        }
+
+
+        [HttpDelete("delete-bill/{id}")]
 		public async Task<IActionResult> DeleteBill(Guid id, [FromQuery] string? note, [FromQuery] Guid StaffWhoDothis)
 		{
 			var result = _IBillServices.Delete(id).Result;
