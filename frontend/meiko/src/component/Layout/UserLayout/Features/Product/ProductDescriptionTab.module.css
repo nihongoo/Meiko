@@ -1,72 +1,110 @@
 .detailsContent {
-    margin-top: 60px;
-  }
-  
-  .detailsContentWrapper {
-    display: flex;
-    flex-direction: column;
-    margin-top: 40px;
-  }
-  
-  .tabsWrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 16px; /* Khoảng cách giữa các tab */
-  }
-  
-  .tabsHeads {
-    display: flex;
-    justify-content: flex-start; /* Canh lề trái */
-    gap: 30px; /* Tạo khoảng cách giữa các tab */
-    margin-bottom: 20px;
-  }
-  
-  .tabsHead {
-    background: none;
-    border: none;
-    color: #6c757d;
-    font-size: 16px;
-    font-weight: 500; /* Để tab rõ ràng hơn */
-    padding: 10px 20px;
-    cursor: pointer;
-    position: relative;
-    transition: color 0.3s, border-color 0.3s;
-  }
-  
-  .tabsHead:hover {
-    color: #007bff; /* Màu sắc khi hover */
-    text-decoration: underline; /* Gạch chân khi hover */
-  }
-  
-  .tabsHeadActive {
-    color: #007bff; /* Màu sắc cho tab đang được chọn */
-    font-weight: 600;
-    border-bottom: 2px solid #007bff; /* Gạch dưới tab đang được chọn */
-  }
-  
-  .tabsBadge {
-    background-color: #007bff;
-    color: white;
-    border-radius: 50%;
-    padding: 5px 10px;
-    font-size: 12px;
-    margin-left: 10px;
-  }
-  
-  .tabsContents {
-    margin-top: 20px;
-  }
-  
-  .tabsContent {
-    display: none;
-  }
-  
-  .show {
-    display: block;
-  }
-  
-  .contentStylings {
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  
+  margin-top: 60px;
+  padding-bottom: 40px; /* Tăng không gian phía dưới */
+}
+
+.detailsContentWrapper {
+  display: flex;
+  flex-direction: column;
+  margin-top: 40px;
+}
+
+.tabsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Khoảng cách giữa các tab */
+  max-width: 100%;
+}
+
+.tabsHeads {
+  display: flex;
+  justify-content: flex-start; /* Canh lề trái */
+  gap: 30px; /* Tạo khoảng cách giữa các tab */
+  margin-bottom: 20px;
+}
+
+.tabsHead {
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: 16px;
+  font-weight: 500; /* Để tab rõ ràng hơn */
+  padding: 10px 20px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s, border-color 0.3s, transform 0.3s ease; /* Thêm hiệu ứng chuyển động */
+}
+
+.tabsHead:hover {
+  color: #007bff; /* Màu sắc khi hover */
+  text-decoration: underline; /* Gạch chân khi hover */
+  transform: translateY(-2px); /* Hiệu ứng dịch chuyển nhẹ khi hover */
+}
+
+.tabsHeadActive {
+  color: #007bff; /* Màu sắc cho tab đang được chọn */
+  font-weight: 600;
+  border-bottom: 2px solid #007bff; /* Gạch dưới tab đang được chọn */
+  transform: translateY(-2px); /* Thêm hiệu ứng dịch chuyển khi tab active */
+}
+
+.tabsBadge {
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  padding: 5px 10px;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.tabsContents {
+  margin-top: 20px;
+}
+
+.tabsContent {
+  display: none;
+}
+
+.show {
+  display: block;
+}
+
+.contentStylings {
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 20px; /* Thêm padding để nội dung dễ đọc hơn */
+  background-color: #f8f9fa; /* Thêm màu nền nhẹ cho nội dung */
+  border-radius: 8px; /* Bo góc các phần nội dung */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Tạo bóng cho các phần nội dung */
+}
+
+.contentStylings h4 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.contentStylings ul {
+  list-style-type: disc;
+  margin-left: 20px;
+  margin-bottom: 15px;
+}
+
+.contentStylings p {
+  font-size: 14px;
+  color: #555;
+}
+
+.productImage {
+  margin-top: 20px;
+  max-width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.productImage img {
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+}

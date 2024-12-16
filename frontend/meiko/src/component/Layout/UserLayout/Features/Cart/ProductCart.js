@@ -54,6 +54,7 @@ function ProductCart() {
       .catch((error) => {
         console.error('Error fetching cart details:', error);
       });
+      console.log(cartId); 
   };
 
   const fetchProduct = (productId) => {

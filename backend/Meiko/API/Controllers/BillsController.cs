@@ -137,7 +137,9 @@ namespace API.Controllers
 		[HttpPost("create-bill")]
 		public async Task<ActionResult<object>> CreateBill(BillInfoModel model)
 		{
-			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId);
+
+			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId, model.BillCode);
+
 			if (result.k)
 			{
 				return Ok(new { success = result.k, id = result.id });
@@ -258,7 +260,7 @@ namespace API.Controllers
 			{
 				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
 				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
-
+				
 				if (status == "PAID")
 				{
 					// Cập nhật trạng thái đơn hàng trong hệ thống
@@ -349,6 +351,70 @@ namespace API.Controllers
 		{
 			var result = await _IBillServices.Filter(startDate, endDate);
 			return Ok(result);
+		}
+
+		[HttpPost("return")]
+		public async Task<IActionResult> ReturnProduct([FromBody] RequestRefund request)
+		{
+			var (success, message) = await _IBillServices.ReturnProduct(request);
+			if (success)
+			{
+				return Ok(message); // Trả về 200 OK với thông điệp thành công
+			}
+
+			return BadRequest(message); // Trả về 400 Bad Request với thông điệp lỗi
+		}
+
+		[HttpPost("{requestId}/accept")]
+		public async Task<IActionResult> AcceptRefundRequest(Guid requestId, Guid staff)
+		{
+			try
+			{
+				var success = await _IBillServices.AcceptRefundRequest(requestId, staff);
+				if (success)
+				{
+					return Ok("Refund request accepted and products returned to stock.");
+				}
+
+				return BadRequest("Failed to accept the refund request.");
+			}
+			catch (ArgumentException ex)
+			{
+				return NotFound(ex.Message); // Trả về 404 Not Found nếu không tìm thấy yêu cầu
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"Internal server error: {ex.Message}");
+			}
+		}
+
+		[HttpPost("{requestId}/reject")]
+		public async Task<IActionResult> RejectRefundRequest(Guid requestId, Guid staff)
+		{
+			try
+			{
+				var success = await _IBillServices.RejectRefundRequest(requestId, staff);
+				if (success)
+				{
+					return Ok("Refund request rejected and bill status updated to completed.");
+				}
+
+				return BadRequest("Failed to reject the refund request.");
+			}
+			catch (ArgumentException ex)
+			{
+				return NotFound(ex.Message); // Trả về 404 Not Found nếu không tìm thấy yêu cầu
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"Internal server error: {ex.Message}");
+			}
+		}
+
+		[HttpGet("List-Request")]
+		public async Task<IActionResult> ListRequest(Guid id)
+		{
+			return Ok(await _IBillServices.ListRequest(id));
 		}
 	}
 }

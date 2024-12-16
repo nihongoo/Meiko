@@ -44,5 +44,10 @@ namespace API.Services
             _appDbContext.Sales.Update(sales);
             await _appDbContext.SaveChangesAsync();
         }
-    }
+
+		public async Task<List<Sales>> Filter(DateTime startDate, DateTime endDate)
+		{
+			return await _appDbContext.Sales.Where(v => v.StartDay >= startDate && v.EndDay <= endDate).ToListAsync();
+		}
+	}
 }

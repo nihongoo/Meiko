@@ -15,7 +15,6 @@ const ProductReviews = ({ productId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userData, setUserData] = useState(null);
-  const [isScrolling, setIsScrolling] = useState(false);
   const customerId = localStorage.getItem('customerId');
 
   useEffect(() => {
@@ -50,7 +49,6 @@ const ProductReviews = ({ productId }) => {
     fetchUserData();
     fetchReviews();
   }, [productId, customerId]);
-console.log(reviews);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,7 +94,7 @@ console.log(reviews);
       const data = await response.json();
       setReviews((prevReviews) => [data, ...prevReviews]);
       setNewReview({ rating: 0, comment: '' });
-      toast.success('Đánh giá đã được gửi thành công'); // Hiển thị thông báo thành công
+      toast.success('Đánh giá đã được gửi thành công');
     } catch (err) {
       toast.error('Có lỗi xảy ra khi gửi đánh giá');
     }
@@ -184,55 +182,62 @@ console.log(reviews);
 
   return (
     <div className={`container ${styles.container}`}>
-      <h3>Đánh giá sản phẩm</h3>
+      <h3 className="mb-4">Đánh giá sản phẩm</h3>
+  
       <div
-        className="scrollable-container"
+        className="scrollable-container mb-4"
         style={{ maxHeight: reviews.length > 5 ? '400px' : 'none', overflowY: reviews.length > 5 ? 'auto' : 'visible' }}
       >
         {reviews.length > 0 ? (
           <ul className="list-unstyled">
             {reviews.map((review, index) => (
               <li key={index} className={`${styles.reviewItem} mb-3`}>
-                <div className="d-flex align-items-center">
-                <Avatar {...stringAvatar(review.customerName)} />
-                  <div className={styles.reviewContent}>
-                    <div className="d-flex justify-content-between">
+                <div className="d-flex flex-column">
+                  <div className="d-flex align-items-center">
+                    <Avatar {...stringAvatar(review.customerName)} />
+                    <div className="ms-3">
                       <strong className={styles.reviewName}>
-                        {review.customerName || 'Người dùng chưa xác định'} (<span className={styles.timeSet}>{timeAgo(review.createdAt)}</span>)
+                        {review.customerName || 'Người dùng chưa xác định'}
                       </strong>
-                      {review.customerId === customerId && (
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          className={styles.deleteButton}
-                          onClick={() => handleDeleteReview(review.id)}
-                        >
-                          <DeleteIcon />
-                        </Button>
-                      )}
+                      <span className={styles.timeSet}>
+                        ({timeAgo(review.createdAt)})
+                      </span>
                     </div>
-                    <div className={styles.rating}>
-                      <Rating name="read-only" value={review.rating} readOnly />
-                    </div>
-                    <p className={styles.reviewComment}>{review.comment}</p>
-
-                    <div className={styles.helpfulCounts}>
-                      <button
-                        className={`${styles.helpfulButton} text-success`}
-                        onClick={() => handleHelpful(review.id, true)}
-                        disabled={review.userInteractions?.[customerId] === 'like'}
+                    {review.customerId === customerId && (
+                      <Button
+                        style={{marginLeft: "550px"}}
+                        variant="danger"
+                        size="sm"
+                        className={styles.deleteButton}
+                        onClick={() => handleDeleteReview(review.id)}
                       >
-                        <ThumbUpIcon /> {review.helpfulCount}
-                      </button>
-                      |
-                      <button
-                        className={`${styles.helpfulButton} text-danger`}
-                        onClick={() => handleHelpful(review.id, false)}
-                        disabled={review.userInteractions?.[customerId] === 'dislike'}
-                      >
-                        <ThumbDownIcon /> {review.unhelpfulCount}
-                      </button>
-                    </div>
+                        <DeleteIcon />
+                      </Button>
+                    )}
+                  </div>
+  
+                  <div className={styles.rating}>
+                    <Rating name="read-only" value={review.rating} readOnly />
+                  </div>
+  
+                  <p className={styles.reviewComment}>{review.comment}</p>
+  
+                  <div className={styles.helpfulCounts}>
+                    <button
+                      className={`${styles.helpfulButton} text-success`}
+                      onClick={() => handleHelpful(review.id, true)}
+                      disabled={review.userInteractions?.[customerId] === 'like'}
+                    >
+                      <ThumbUpIcon /> {review.helpfulCount}
+                    </button>
+                    |
+                    <button
+                      className={`${styles.helpfulButton} text-danger`}
+                      onClick={() => handleHelpful(review.id, false)}
+                      disabled={review.userInteractions?.[customerId] === 'dislike'}
+                    >
+                      <ThumbDownIcon /> {review.unhelpfulCount}
+                    </button>
                   </div>
                 </div>
               </li>
@@ -242,10 +247,10 @@ console.log(reviews);
           <p className={styles.noReviews}>Chưa có đánh giá nào</p>
         )}
       </div>
-
+  
       <h4>Đánh giá của bạn</h4>
       <form onSubmit={handleSubmit}>
-        <Form.Group className={styles.formGroup}>
+        <Form.Group className={`${styles.formGroup} mb-4`}>
           <Form.Label className={styles.formLabel}>Đánh giá:</Form.Label>
           <Rating
             name="rating"
@@ -255,8 +260,8 @@ console.log(reviews);
             className={styles.rating}
           />
         </Form.Group>
-
-        <Form.Group className={styles.formGroup}>
+  
+        <Form.Group className={`${styles.formGroup} mb-4`}>
           <Form.Label className={styles.formLabel}>Bình luận:</Form.Label>
           <Form.Control
             as="textarea"
@@ -268,15 +273,17 @@ console.log(reviews);
             className={styles.formControl}
           />
         </Form.Group>
-
+  
         <Button variant="primary" type="submit" className={styles.submitButton}>
           Gửi đánh giá
         </Button>
       </form>
-
+  
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar newestOnTop rtl={false} pauseOnFocusLoss pauseOnHover />
     </div>
   );
+  
+  
 };
 
 function stringAvatar(name) {

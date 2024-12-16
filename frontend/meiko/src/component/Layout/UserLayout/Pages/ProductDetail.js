@@ -5,6 +5,7 @@ import ProductPreview from "../Features/Product/ProductPreview";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductDescriptionTab from "../Features/Product/ProductDescriptionTab";
 import styles from "./ProductDetails.module.css";
+import { Toast } from "react-bootstrap";
 
 const ProductDetails = () => {
   const { productId } = useParams();
@@ -14,7 +15,7 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
-  
+  const [reviews, setReviews] = useState([]);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedPrice, setSelectedPrice] = useState(null);
@@ -41,6 +42,20 @@ const ProductDetails = () => {
       }
     };
     fetchProduct();
+  }, [productId]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(`https://localhost:7172/api/Review/${productId}`);
+        if (!response.ok) throw new Error('Không thể tải đánh giá');
+        const data = await response.json();
+        setReviews(data);
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+      }
+    };
+    fetchReviews();
   }, [productId]);
 
   // Cập nhật ảnh, giá và số lượng tồn kho khi thay đổi size hoặc color
@@ -76,7 +91,6 @@ const ProductDetails = () => {
     }
   }, [selectedSize, selectedColor, product]);
 
-  // Nếu có lỗi khi tải dữ liệu
   if (error) return <div className={styles.error}>{error}</div>;
   if (!product) return <div className={styles.notFound}>Không tìm thấy sản phẩm</div>;
 
@@ -94,16 +108,29 @@ const ProductDetails = () => {
   };
 
   const handleAddToCart = async () => {
-    const token = localStorage.getItem("jwtToken");
-    if (!token) {
-      alert("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
-      navigate("/SignIn");
-      return;
-    }
+    const token = localStorage.getItem("jwtToken"); 
+      if (!token) {
+        Toast.error("Vui lòng đăng nhập để tiếp tục mua hàng.");
+        navigate('/SignIn');
+        return;
+      }
+      if (!selectedSize || !selectedColor) {
+        Toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
+        return;
+      }
+    
+      const selectedProductDetail = product.Product_detail?.find(
+        (detail) => detail.sizes.name === selectedSize && detail.colors.name === selectedColor
+      );
+    
+      if (!selectedProductDetail) {
+        Toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
+        return;
+      }
   
     const customerId = localStorage.getItem("customerId");
     if (!customerId) {
-      alert("Không tìm thấy thông tin khách hàng.");
+      Toast.error("Không tìm thấy thông tin khách hàng.");
       return;
     }
   
@@ -115,20 +142,20 @@ const ProductDetails = () => {
   
       if (!cartResponse.ok) {
         const errorText = await cartResponse.text();
-        alert(`Không thể lấy giỏ hàng của bạn: ${errorText}`);
+        Toast.error(`Không thể lấy giỏ hàng của bạn: ${errorText}`);
         return;
       }
   
       const cartData = await cartResponse.json();
       if (!cartData || !cartData.id) {
-        alert("Không có giỏ hàng cho tài khoản này.");
+        Toast.error("Không có giỏ hàng cho tài khoản này.");
         return;
       }
   
       const cartId = cartData.id;
   
       if (!selectedSize || !selectedColor) {
-        alert("Vui lòng chọn màu và kích thước hợp lệ.");
+        Toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
         return;
       }
   
@@ -143,7 +170,7 @@ const ProductDetails = () => {
           imageUrlToUse = product.imageUrl; // Sử dụng ảnh mặc định của sản phẩm
         }
       } else {
-        alert("Sản phẩm không hợp lệ hoặc không tồn tại.");
+        Toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
         return;
       }
   
@@ -166,15 +193,15 @@ const ProductDetails = () => {
   
       const responseText = await addToCartResponse.text();
       if (!addToCartResponse.ok) {
-        alert(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
+        Toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
         return;
       }
   
       if (responseText.includes("Đã thêm")) {
+        window.dispatchEvent(new Event("cartUpdated"));
         alert(responseText);
-        window.location.reload();
       } else {
-        alert(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
+        Toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
       }
   
     } catch (error) {
@@ -200,17 +227,34 @@ const ProductDetails = () => {
     setSelectedImageIndex(index);
   };
 
-  // const stars = Array.from({ length: 5 }, (_, index) => (
-  //   <span
-  //     key={index}
-  //     className={`text-warning ${index < Math.floor(product.rating)
-  //       ? "fa fa-star" 
-  //       : index + 0.5 === product.rating
-  //       ? "fa fa-star-half" 
-  //       : "fa fa-star-o" 
-  //     }`}></span>
-  // ));
+  const calculateAverageRating = () => {
+    if (reviews.length === 0) return 0;
+    const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return totalRating / reviews.length;
+  };
 
+  // Render star rating based on average rating
+  const renderStarRating = (rating) => {
+    const stars = [];
+    for (let i = 0; i < 5; i++) {
+      if (i < Math.floor(rating)) {
+        stars.push("fa fa-star text-warning");
+      } else if (i < Math.ceil(rating)) {
+        stars.push("fa fa-star-half text-warning");
+      } else {
+        stars.push("fa fa-star-o text-warning");
+      }
+    }
+    const commentCount = reviews.length;
+    return (
+      <div className="d-flex align-items-center">
+        {stars.map((starClass, index) => (
+          <span key={index} className={starClass}></span>
+        ))}
+        <span className="ms-2 text-muted">({rating})</span>
+      </div>
+    );
+  };
   const breadcrumbItems = [
     { label: "Shop", link: "" },
     { label: "Women", link: "" },
@@ -236,17 +280,16 @@ const ProductDetails = () => {
 
           <div className="col-12 col-lg-6 border p-4 rounded-3" style={{ marginTop: "60px", backgroundColor: "#fff" }}>
             <h2 className={styles.prodTitle}>{product.name}</h2>
-            <div className={`${styles.ratingAndComments} flex-wrap mb-4`}>
+            <div className={`${styles.ratingAndComments} flex-wrap mb-2`}> 
               <div className={styles.prodRating}>
-                5
-                <span className="text-muted text-xs ms-2"></span>
+                {renderStarRating(calculateAverageRating())}
               </div>
               <div className={styles.prodComments}>
                 <span className="prod-comment-icon text-muted me-1">
                   <i className="fa fa-comment"></i>
                 </span>
                 <span className="prod-comment-text text-sm text-muted">
-                  100 comment(s)
+                  {reviews.length} bình luận(s)
                 </span>
               </div>
             </div>
@@ -294,9 +337,8 @@ const ProductDetails = () => {
               <div className={styles.prodColorsList}>
                 {colors.length > 0 ? (
                   colors.map((color, index) => {
-                    // Tìm kiếm chi tiết sản phẩm theo màu sắc
                     const colorDetail = product.Product_detail.find(detail => detail.colors.name === color);
-                    const colorHex = colorDetail ? colorDetail.colors.hex : '#ccc'; // Màu mặc định nếu không có màu sắc
+                    const colorHex = colorDetail ? colorDetail.colors.hex : '#ccc'; 
                     return (
                       <div className={styles.prodColorItem} key={index}>
                         <input
@@ -402,7 +444,7 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
-        <ProductDescriptionTab />
+        <ProductDescriptionTab productId={productId} />
       </Container>
     </main>
   );

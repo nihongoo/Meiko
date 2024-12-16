@@ -195,5 +195,11 @@ namespace API.Controllers
 
             return NoContent();
         }
-    }
+		[HttpGet("Filter")]
+		public async Task<IActionResult> Filter(DateTime startDate, DateTime endDate)
+		{
+			var result = await _salesService.Filter(startDate, endDate);
+			return Ok(result);
+		}
+	}
 }

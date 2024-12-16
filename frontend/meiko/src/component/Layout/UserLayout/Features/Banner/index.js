@@ -77,7 +77,7 @@ const HeroSlideContent = styled.div`
   }
 
   .container {
-    max-width: 840px;
+    max-width: 900px;
     margin-left: 0;
 
     @media (max-width: ${breakpoints.xxl}) {
@@ -194,7 +194,7 @@ const Hero = () => {
           {bannerData?.map((banner) => {
             return (
               <HeroSliderItemWrapper key={banner.id}>
-                <img src={banner.imgSource} className="" />
+                <img src={banner.imgSource} className=""/>
                 <HeroSlideContent className="flex items-center">
                   <Container className="container text-white">
                     <p className="hero-text-top font-bold italic">

@@ -106,7 +106,7 @@ const breadcrumbItems = [
 const AccountUser = () => {
   return (
     <div>
-      <AccountScreenWrapper className="page-py-spacing" style={{ paddingTop: "220px" }}>
+      <AccountScreenWrapper className="page-py-spacing" style={{ paddingTop: "140px" }}>
         <Container>
           <Breadcrumb items={breadcrumbItems} />
           <UserDashboardWrapper>
@@ -114,7 +114,7 @@ const AccountUser = () => {
             <UserContent>
               <Title titleText={"Thông Tin Tài Khoản"} />
               <h4 className="title-sm">Thông Tin Liên Hệ</h4>
-              <form>
+              <form style={{paddingBottom: "30px"}}>
                 <div className="form-wrapper">
                   <FormElement className="form-elem">
                     <label className="form-label font-semibold text-base">Họ Tên</label>
@@ -122,7 +122,7 @@ const AccountUser = () => {
                       <Input
                         type="text"
                         className="form-elem-control text-outerspace font-semibold"
-                        value="Richard Doe"
+                        value="Le Duc Cuong"
                         readOnly
                       />
                     </div>
@@ -133,7 +133,7 @@ const AccountUser = () => {
                       <Input
                         type="email"
                         className="form-elem-control text-outerspace font-semibold"
-                        value="richard@gmail.com"
+                        value="duccuongqqq@gmail.com"
                         readOnly
                       />
                     </div>
@@ -144,18 +144,18 @@ const AccountUser = () => {
                       <Input
                         type="text"
                         className="form-elem-control text-outerspace font-semibold"
-                        value="+9686 6864 3434"
+                        value="0889991242"
                         readOnly
                       />
                     </div>
                   </FormElement>
                   <FormElement className="form-elem">
-                    <label className="form-label font-semibold text-base">Mật Khẩu</label>
+                    <label className="form-label font-semibold text-base">Ngày sinh</label>
                     <div className="form-input-wrapper flex items-center">
                       <Input
-                        type="password"
+                        type="date"
                         className="form-elem-control text-outerspace font-semibold"
-                        value="Pass Key"
+                        value=""
                         readOnly
                       />
                     </div>
@@ -163,16 +163,17 @@ const AccountUser = () => {
                 </div>
                 <BaseLinkGreen to="/account/add">Thay đổi</BaseLinkGreen>
               </form>
+              <hr/>
               <div>
-                <h4 className="title-sm">Địa Chỉ Của Tôi</h4>
-                <BaseLinkGreen to="/AddressScreen">Thêm Địa Chỉ</BaseLinkGreen>
+                <h4 className="title-sm" style={{paddingTop: "30px"}}>Địa Chỉ Của Tôi</h4>
+                <div style={{paddingTop: "20px"}}><BaseLinkGreen to="/AddressScreen">Thêm Địa Chỉ</BaseLinkGreen></div>
                 <div className="address-list">
                   <div className="address-item">
                     <p className="text-outerspace text-lg font-semibold address-title">
-                      Richard Doe
+                      Le Duc Cuong
                     </p>
                     <p className="text-gray text-base font-medium address-description">
-                      1/4 Watson Street Flat, East Coastal Road, Ohio City
+                      Phúc Diễn, Nam Từ Liêm, Hà Nội
                     </p>
                     <ul className="address-tags">
                       <li>Nhà</li>

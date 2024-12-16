@@ -19,6 +19,7 @@ function ListProductDetail() {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [apiImg, setApiImg] = useState('POST');
+    const [updateImg, setUpdateImg] = useState(null)
 
     const formattedRows = initialData.map((item) => ({
         id: item.id,
@@ -98,7 +99,7 @@ function ListProductDetail() {
         };
         const findImg = previewImg.find(k => k.productDetailId === item.id);
         setApiImg(findImg ? 'PUT' : 'POST');
-        setPreview(findImg ? findImg.imgUrl : 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png');
+        setUpdateImg(findImg ? findImg.imgUrl : 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png');
         setSelectedUser(formatUser);
         setOpen(true);
     };
@@ -109,60 +110,102 @@ function ListProductDetail() {
     };
 
     const handleUpdate = async () => {
-        console.log("Selected User before update:", selectedUser); 
-
         try {
-            const fileName = image.name.split('.').slice(0, -1).join('.');
-            const imgInfo = {
-                publicId: fileName,
-                productDetailId: selectedUser.id
-            };
-            const formData = new FormData();
-            formData.append('file', image);
-            formData.append('upload_preset', 'datnMeiko');
-            const r1 = await fetch(
-                `https://api.cloudinary.com/v1_1/dtsqxauba/image/upload`,
-                {
+            if (!selectedUser) {
+                toast.error("Không có dữ liệu để cập nhật");
+                return;
+            }
+    
+            // Kiểm tra nếu có hình ảnh được chọn
+            let uploadImageResponse;
+            if (image) {
+                //const fileName = image.name.split('.').slice(0, -1).join('.');
+                const formData = new FormData();
+                formData.append('file', image);
+                formData.append('upload_preset', 'datnMeiko');
+    
+                // Upload ảnh lên Cloudinary
+                const response = await fetch('https://api.cloudinary.com/v1_1/dtsqxauba/image/upload', {
                     method: 'POST',
                     body: formData,
+                });
+    
+                if (!response.ok) {
+                    toast.error("Tải ảnh lên thất bại");
+                    throw new Error("Upload image failed");
                 }
-            );
-            const r2 = await fetch(apiURL.image.create, {
-                method: apiImg,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(imgInfo),
-            });
-            console.log(imgInfo);
-            
-
-            console.log("Image update response:", r2);
-            const response = await fetch(`${apiURL.productDetail.edit}${selectedUser.id}`, {
+    
+                const responseData = await response.json();
+                uploadImageResponse = {
+                    publicId: responseData.public_id,
+                    productDetailId: selectedUser.id,
+                };
+    
+                // Gửi dữ liệu hình ảnh lên server
+                if(apiImg === 'POST'){
+                    const apiResponse = await fetch(apiURL.image.create, {
+                        method: apiImg,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(uploadImageResponse),
+                    });    
+                    
+                    if (!apiResponse.ok) {
+                        toast.error("Cập nhật hình ảnh thất bại");
+                        console.log(apiResponse);
+                        
+                        throw new Error("Image API call failed");
+                    }
+                    URL.revokeObjectURL(preview);
+                    setPreview(null)
+                }
+                else if(apiImg === 'PUT'){
+                    const apiResponse = await fetch(apiURL.image.base, {
+                        method: apiImg,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(uploadImageResponse),
+                    });    
+                    
+                    if (!apiResponse.ok) {
+                        toast.error("Cập nhật hình ảnh thất bại");
+                        console.log(apiResponse);
+                        
+                        throw new Error("Image API call failed");
+                    }
+                    URL.revokeObjectURL(preview);
+                    setPreview(null)
+                }
+            }
+    
+            // Cập nhật dữ liệu sản phẩm chi tiết
+            const updateResponse = await fetch(`${apiURL.productDetail.edit}${selectedUser.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(selectedUser),  
+                body: JSON.stringify(selectedUser),
             });
-
-            console.log("Product update response:", response); 
-
-            if (response.ok && r1.ok && r2.ok) {
-                toast.success('Sửa thành công');
-                refetch();
-                loadImg();
-            } else {
-                toast.error('Sửa thất bại');
-                throw new Error("Lỗi");
+    
+            if (!updateResponse.ok) {
+                toast.error("Cập nhật sản phẩm chi tiết thất bại");
+                throw new Error("Product detail update failed");
             }
+    
+            // Thành công
+            toast.success("Cập nhật thành công");
+            refetch();
+            loadImg();
         } catch (error) {
-            toast.error('Sửa thất bại');
             console.error("Error during update:", error);
+            toast.error("Có lỗi xảy ra khi cập nhật");
+        } finally {
+            handleClose();
         }
-        handleClose();
     };
-
+    
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2}>
             <Typography variant="h5" align="center" gutterBottom>Thông tin sản phẩm</Typography>
@@ -209,6 +252,7 @@ function ListProductDetail() {
                 setImage={setImage}
                 preview={preview}
                 setPreview={setPreview}
+                image={updateImg}
             />
         </Box>
     );

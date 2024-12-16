@@ -1,37 +1,19 @@
-import React from "react";
-import { Box, Typography, Card, Grid, Divider } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Typography, Card, Grid, Divider, TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import CategoryIcon from '@mui/icons-material/Category';
+import useFetchData from "../../customHook/useFetchData";
+import apiURL from "../../routes/API";
+import moment from "moment";
 
 const revenueColumns = [
     { field: "date", headerName: "Ngày", width: 150 },
-    { field: "productName", headerName: "Tên sản phẩm", width: 200 },
+    { field: "name", headerName: "Tên sản phẩm", width: 200 },
     { field: "color", headerName: "Màu", width: 150 },
     { field: "size", headerName: "Size", width: 100 },
     { field: "sold", headerName: "Đã bán", width: 150 },
     { field: "revenue", headerName: "Doanh thu", width: 200 },
-];
-
-const revenueRows = [
-    {
-        id: 1,
-        date: "16-01-2024",
-        productName: "Túi xách oách xà lách vc",
-        color: "Nâu",
-        size: 36,
-        sold: 20,
-        revenue: "20.000.000VND",
-    },
-    {
-        id: 2,
-        date: "16-01-2024",
-        productName: "Túi xách oách xà lách vc",
-        color: "Nâu",
-        size: 35,
-        sold: 18,
-        revenue: "18.000.000VND",
-    },
 ];
 
 const productColumns = [
@@ -43,27 +25,30 @@ const productColumns = [
     { field: "revenue", headerName: "Doanh thu", width: 200 },
 ];
 
-const productRows = [
-    {
-        id: 1,
-        name: "Túi xách oách xà lách vc",
-        color: "Nâu",
-        size: 36,
-        sold: 20,
-        revenue: "20.000.000VND",
-    },
-    {
-        id: 2,
-        name: "Túi xách oách xà lách vc",
-        color: "Nâu",
-        size: 35,
-        sold: 18,
-        revenue: "18.000.000VND",
-    },
-];
-
 const Home = () => {
     const paginationModel = { page: 0, pageSize: 10 };
+    const [day, setDay] = useState(new Date().toISOString().substr(0, 10))
+    const { data: topProductForDay } = useFetchData(`${apiURL.analysis.topProduct}?date=${day}`, (r) => {
+        return r.map((item, index) => ({
+            ...item,
+            id: index,
+            date: moment(item.date).format('DD-MM-YYYY')
+        }));
+    })
+    const { data: all } = useFetchData(apiURL.analysis.all)
+    const { data: topProduct } = useFetchData(apiURL.analysis.topProduct, (r) => {
+        return r.map((item, index) => ({
+            ...item,
+            id: index + 1,
+        }));
+    })
+    const { data: topCustomer } = useFetchData(apiURL.analysis.topCustomer, (r) => {
+        return r.map((item) => ({
+            ...item,
+            amountSpent: new Intl.NumberFormat('vi-VN').format(item.amountSpent) + ' VND'
+        }));
+    })
+    const totalRevenue = topProductForDay.reduce((total, item) => total + item.revenue, 0);
     return (
         <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 2 }}>
             <Box>
@@ -73,23 +58,23 @@ const Home = () => {
                 <Grid container spacing={2}>
                     <Grid item xs={4}>
                         <Card className="me-3 border rounded-2 p-3">
-                            <Typography color="error" variant="h6">16</Typography>
-                            <Typography>Sản phẩm</Typography>
-                            <CategoryIcon/>
+                            <Typography color="error" variant="h6">{all.allQuantityProduct || '0'}</Typography>
+                            <Typography>Sản phẩm đã bán</Typography>
+                            <CategoryIcon />
                         </Card>
                     </Grid>
                     <Grid item xs={4}>
                         <Card className="me-3 border rounded-2 p-3">
-                            <Typography color="error" variant="h6">322.650.000VND</Typography>
+                            <Typography color="error" variant="h6">{all.totalRevenue || '0'} VND</Typography>
                             <Typography>Doanh thu</Typography>
                             <LocalAtmIcon></LocalAtmIcon>
                         </Card>
                     </Grid>
                     <Grid item xs={4}>
                         <Card className="me-3 border rounded-2 p-3">
-                            <Typography color="error" variant="h6">98.600.000VND</Typography>
+                            <Typography color="error" variant="h6">{all.profit || '0'} VND</Typography>
                             <Typography>Lợi nhuận</Typography>
-                            <LocalAtmIcon/>
+                            <LocalAtmIcon />
                         </Card>
                     </Grid>
                 </Grid>
@@ -99,9 +84,23 @@ const Home = () => {
                 <Typography variant="h4" color="primary" gutterBottom>
                     Doanh thu theo ngày
                 </Typography>
-                <Typography>Doanh thu(16-02-2024): 38.000.000VND</Typography>
+                <div className="d-flex justify-content-between">
+                    <Typography>Doanh thu ngày {day || 'Vui lòng chọn ngày!'}: {totalRevenue} VND</Typography>
+                    <TextField
+                        type='date'
+                        label='Chọn ngày'
+                        variant='outlined'
+                        size='small'
+                        value={day}
+                        sx={{ mr: 2 }}
+                        onChange={(e) =>
+                            setDay(e.target.value)
+                        }
+                        InputLabelProps={{ shrink: true }}
+                    />
+                </div>
                 <DataGrid
-                    rows={revenueRows}
+                    rows={topProductForDay}
                     columns={revenueColumns}
                     autoHeight
                     pageSize={10}
@@ -137,7 +136,7 @@ const Home = () => {
                         Thống kê sản phẩm
                     </Typography>
                     <DataGrid
-                        rows={productRows}
+                        rows={topProduct}
                         columns={productColumns}
                         pageSize={10}
                         pageSizeOptions={[10, 20]}
@@ -165,26 +164,22 @@ const Home = () => {
                         <Typography variant="h4" gutterBottom color="primary">
                             Top khách hàng mua sắm nhiều
                         </Typography>
-                        <Box display="flex" alignItems="center" mb={2}>
-                            <Box>Hạng 1</Box>
-                            <Box ml={2}>
-                                <Typography>Nguyễn Văn A</Typography>
-                                <Typography>0987654321</Typography>
+                        {topCustomer && topCustomer.map((customer, index) => (
+                            <Box>
+                                <Box display="flex" alignItems="center" mb={2} key={index}>
+                                    <Box>Hạng {index + 1}</Box>
+                                    <Box ml={2}>
+                                        <Typography>{customer.name}</Typography>
+                                        <Typography>{customer.phoneNumber}</Typography>
+                                    </Box>
+                                    <Box ml={2}>{customer.amountSpent}</Box>
+                                </Box>
+                                <Divider sx={{
+                                    my: 1, height: 2,
+                                    backgroundColor: "#000",
+                                }} />
                             </Box>
-                            <Box ml={2}>5.000.000VND</Box>
-                        </Box>
-                        <Divider sx={{
-                            my: 1, height: 2,
-                            backgroundColor: "#000",
-                        }} />
-                        <Box display="flex" alignItems="center">
-                            <Box>Hạng 2</Box>
-                            <Box ml={2}>
-                                <Typography>Nguyễn Văn B</Typography>
-                                <Typography>0987654321</Typography>
-                            </Box>
-                            <Box ml={2}>4.000.000VND</Box>
-                        </Box>
+                        ))}
                     </Card>
                 </Box>
             </Box>

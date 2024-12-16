@@ -21,6 +21,8 @@ function ManageBill() {
     const [filter, setFilter] = useState('');
     const [item, setItem] = useState(null)
     const [api, setApi] = useState(apiURL.bill.all)
+
+    const { data: staff } = useFetchData(apiURL.staff.all)
     const { data: customer, loading: userLoad } = useFetchData(apiURL.user.all)
     const { data: product, loading: productLoad } = useFetchData(apiURL.product.all)
     const { data: rows, refetch, loading, error } = useFetchData(api, (raw) => {
@@ -47,6 +49,14 @@ function ManageBill() {
                 : `${item.shippingAddresses[0].ward}, ${item.shippingAddresses[0].district}, ${item.shippingAddresses[0].city}`
         }))
     })
+
+    const handleFindStaff = (staffId) => {
+        const staffMember = staff.find((s) => s.id === staffId);
+        if (staffMember) {
+            return staffMember;
+        }
+        return null;
+    }
     useEffect(() => {
         if (!userLoad) {
             refetch()
@@ -54,6 +64,7 @@ function ManageBill() {
         // eslint-disable-next-line
     }, [userLoad, productLoad])
     const handlePrint = (bill) => {
+        const staffMember = handleFindStaff(bill.staffId);
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
             <head>
@@ -79,7 +90,7 @@ function ManageBill() {
             <div>
                 <p>Tên khách hàng: ${bill.customerName}</p>
                 <p>Địa chỉ nhận hàng: ${bill.ADRS}</p>
-                <p>Nhân viên: haro hans</p>
+                <p>Nhân viên: ${staffMember.staffName}</p>
             </div>
             <div>
                 <p>Mã hóa đơn: ${bill.billCode}</p>
@@ -124,9 +135,9 @@ function ManageBill() {
         printWindow.document.close();
         printWindow.print();
     };
-    const handleOpen = (item) =>{
-setItem(item)
-setShowInfo(true)
+    const handleOpen = (item) => {
+        setItem(item)
+        setShowInfo(true)
     }
 
     const columns = [
@@ -143,22 +154,22 @@ setShowInfo(true)
             flex: 1,
             renderCell: (params) => (
                 <Box>
-<Button variant='outlined'
-size='small'
-onClick={()=>{handleOpen(params.row)}}
->
-<InfoIcon/>
-</Button>
-                <Button variant="outlined"
-                    onClick={() => { handlePrint(params.row) }}
-                    color="inherit" size="small">
-                    <PrintIcon />
-                </Button>
-                        </Box>
+                    <Button variant='outlined'
+                        size='small'
+                        onClick={() => { handleOpen(params.row) }}
+                    >
+                        <InfoIcon />
+                    </Button>
+                    <Button variant="outlined"
+                        onClick={() => { handlePrint(params.row) }}
+                        color="inherit" size="small">
+                        <PrintIcon />
+                    </Button>
+                </Box>
             ),
         },
     ];
-    const handleSetApi = () =>{
+    const handleSetApi = () => {
         if (filter.startDate === null || filter.endDate === null) {
             setApi(apiURL.voucher.all)
             refetch()
@@ -171,7 +182,7 @@ onClick={()=>{handleOpen(params.row)}}
     };
     if (loading) return <div className='d-flex justify-content-center align-items-center'><CircularProgress /></div>
     if (error) return <div className='d-flex justify-content-center align-items-center'>Error: {error}</div>;
-  
+
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2}>
             <Box mb={3}>
@@ -190,7 +201,7 @@ onClick={()=>{handleOpen(params.row)}}
                     onChange={(e) => {
                         setFilter({ ...filter, startDate: e.target.value })
                         handleSetApi()
-                        }}
+                    }}
                     InputLabelProps={{ shrink: true }}
                 />
                 <TextField
@@ -198,10 +209,10 @@ onClick={()=>{handleOpen(params.row)}}
                     label='Đến ngày'
                     variant='outlined'
                     size='small'
-                    onChange={(e) =>{
+                    onChange={(e) => {
                         setFilter({ ...filter, endDate: e.target.value })
                         handleSetApi()
-                        }}
+                    }}
                     InputLabelProps={{ shrink: true }}
                 />
                 <Button onClick={() => { handleFilter() }}>
@@ -237,13 +248,14 @@ onClick={()=>{handleOpen(params.row)}}
                         }}
                     />
                 )}
-                <StateBill
+            <StateBill
                 open={showInfo}
-                onClose={()=>{setShowInfo(false)}}
+                onClose={() => { setShowInfo(false) }}
                 item={item}
                 setItem={setItem}
                 print={handlePrint}
-                />
+                reloadBill={refetch}
+            />
         </Box>
     );
 }

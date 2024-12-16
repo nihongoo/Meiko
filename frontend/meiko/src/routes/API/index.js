@@ -57,8 +57,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Product/Get-All',
         getbyid :'https://localhost:7172/api/Product/Get/',
         create: 'https://localhost:7172/api/Product/Create',
-        edit: 'https://localhost:7172/api/Product/Update/{id}',
-        delete: 'https://localhost:7172/api/Product/Delete/{id}',
+        edit: 'https://localhost:7172/api/Product/Update/',
+        delete: 'https://localhost:7172/api/Product/Delete/',
         search: 'https://localhost:7265/Product/Search/',
     },
     productDetail: {
@@ -87,6 +87,7 @@ const apiURL = {
         search: 'https://localhost:7265/Staff/Search/',
         delete: 'https://localhost:7265/Staff/Delete-Staff/',
         getbyid: 'https://localhost:7172/api/Staff/Get-By-AccID',
+        getByStaffId: 'https://localhost:7172/api/Staff/Get/'
     },
     account:{
         base: 'https://localhost:7172/api/Account/Account/',
@@ -94,7 +95,8 @@ const apiURL = {
         create_staff: 'https://localhost:7172/api/Account/register-staff/',
         login: 'https://localhost:7172/api/Account/login/',
         forgot_password: 'https://localhost:7172/api/Account/forgot-password/',
-        verify_otp: 'https://localhost:7172/api/Account/verify-otp/'
+        verify_otp: 'https://localhost:7172/api/Account/verify-otp/',
+        verify:'https://localhost:7172/api/Account/verify',
     },
     cartDetails:{
         base: 'https://localhost:7172/api/CartDetails/',
@@ -116,13 +118,34 @@ const apiURL = {
         billId:'https://localhost:7172/api/Bills/get-bill-by-id/',
         all:'https://localhost:7172/api/Bills/get-bills',
         filter: 'https://localhost:7172/api/Bills/Filter',
-        search: 'https://localhost:7172/api/Bills/Search'
+        search: 'https://localhost:7172/api/Bills/Search',
+        pay: 'https://localhost:7172/api/Bills/pay-for-bill/',
+        changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/',
+        changeQuantity: 'https://localhost:7172/api/Bills/add-quantity-to/',
+        refund: 'https://localhost:7172/api/Bills/return',
+        listRefund: 'https://localhost:7172/api/Bills/List-Request',
+        accept: 'https://localhost:7172/api/Bills/',
+        statusHis: 'https://localhost:7172/api/Bills/get-statusHistories-by-billId/',
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',
         all: 'https://localhost:7172/api/Voucher/GetAll',
         delete: 'https://localhost:7172/api/Voucher/Delete/',
         filter: 'https://localhost:7172/api/Voucher/Filter'
+    },
+    sale: {
+        all: 'https://localhost:7172/api/Sales/Get-All',
+        create: 'https://localhost:7172/api/Sales/Create',
+        delete: 'https://localhost:7172/api/Sales/Delete/',
+        filter: 'https://localhost:7172/api/Sales/Filter'
+    },
+    payHistory:{
+        byBillId: 'https://localhost:7172/api/Bills/get-paymentHistories-by-billId/'
+    },
+    analysis: {
+        all: 'https://localhost:7172/api/DataAnalysis/General',
+        topProduct: 'https://localhost:7172/api/DataAnalysis/top-products',
+        topCustomer: 'https://localhost:7172/api/DataAnalysis/Top-Customer',
     }
     
 };
