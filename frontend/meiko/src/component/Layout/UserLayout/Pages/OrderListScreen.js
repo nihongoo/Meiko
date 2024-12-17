@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; // Import Link để sử dụng chuyển hướng
 import styled from "styled-components";
 import { Container } from "../styles/styles";
 import Breadcrumb from "../Features/common/Breadcrumb";
@@ -20,7 +19,7 @@ const OrderListScreenWrapper = styled.div`
   }
 
   .order-tabs-content {
-    display: none; /* Hidden by default */
+    display: none; /* Ẩn mặc định */
   }
 
   .order-tabs-head {
@@ -44,7 +43,7 @@ const OrderListScreenWrapper = styled.div`
   }
 
   .order-tabs-content.active {
-    display: block; /* Show the active tab */
+    display: block; /* Hiển thị tab active */
   }
 `;
 
@@ -67,7 +66,8 @@ const OrderListScreen = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAllOrders, setShowAllOrders] = useState(false); // State để hiển thị tất cả đơn hàng
+  const [showAllOrders, setShowAllOrders] = useState(false); // Trạng thái hiển thị tất cả đơn hàng
+  const [searchTerm, setSearchTerm] = useState(""); // Trạng thái tìm kiếm đơn hàng
 
   const customerId = localStorage.getItem("customerId");
 
@@ -78,7 +78,7 @@ const OrderListScreen = () => {
         if (!response.ok) {
           throw new Error("Không thể tải đơn hàng. Vui lòng thử lại sau.");
         }
-  
+
         const data = await response.json();
         setOrders(data);
         setLoading(false);
@@ -87,7 +87,7 @@ const OrderListScreen = () => {
         setLoading(false);
       }
     };
-  
+
     fetchOrders();
   }, [customerId]);
 
@@ -99,13 +99,23 @@ const OrderListScreen = () => {
       const latestStatusHistory = order.statusHistories
         .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))[0];
       const latestStatus = latestStatusHistory?.statusType?.trim();
-      return latestStatus === statusLabels[statusNumber]; 
+      return latestStatus === statusLabels[statusNumber];
     });
   };
 
+  // Hàm xử lý tìm kiếm
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Lọc đơn hàng theo billCode
+  const filteredOrdersByBillCode = orders.filter((order) =>
+    order.billCode.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Hiển thị tất cả đơn hàng
   const showAllOrdersHandler = () => {
-    setShowAllOrders(true); // Thay đổi trạng thái để hiển thị tất cả đơn hàng
+    setShowAllOrders(true); // Chuyển trạng thái hiển thị tất cả đơn hàng
   };
 
   return (
@@ -132,6 +142,25 @@ const OrderListScreen = () => {
                   Tất cả đơn hàng
                 </button>
               </div>
+
+              {/* Tìm kiếm đơn hàng */}
+              <div style={{ margin: "20px 0" }}>
+                <input
+                  type="text"
+                  placeholder="Tìm đơn hàng theo mã đơn"
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  style={{
+                    padding: "10px",
+                    width: "100%",
+                    maxWidth: "300px",
+                    marginBottom: "20px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                  }}
+                />
+              </div>
+
               <div className="order-tabs">
                 <div className="order-tabs-heads d-flex">
                   {Object.keys(statusLabels).map((statusNumber) => (
@@ -156,7 +185,7 @@ const OrderListScreen = () => {
                   <div
                     className={`order-tabs-content ${showAllOrders ? "active" : ""}`}
                   >
-                    <OrderItemList orders={orders} />
+                    <OrderItemList orders={filteredOrdersByBillCode} />
                   </div>
 
                   {/* Hiển thị theo trạng thái đơn hàng */}

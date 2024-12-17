@@ -90,20 +90,17 @@ const FilterSidebar = ({ onFilterChange }) => {
     });
   };
 
-  // Handle price range selection (ensure only one price range is selected)
   const handlePriceRangeChange = (priceRange) => {
     setSelectedFilters((prevSelectedFilters) => ({
       ...prevSelectedFilters,
-      priceRange: prevSelectedFilters.priceRange === priceRange ? "" : priceRange, // Toggle the price range
+      priceRange: prevSelectedFilters.priceRange === priceRange ? "" : priceRange,
     }));
   };
 
-  // Use useEffect to notify parent component when selectedFilters changes
   useEffect(() => {
     onFilterChange(selectedFilters);
   }, [selectedFilters, onFilterChange]);
 
-  // Clear all selected filters
   const clearAllFilters = () => {
     setSelectedFilters({
       categories: [],
@@ -167,46 +164,6 @@ const FilterSidebar = ({ onFilterChange }) => {
                   )}
                 </div>
               )}
-
-              {/* Price Range Filter (Dropdown with Radio Buttons) */}
-              <div className="mb-4">
-                <div
-                  className="d-flex justify-content-between align-items-center p-2"
-                  onClick={() => toggleDropdown("priceRange")}
-                  style={{
-                    cursor: "pointer",
-                    backgroundColor: "#ffffff",
-                  }}
-                >
-                  <span className="fw-bold">Khoảng giá</span>
-                  <i
-                    className={`fa ${openIndices.includes("priceRange") ? "fa-chevron-up" : "fa-chevron-down"}`}
-                    style={{ fontSize: "1.2rem" }}
-                  ></i>
-                </div>
-                <div
-                  className={`${styles.dropdownBody} ${openIndices.includes("priceRange") ? styles.open : ""} mt-2`}
-                >
-                  <ul className="list-unstyled mt-2">
-                    {["under-20k", "20k-100k", "100k-200k", "200k-500k", "500k-above"].map((priceRange) => (
-                      <li key={priceRange} className="form-check mb-2">
-                        <input
-                          type="radio"
-                          className="form-check-input"
-                          id={priceRange}
-                          name="priceRange"
-                          checked={selectedFilters.priceRange === priceRange}
-                          onChange={() => handlePriceRangeChange(priceRange)}
-                        />
-                        <label className="form-check-label" htmlFor={priceRange}>
-                          {getPriceRangeLabel(priceRange)}
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <hr className="mt-2" />
-              </div>
 
               {/* Render Filter Categories */}
               {Object.entries(filters).map(([filterKey, options], index) => (

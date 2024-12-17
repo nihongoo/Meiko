@@ -89,7 +89,7 @@ const ProductDescriptionTab = ({ productId }) => {
               className={`${styles.tabsContent} ${activeDesTab === "tabDescription" ? styles.show : ""}`}
             >
               <div className={styles.contentStylings}>
-                <h4>Thông số kỹ thuật:</h4>
+                <h4>Chi tiết sản phẩm:</h4>
                 <ul>
                   <li><strong>Mã sản phẩm:</strong> {product.productCode}</li>
                   <li><strong>Chất liệu:</strong> {product.materials.name}</li>
@@ -97,7 +97,7 @@ const ProductDescriptionTab = ({ productId }) => {
                   <li><strong>Bảo hành:</strong> {product.warrantyPeriod}</li>
                 </ul>
                 <p><strong>*Mô tả:</strong> {product.description}</p>
-                <h4>Tại sao nên mua sắm tại Outfit store?</h4>
+                <h4>Tại sao nên mua sắm tại Meiko store?</h4>
                 <ul>
                   <li>Chất lượng vật liệu đảm bảo</li>
                   <li>Công nghệ may chính xác</li>

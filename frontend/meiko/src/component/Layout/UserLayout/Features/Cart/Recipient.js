@@ -62,22 +62,19 @@ function Recipient({ setShippingFee, onSelectAddress }) {
     
             if (response.ok) {
                 const data = await response.json();
-                setShippingFee(data.fee); 
-                if (data.fee !== null) {
-                    setShippingFee(data.fee); 
-                } else {
-                    console.error('API trả về phí vận chuyển là null');
-                }
+                
+                // Kiểm tra nếu tiền ship dưới 30k thì miễn phí (0)
+                const shippingFee = data.fee < 30000 ? 0 : data.fee;
+                setShippingFee(shippingFee);
             } else {
                 console.error('API không thành công');
             }
         } catch (error) {
             console.error('Lỗi khi gọi API:', error);
         } finally {
-            setLoading(false); 
+            setLoading(false);
         }
     };
-    
     const handleSelectChange = (event, address) => {
         setSelectedAddressId(address.id);
         setSelectedAddress(address);

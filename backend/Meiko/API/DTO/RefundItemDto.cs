@@ -1,4 +1,5 @@
 ﻿using DataProcessing.Models;
+using System.Text.Json.Serialization;
 
 namespace API.DTO
 {
@@ -11,6 +12,7 @@ namespace API.DTO
 		public decimal Total { get; set; }
 		public string Note { get; set; }
 		public Guid RequestId { get; set; }
+		[JsonIgnore]
 		public virtual RequestRefund? RequestRefund { get; set; }
 	}
 }

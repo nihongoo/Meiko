@@ -295,7 +295,8 @@ namespace API.Controllers
 					// Cập nhật trạng thái đơn hàng trong hệ thống
 					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 11, billId);
 					await _IBillServices.ChangeStatusTo(billId, 11, null, whodothis);
-				}
+                    await _IBillServices.ChangeStatusTo(billId, 2, "Khách hàng đặt hàng", whodothis);
+                }
 				else
 				{
 					// Xử lý các trạng thái khác (PENDING, CANCELLED...)
