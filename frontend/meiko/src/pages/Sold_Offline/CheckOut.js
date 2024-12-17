@@ -12,7 +12,7 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
     const [cashAmount, setCashAmount] = useState('');
     const [remaining, setRemaining] = useState(0);
     const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
-    const { data: payHistory, refetch } = useFetchData(`${apiURL.payHistory.byBillId}${bill.id}`, (raw) => {
+    const { data: payHistory, refetch } = useFetchData(`${apiURL.payHistory.byBillId}${bill.id}`,(raw) => {
         return raw.map((item) => ({
             ...item,
             status: item.status === '11' ? 'Đã thanh toán' : item.status,
@@ -74,11 +74,10 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             }
 
             const msg = await res.json();
+            console.log(msg);
+            
             if (msg.checkoutUrl) {
-                // Mở trang thanh toán QR code
-                const paymentWindow = window.open(msg.checkoutUrl, '_blank', 'noopener,noreferrer');
-                // Bắt đầu kiểm tra trạng thái thanh toán
-                checkPaymentStatus(bill.id, msg.orderCode, paymentWindow);
+                window.open(msg.checkoutUrl, '_blank', 'noopener,noreferrer');
             } else {
                 toast.error("Có lỗi xảy ra khi tạo thanh toán.");
             }
@@ -87,37 +86,6 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             toast.error("Có lỗi xảy ra khi kết nối tới server!");
         }
     };
-
-    // Hàm kiểm tra trạng thái thanh toán
-    const checkPaymentStatus = async (billId, code, paymentWindow) => {
-        const interval = setInterval(async () => {
-            try {
-                const res = await fetch(`${apiURL.bill.checkStatusOffline}${billId}?orderCode=${code}`, { method: 'GET' });
-                if (!res.ok) {
-                    throw new Error("Không thể kiểm tra trạng thái thanh toán.");
-                }
-    
-                const paymentInfo = await res.json();
-                console.log(paymentInfo);
-    
-                if (paymentInfo.status === 'PAID') {
-                    // Nếu thanh toán thành công, đóng cửa sổ QR và dừng polling
-                    toast.success("Thanh toán thành công!");
-                    handleCloseTab(index, 'Hóa đơn đã hoàn thành!');
-                    
-                    // Đóng cửa sổ thanh toán mã QR
-                    paymentWindow?.close();
-                    
-                    clearInterval(interval);
-                }
-            } catch (error) {
-                console.error("Lỗi kiểm tra trạng thái thanh toán:", error);
-                clearInterval(interval); // Dừng polling nếu có lỗi không mong muốn
-            }
-        }, 2000); // Kiểm tra trạng thái mỗi 2 giây
-    };
-    
-
 
     const handlePayment = () => {
         if (remaining <= 0) {
