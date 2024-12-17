@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../../../UserLayout/Header/index.js';
 import styles from './index.module.css';
 import Footer from '../../../UserLayout/Footer/index.js';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';  
 
 function LoginForm() {
   const [username, setUsername] = useState("");
@@ -31,7 +33,7 @@ function LoginForm() {
       });
   
       if (!response.ok) {
-        throw new Error("Login failed! Please check your credentials.");
+        throw new Error("Đăng nhập thất bại! Vui lòng kiểm tra thông tin tài khoản.");
       }
   
       const data = await response.json();
@@ -44,6 +46,7 @@ function LoginForm() {
   
       if (data.role === "admin") {
         navigate("/admin-dashboard");
+        toast.success('Chào mừng Admin!');  // Success toast in Vietnamese
       } else if (data.role === "Customer") {
         const token = data.token;
         const accountId = data.id;
@@ -62,17 +65,20 @@ function LoginForm() {
         const customerData = await customerResponse.json();
         const customerId = customerData.customerId;
   
-        // Lưu customerId vào localStorage
+        // Save customerId to localStorage
         localStorage.setItem("customerId", customerId);
         console.log(customerId);
-        // Sau khi có customerId, điều hướng đến trang homeUser
+        // After fetching customerId, navigate to homeUser
         navigate("/homeUser");
+        toast.success('Chào mừng Khách hàng!');  // Success toast in Vietnamese
       } else {
         navigate("/");
+        toast.success('Chào mừng bạn!');  // Success toast in Vietnamese
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message || "An error occurred");
+      setError(err.message || "Đã có lỗi xảy ra.");
+      toast.error('Đăng nhập thất bại: ' + (err.message || "Đã có lỗi xảy ra"));  // Error toast in Vietnamese
     }
   };
   
@@ -84,6 +90,7 @@ function LoginForm() {
   const handleSignupClick = () => {
     navigate('/SignUp');
   };
+
   const handleForgotPasswordClick = () => {
     navigate('/forgot-password');
   };
@@ -143,7 +150,6 @@ function LoginForm() {
               <button className={styles.btn} type="submit">
                 Tiếp theo
               </button>
-              {error && <p className={styles.error}>{error}</p>}
               <div className={styles.or}>Or Continue With</div>
               <div className={styles.social}>
                 <button className={styles.socialBtn}>
@@ -164,6 +170,8 @@ function LoginForm() {
         </div>
       </form>
       <Footer />
+      {/* Add Toast container */}
+      <ToastContainer />
     </div>
   );
 }

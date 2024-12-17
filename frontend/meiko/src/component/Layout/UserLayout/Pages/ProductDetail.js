@@ -6,7 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import ProductDescriptionTab from "../Features/Product/ProductDescriptionTab";
 import RelatedProducts from '../Features/Product/RelatedProducts';
 import styles from "./ProductDetails.module.css";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from 'react-toastify';
 
 const ProductDetails = () => {
   const { productId } = useParams();
@@ -108,10 +108,6 @@ const ProductDetails = () => {
   };
 
   const handleAddToCart = async () => {
-    if (availableQuantity === 0) {
-      alert("Sản phẩm này đã hết hàng.");
-      return;
-    }
     const token = localStorage.getItem("jwtToken"); 
       if (!token) {
         toast.error("Vui lòng đăng nhập để tiếp tục mua hàng.");
@@ -119,10 +115,14 @@ const ProductDetails = () => {
         return;
       }
       if (!selectedSize || !selectedColor) {
-        toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
+        alert("Vui lòng chọn màu và kích thước hợp lệ.");
         return;
       }
-    
+      
+      if (availableQuantity === 0) {
+        alert("Sản phẩm này đã hết hàng.");
+        return;
+      }
       const selectedProductDetail = product.Product_detail?.find(
         (detail) => detail.sizes.name === selectedSize && detail.colors.name === selectedColor
       );
@@ -209,8 +209,8 @@ const ProductDetails = () => {
       }
   
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Có lỗi xảy ra khi thêm sản phẩm vào giỏ.");
+      toast.error("Error adding to cart:", error);
+      toast.error("Có lỗi xảy ra khi thêm sản phẩm vào giỏ.");
     }
   };
   const handleSelectImage = (newImageUrl, index) => {
@@ -412,7 +412,6 @@ const ProductDetails = () => {
               <span className={`${styles.prodPrice} ms-2`}>
                 {availableQuantity === 0 ? (
                   <span className="text-danger" style={{ fontWeight: 'bold' }}>
-                    Sản phẩm này đã hết hàng
                   </span>
                 ) : (
                   <>
@@ -461,6 +460,17 @@ const ProductDetails = () => {
         <ProductDescriptionTab productId={productId} />
         <RelatedProducts brandId={product.brandId} />
       </Container>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </main>
   );
 };
