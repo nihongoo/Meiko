@@ -21,7 +21,8 @@ const ListProducts = ({ selectedFilters }) => {
         return response.json();
       })
       .then((data) => {
-        setProducts(data);
+        const filteredData = data.filter((product) => product.status !== 0);
+        setProducts(filteredData);
         setLoading(false);
       })
       .catch((error) => {

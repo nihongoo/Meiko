@@ -316,7 +316,41 @@ namespace API.Controllers
 			}
 		}
 
-		[HttpGet("PayOS/CancelPayOS/{billId}")]
+        [HttpGet("PayOS/ReturnPayOS/attheshop/{billId}/{whodothis}")]
+        public async Task<IActionResult> ReturnDataa(Guid billId, [FromRoute] Guid whodothis, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
+        {
+            try
+            {
+                PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
+                PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
+
+                if (status == "PAID")
+                {
+                    // Cập nhật trạng thái đơn hàng trong hệ thống
+                    await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 11, billId);
+                    await _IBillServices.ChangeStatusTo(billId, 11, null, whodothis);
+                    await _IBillServices.ChangeStatusTo(billId, 2, "Khách hàng đặt hàng", whodothis);
+                }
+                else
+                {
+                    // Xử lý các trạng thái khác (PENDING, CANCELLED...)
+                    return BadRequest(paymentLinkInfo);
+                }
+
+				// 3. Trả về trạng thái thành công
+				return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ReturnMessage()
+                {
+                    status = 2,
+                    message = $"Đã xảy ra lỗi khi giao dịch : {ex.InnerException}",
+                });
+            }
+        }
+
+        [HttpGet("PayOS/CancelPayOS/{billId}")]
 		public async Task<IActionResult> CancelData(Guid billId, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
 		{
 			try

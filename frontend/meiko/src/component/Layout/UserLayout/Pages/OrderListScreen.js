@@ -170,7 +170,7 @@ const OrderListScreen = () => {
                       className={`order-tabs-head text-lg font-italic ${activeTab === parseInt(statusNumber) ? "order-tabs-head-active" : ""}`}
                       onClick={() => {
                         setActiveTab(parseInt(statusNumber)); 
-                        setShowAllOrders(false); // Khi chọn trạng thái đơn hàng, không hiển thị tất cả đơn hàng nữa
+                        setShowAllOrders(null);
                       }}
                     >
                       {statusLabels[statusNumber]} 
@@ -181,22 +181,23 @@ const OrderListScreen = () => {
                   {loading && <div>Đang tải đơn hàng...</div>}
                   {error && <div>{error}</div>}
 
-                  {/* Nếu nhấn "Tất cả đơn hàng", hiển thị tất cả đơn hàng */}
-                  <div
-                    className={`order-tabs-content ${showAllOrders ? "active" : ""}`}
-                  >
-                    <OrderItemList orders={filteredOrdersByBillCode} />
-                  </div>
-
-                  {/* Hiển thị theo trạng thái đơn hàng */}
-                  {Object.keys(statusLabels).map((statusNumber) => (
-                    <div
-                      key={statusNumber}
-                      className={`order-tabs-content ${activeTab === parseInt(statusNumber) ? "active" : ""}`}
-                    >
-                      <OrderItemList orders={filteredOrders(parseInt(statusNumber))} />
+                  {showAllOrders && (
+                    <div className="order-tabs-content active">
+                      <OrderItemList orders={filteredOrdersByBillCode || []} />
                     </div>
-                  ))}
+                  )}
+
+                  {!showAllOrders &&
+                    Object.keys(statusLabels).map((statusNumber) => (
+                      <div
+                        key={statusNumber}
+                        className={`order-tabs-content ${
+                          activeTab === parseInt(statusNumber) ? "active" : ""
+                        }`}
+                      >
+                        <OrderItemList orders={filteredOrders(parseInt(statusNumber)) || []} />
+                      </div>
+                    ))}
                 </div>
               </div>
             </UserContent>
