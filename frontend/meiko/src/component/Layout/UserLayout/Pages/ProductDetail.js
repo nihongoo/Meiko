@@ -4,13 +4,13 @@ import Breadcrumb from "../Features/common/Breadcrumb";
 import ProductPreview from "../Features/Product/ProductPreview";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductDescriptionTab from "../Features/Product/ProductDescriptionTab";
+import RelatedProducts from '../Features/Product/RelatedProducts';
 import styles from "./ProductDetails.module.css";
 import { toast } from "react-toastify";
 
 const ProductDetails = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
-  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -459,6 +459,7 @@ const ProductDetails = () => {
           </div>
         </div>
         <ProductDescriptionTab productId={productId} />
+        <RelatedProducts brandId={product.brandId} />
       </Container>
     </main>
   );

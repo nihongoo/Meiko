@@ -4,6 +4,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import NoBillDataFind from "./NoBillDataFind";
 import useFetchData from "../../customHook/useFetchData";
 import apiURL from "../../routes/API";
+import { v4 as uuidv4 } from 'uuid';
 import { toast } from "react-toastify";
 
 function ReturnProduct() {
@@ -48,13 +49,14 @@ function ReturnProduct() {
             console.log(error);
         }
     };
+    const newGuid = uuidv4();
     const handleRefund = async () => {
         try {
             setObj((prev) => ({
                 ...prev,
                 billId: bill?.id,
                 refundItems: selected.map((item) => ({
-                    id: item.productDetailId,
+                    id: newGuid,
                     name: item.name,
                     price: item.price,
                     quantity: item.quantity,
