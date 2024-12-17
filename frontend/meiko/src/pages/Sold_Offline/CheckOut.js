@@ -74,8 +74,6 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             }
 
             const msg = await res.json();
-            console.log(msg);
-            
             if (msg.checkoutUrl) {
                 window.open(msg.checkoutUrl, '_blank', 'noopener,noreferrer');
             } else {
@@ -86,6 +84,7 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             toast.error("Có lỗi xảy ra khi kết nối tới server!");
         }
     };
+console.log(payHistory);
 
     const handlePayment = () => {
         if (remaining <= 0) {
