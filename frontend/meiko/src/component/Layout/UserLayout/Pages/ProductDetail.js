@@ -115,12 +115,12 @@ const ProductDetails = () => {
         return;
       }
       if (!selectedSize || !selectedColor) {
-        alert("Vui lòng chọn màu và kích thước hợp lệ.");
+        toast.error("Vui lòng chọn màu và kích thước hợp lệ.");
         return;
       }
       
       if (availableQuantity === 0) {
-        alert("Sản phẩm này đã hết hàng.");
+        toast.error("Sản phẩm này đã hết hàng.");
         return;
       }
       const selectedProductDetail = product.Product_detail?.find(
@@ -203,7 +203,7 @@ const ProductDetails = () => {
   
       if (responseText.includes("Đã thêm")) {
         window.dispatchEvent(new Event("cartUpdated"));
-        alert(responseText);
+        toast.success(responseText);
       } else {
         toast.error(`Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng: ${responseText}`);
       }
@@ -460,17 +460,6 @@ const ProductDetails = () => {
         <ProductDescriptionTab productId={productId} />
         <RelatedProducts brandId={product.brandId} />
       </Container>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
     </main>
   );
 };

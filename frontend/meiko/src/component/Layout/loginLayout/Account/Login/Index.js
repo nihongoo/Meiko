@@ -170,7 +170,6 @@ function LoginForm() {
         </div>
       </form>
       <Footer />
-      {/* Add Toast container */}
     </div>
   );
 }

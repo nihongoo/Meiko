@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Checkbox } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import styles from "./ProductCart.module.css";
+import { toast } from "react-toastify";
 
 function ProductCart() {
   const [selectedCoupon, setSelectedCoupon] = useState("");
@@ -192,13 +193,13 @@ function ProductCart() {
   const increaseQuantity = (cartDetailId, productDetailId, quantity) => {
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
     if (!item) {
-      alert("Không tìm thấy sản phẩm trong giỏ hàng");
+      toast.error("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
     const stockQuantity = item.productDetails.quantity;
     const newQuantity = item.quantity + 1;
     if (newQuantity > stockQuantity) {
-      alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
+      toast.error(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
     setCartDetails(prevCartDetails =>
@@ -212,30 +213,30 @@ function ProductCart() {
   const decreaseQuantity = (cartDetailId, productDetailId, quantity) => {
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
     if (!item) {
-      alert("Không tìm thấy sản phẩm trong giỏ hàng");
+      toast.error("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
     if (item.quantity > 1) {
       const newQuantity = item.quantity - 1;
       updateQuantity(cartDetailId, productDetailId, newQuantity);
     } else {
-      alert("Số lượng không thể giảm xuống dưới 1");
+      toast.error("Số lượng không thể giảm xuống dưới 1");
     }
   };
   const handleQuantityChange = (e, cartDetailId) => {
     const newQuantity = parseInt(e.target.value, 10);
     if (isNaN(newQuantity) || newQuantity <= 0) {
-      alert("Số lượng không hợp lệ");
+      toast.error("Số lượng không hợp lệ");
       return;
     }
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
     if (!item) {
-      alert("Không tìm thấy sản phẩm trong giỏ hàng");
+      toast.error("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
     const stockQuantity = item.productDetails.stockQuantity;
     if (newQuantity > stockQuantity) {
-      alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
+      toast.error(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
     setCartDetails(prevCartDetails =>

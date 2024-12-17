@@ -24,7 +24,6 @@ function Checkout () {
     return (
         <div>
             <div style={{paddingTop: "190px", paddingLeft: "100px"}}>
-                <ToastContainer />
                 <div className={`row container`}>
                     <div className={`col-md-8`}>
                         <Recipient 
