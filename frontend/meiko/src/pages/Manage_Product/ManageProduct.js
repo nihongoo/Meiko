@@ -31,8 +31,6 @@ function ManageProduct() {
             description: item.description,
             publicId: item.publicId,
         }));
-console.log(selectedItem);
-
     const handleEdit = async () => {
         try {
             let imageUrl = selectedItem?.image;
@@ -58,11 +56,9 @@ console.log(selectedItem);
                 image: imageUrl,
                 publicId: publicId,
                 createTime: '2024-12-09T14:32:29.546Z',
-                status: selectedItem.status == 'Đang bán' ? 1 : 0,
+                status: selectedItem.status === 'Đang bán' ? 1 : 0,
                 imageUrl: imageUrl,
             };
-console.log(updatedItem);
-
             const res = await fetch(`${apiURL.product.edit}${selectedItem.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },

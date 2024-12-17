@@ -13,6 +13,7 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import useFetchData from "../../customHook/useFetchData";
 import apiURL from "../../routes/API";
+import { toast } from "react-toastify";
 
 function CreateVoucher({ item, setItem, open, onClose, onCreate }) {
     const paginationModel = { page: 0, pageSize: 5 };
@@ -50,13 +51,20 @@ function CreateVoucher({ item, setItem, open, onClose, onCreate }) {
                                 variant="outlined"
                                 size="small"
                                 type="number"
-                                onChange={(e) =>
-                                    setItem({ ...item, value: e.target.value })
-                                }
+                                value={item?.value || ""}
+                                onChange={(e) => {
+                                    const newValue = e.target.value;
+                                    if (newValue === "" || (Number(newValue) >= 0 && Number(newValue) <= 100)) {
+                                        setItem({ ...item, value: newValue });
+                                    } else if (Number(newValue) > 100) {
+                                        setItem({ ...item, value: 100 }); // Giới hạn giá trị tối đa là 100
+                                    }
+                                }}
                                 InputProps={{
                                     endAdornment: <InputAdornment position="start">%</InputAdornment>,
                                 }}
                             />
+
                             <TextField
                                 label="Điều kiện"
                                 variant="outlined"
@@ -81,19 +89,32 @@ function CreateVoucher({ item, setItem, open, onClose, onCreate }) {
                             <TextField
                                 label="Ngày bắt đầu"
                                 type="date"
-                                InputLabelProps={{ shrink: true }} size="small"
-                                onChange={(e) =>
-                                    setItem({ ...item, startDay: e.target.value })
-                                }
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                value={item?.startDay || ""}
+                                onChange={(e) => setItem({ ...item, startDay: e.target.value })}
                             />
                             <TextField
                                 label="Ngày kết thúc"
                                 type="date"
-                                InputLabelProps={{ shrink: true }} size="small"
-                                onChange={(e) =>
-                                    setItem({ ...item, endDay: e.target.value })
-                                }
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                value={item?.endDay || ""}
+                                onChange={(e) => {
+                                    const today = new Date().toISOString().split("T")[0]; // Lấy ngày hiện tại (YYYY-MM-DD)
+                                    const startDay = item?.startDay;
+                                    const endDay = e.target.value;
+
+                                    if (endDay < today) {
+                                        toast.warning("Ngày kết thúc không được là ngày trong quá khứ!");
+                                    } else if (startDay && endDay < startDay) {
+                                        toast.warning("Ngày kết thúc không được nhỏ hơn ngày bắt đầu!");
+                                    } else {
+                                        setItem({ ...item, endDay });
+                                    }
+                                }}
                             />
+
                         </Box>
                         <Box mt={3}>
                             <Typography>Kiểu</Typography>
