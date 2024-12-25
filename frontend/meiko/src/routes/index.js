@@ -51,7 +51,7 @@ const publicRoutes = [
     { path: '/ShopCart', component: ShopCart, layout: 'user'},
     { path: '/listproductdetail/:id', component: ListProductDetail, layout: 'admin' },
     { path: '/checkout', component: Checkout, layout: 'user'},
-    { path: '/accountUser', component: AccountUser, layout: 'user'},
+    { path: '/accountUser/:customerId', component: AccountUser, layout: 'user'},
     { path: '/addressScreen', component: AddressScreen, layout: 'user'},
     { path: '/orderlistscreen/:customerId', component: OrderListScreen, layout: 'user'},
     { path: '/orderdetailscreen/:billId', component: OrderDetailScreen, layout: 'user'},

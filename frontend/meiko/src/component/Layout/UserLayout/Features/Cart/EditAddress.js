@@ -6,7 +6,6 @@ const EditAddress = ({ newAddress, setNewAddress, handleAddressChange, setIsEdit
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
   
-  // Initialize formState with newAddress or an empty object if not provided
   const initialFormData = {
     recipientName: "",
     phoneNumber: "",

@@ -7,6 +7,7 @@ namespace API.DTO
 	public class RequestRefundDto
 	{
 		public Guid Id { get; set; }
+		public Guid ProductId { get; set; }
 		public Guid requester { get; set; }
 		public Guid BillId { get; set; }
 		public DateTime CreateTime { get; set; }

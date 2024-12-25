@@ -133,7 +133,6 @@ const OrderItemWrapper = styled.div`
 `;
 
 const OrderItem = ({ order }) => {
-  console.log(order);
   return (
     <OrderItemWrapper>
       <div className="order-item-details">

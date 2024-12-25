@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography, TextField, Button, Card, Divider, Autocomplete } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import NoBillDataFind from "./NoBillDataFind";
@@ -13,6 +13,8 @@ function ReturnProduct() {
     const [error, setError] = useState(null);
     const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${bill?.id}`);
     const { data: allBill } = useFetchData(apiURL.bill.all)
+    const [amountSpent, setAmountSpent] = useState(0);
+    const completedBills = allBill.filter(bill => bill.status === 'Hoàn thành');
     const [obj, setObj] = useState({
         billId: '',
         requester: localStorage.getItem('userId'),
@@ -32,7 +34,6 @@ function ReturnProduct() {
             )
         );
     };
-
     const handleSearch = async () => {
         try {
             setError(null);
@@ -48,21 +49,30 @@ function ReturnProduct() {
             console.log(error);
         }
     };
-
+    useEffect(() => {
+        const calculatedTotal = selected.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        // Cập nhật lại obj
+        setAmountSpent(calculatedTotal);
+        setObj((prev) => ({
+            ...prev,
+            billId: bill?.id || '',
+            refundItems: selected.map((item) => ({
+                productId: item.productDetailId,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                total: item.price * item.quantity,
+                note: item.note,
+            })),
+        }));
+    }, [selected]);
     const handleRefund = async () => {
         try {
-            setObj((prev) => ({
-                ...prev,
-                billId: bill?.id,
-                refundItems: selected.map((item) => ({
-                    id: item.productDetailId,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    total: item.price * item.quantity,
-                    note: item.note
-                }))
-            }))
+            const invalidItems = selected.filter(item => !item.note || item.note.trim() === '');
+            if (invalidItems.length > 0) {
+                toast.error('Vui lòng nhập ghi chú cho tất cả sản phẩm trước khi trả hàng.');
+                return;
+            }
             const res = await fetch(apiURL.bill.refund, {
                 method: 'POST',
                 headers: {
@@ -87,7 +97,6 @@ function ReturnProduct() {
             console.log(error);
         }
     }
-console.log(obj);
 
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2} minHeight={700}>
@@ -101,7 +110,7 @@ console.log(obj);
                 <Box display="flex">
                     <Autocomplete
                         disablePortal
-                        options={allBill || []}
+                        options={completedBills || []}
                         onInputChange={(event, newInputValue) => {
                             setQuery(newInputValue);
                         }}
@@ -133,7 +142,7 @@ console.log(obj);
                         }}
                     >
                         <ListReturn item={selected} onNoteChange={handleNoteChange} />
-                        <BillInfo item={bill} handleRefund={handleRefund} obj={obj}></BillInfo>
+                        <BillInfo item={bill} handleRefund={handleRefund} obj={obj} amountSpent={amountSpent}></BillInfo>
                     </Box>
                 </div>) : (
                     <NoBillDataFind />
@@ -246,9 +255,9 @@ function ListDetail({ item, setSelect }) {
 }
 
 
-function BillInfo({ item, handleRefund, obj }) {
+function BillInfo({ item, handleRefund, obj, amountSpent }) {
     const { data: info } = useFetchData(item?.id ? `${apiURL.bill.billId}${item.id}` : null);
-    const amountSpent = obj.refundItems.reduce((sum, item) => sum + item.total, 0)
+    // const amountSpent = obj.refundItems.reduce((sum, item) => sum + item.total, 0)
     if (!info) {
         return (
             <Typography variant="body1" color="textSecondary">
@@ -266,6 +275,7 @@ function BillInfo({ item, handleRefund, obj }) {
         : 'Không xác định';
 
     const total = new Intl.NumberFormat('vi-VN').format(info?.total) + ' VND' || 0;
+    console.log(obj);
 
     return (
         <Box flex={1}>
@@ -313,7 +323,7 @@ function BillInfo({ item, handleRefund, obj }) {
                     <Box textAlign="right">
                         <Typography variant="body1">{total}</Typography>
                         <Typography variant="body1">
-                        {new Intl.NumberFormat('vi-VN').format(amountSpent) + ' VND'}
+                            {new Intl.NumberFormat('vi-VN').format(amountSpent) + ' VND'}
                         </Typography>
                     </Box>
                 </Box>

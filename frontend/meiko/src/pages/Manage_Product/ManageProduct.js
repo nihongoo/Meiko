@@ -31,7 +31,6 @@ function ManageProduct() {
             description: item.description,
             publicId: item.publicId,
         }));
-
     const handleEdit = async () => {
         try {
             let imageUrl = selectedItem?.image;
@@ -57,10 +56,9 @@ function ManageProduct() {
                 image: imageUrl,
                 publicId: publicId,
                 createTime: '2024-12-09T14:32:29.546Z',
-                status: 'Đang bán' ? 1 : 0,
+                status: selectedItem.status === 'Đang bán' ? 1 : 0,
                 imageUrl: imageUrl,
             };
-
             const res = await fetch(`${apiURL.product.edit}${selectedItem.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -68,8 +66,9 @@ function ManageProduct() {
             });
 
             if (res.ok) {
+                refetch();
+                setEdit(false)
                 toast.success('Cập nhật thông tin sản phẩm thành công')
-                refetch(); // Cập nhật lại danh sách sản phẩm
             } else {
                 throw new Error('Cập nhật thất bại');
             }

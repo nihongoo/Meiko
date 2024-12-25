@@ -15,8 +15,6 @@ const BillInfo = forwardRef(({ bill }, ref) => {
     useImperativeHandle(ref, () => ({
         reload,
     }));
-console.log(bill.id);
-
     useEffect(() => {
         setRemaining(billInfo.total - totalPaid);
         setCashAmount(totalPaid)

@@ -7,8 +7,8 @@ import Footer from '../../../UserLayout/Footer/index.js';
 function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');  // Để người dùng nhập mật khẩu mới
-  const [oldPassword, setOldPassword] = useState(''); // Mật khẩu cũ (để so sánh)
+  const [newPassword, setNewPassword] = useState('');  
+  const [oldPassword, setOldPassword] = useState(''); 
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [isOtpSent, setIsOtpSent] = useState(false);

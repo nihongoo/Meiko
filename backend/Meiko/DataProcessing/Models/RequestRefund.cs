@@ -18,7 +18,7 @@ namespace DataProcessing.Models
 		public StatusTypeRq Status { get; set; }
 		public decimal AmountRefund { get; set; }
 
-		[JsonIgnore]
+		
 		public virtual ICollection<RefundItem>? RefundItems { get; set; }
 	}
 	public enum StatusTypeRq

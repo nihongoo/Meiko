@@ -48,7 +48,7 @@ namespace API.Services
 
         public async Task CreateAsync(ProductViewModel model, List<ProductDetailViewModel> productDetails)
         {
-            var imgUrl = await GetAnImage(model.ImageUrl);
+            var imgUrl = await GetAnImage(model.PublicId);
             var genCode = Extention.Extention.GenerateSerialCode();
             model.ProductCode = genCode;
 
@@ -98,7 +98,7 @@ namespace API.Services
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null) throw new Exception("Product not found");
-			var imgUrl = await GetAnImage(model.ImageUrl);
+			var imgUrl = await GetAnImage(model.PublicId);
 			product.Name = model.Name;
             product.ImageUrl = imgUrl;
             product.Description = model.Description;

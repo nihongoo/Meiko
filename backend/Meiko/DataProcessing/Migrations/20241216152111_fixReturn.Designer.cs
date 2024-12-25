@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataProcessing.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241212162342_Khoang")]
-    partial class Khoang
+    [Migration("20241216152111_fixReturn")]
+    partial class fixReturn
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -746,6 +746,9 @@ namespace DataProcessing.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -1474,11 +1477,9 @@ namespace DataProcessing.Migrations
 
             modelBuilder.Entity("DataProcessing.Models.RefundItem", b =>
                 {
-                    b.HasOne("DataProcessing.Models.RequestRefund", "RequestRefund")
+                    b.HasOne("DataProcessing.Models.RequestRefund", null)
                         .WithMany("RefundItems")
                         .HasForeignKey("RequestRefundId");
-
-                    b.Navigation("RequestRefund");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.SaleProducts", b =>

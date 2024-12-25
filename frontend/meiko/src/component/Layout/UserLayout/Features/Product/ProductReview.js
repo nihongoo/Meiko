@@ -278,8 +278,6 @@ const ProductReviews = ({ productId }) => {
           Gửi đánh giá
         </Button>
       </form>
-  
-      <ToastContainer position="top-right" autoClose={5000} hideProgressBar newestOnTop rtl={false} pauseOnFocusLoss pauseOnHover />
     </div>
   );
   
