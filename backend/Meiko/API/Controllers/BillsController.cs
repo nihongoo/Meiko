@@ -316,25 +316,25 @@ namespace API.Controllers
 			}
 		}
 
-		[HttpGet("PayOS/ReturnPayOSOffline/{billId}")]
-		public async Task<IActionResult> ReturnDataOffline(Guid billId, [FromQuery] long orderCode)
-		{
-			try
-			{
-				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
-				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
+		//[HttpGet("PayOS/ReturnPayOSOffline/{billId}")]
+		//public async Task<IActionResult> ReturnDataOffline(Guid billId, [FromQuery] long orderCode)
+		//{
+		//	try
+		//	{
+		//		PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
+		//		PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
 
-				return Ok(paymentLinkInfo);
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, new ReturnMessage()
-				{
-					status = 2,
-					message = $"Đã xảy ra lỗi khi giao dịch : {ex.InnerException}",
-				});
-			}
-		}
+		//		return Ok(paymentLinkInfo);
+		//	}
+		//	catch (Exception ex)
+		//	{
+		//		return StatusCode(500, new ReturnMessage()
+		//		{
+		//			status = 2,
+		//			message = $"Đã xảy ra lỗi khi giao dịch : {ex.InnerException}",
+		//		});
+		//	}
+		//}
 
 
 		[HttpGet("PayOS/CancelPayOS/{billId}")]

@@ -84,7 +84,6 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             toast.error("Có lỗi xảy ra khi kết nối tới server!");
         }
     };
-console.log(payHistory);
 
     const handlePayment = () => {
         if (remaining <= 0) {
