@@ -50,7 +50,7 @@ function UpdateDetailDialog({
             <DialogContent>
                 <Box display="flex" flexDirection="row" gap={2}>
                     <Box flex={2}>
-                        <TextField
+                        {/* <TextField
                             margin="dense"
                             label="Trọng lượng"
                             type="number"
@@ -63,7 +63,7 @@ function UpdateDetailDialog({
                             InputProps={{
                                 endAdornment: <InputAdornment position="start">Kg</InputAdornment>,
                             }}
-                        />
+                        /> */}
                         <TextField
                             margin="dense"
                             label="Giá nhập"

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
-import SearchInput from "../../component/Search";
 import apiURL from "../../routes/API/index";
 import useFetchData from "../../customHook/useFetchData";
 import UpdateDetailDialog from './UpdateDetailDialog';
 import { DataGrid } from '@mui/x-data-grid';
-import { Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Button, Box, Typography } from '@mui/material';
+import { Button, Box, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 
@@ -20,28 +19,50 @@ function ListProductDetail() {
     const [preview, setPreview] = useState(null);
     const [apiImg, setApiImg] = useState('POST');
     const [updateImg, setUpdateImg] = useState(null)
-
-    const formattedRows = initialData.map((item) => ({
-        id: item.id,
-        name: productName,
-        code: item.productDetailCode,
-        color: item.colors.name,
-        size: item.sizes.name,
-        weight: item.weight,
-        importPrice: item.importPrice,
-        price: item.price,
-        quantity: item.quantity,
-        createTime: moment(item.createTime).format('DD-MM-YYYY'),
-        status: item.status,
-        tt: item.status === 1 ? 'Đang bán' : 'Ngừng bán'
-    }));
+    const formattedRows = initialData.map((item) => {
+        const productImage = previewImg.find(img => img.productDetailId === item.id);
+        return {
+            id: item.id,
+            name: productName,
+            code: item.productDetailCode,
+            color: item.colors.name,
+            size: item.sizes.name,
+            weight: item.weight,
+            importPrice: item.importPrice,
+            price: item.price,
+            quantity: item.quantity,
+            createTime: moment(item.createTime).format('DD-MM-YYYY'),
+            status: item.status,
+            tt: item.status === 1 ? 'Đang bán' : 'Ngừng bán',
+            imgUrl: productImage?.imgUrl || 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png'
+        }
+    });
+    
+    console.log(initialData);
+    
 
     const columns = [
         { field: 'name', headerName: 'Tên sản phẩm', flex:1 },
         { field: 'code', headerName: 'Mã chi tiết', flex:1 },
+        {
+            field: 'imgUrl',
+            headerName: 'Ảnh',
+            width: 100,
+            renderCell: (params) => (
+                <img
+                    src={params.value}
+                    alt="Product"
+                    style={{
+                        width: '60px',
+                        height: '60px',
+                        objectFit: 'cover',
+                        borderRadius: '4px'
+                    }}
+                />
+            ),
+        },
         { field: 'color', headerName: 'Màu', flex:1 },
         { field: 'size', headerName: 'Kích thước', flex:1 },
-        { field: 'weight', headerName: 'Cân nặng', flex:1 },
         { field: 'importPrice', headerName: 'Giá nhập', flex:1 },
         { field: 'price', headerName: 'Giá bán', flex:1 },
         { field: 'quantity', headerName: 'Số lượng', flex:1 },
@@ -209,7 +230,7 @@ function ListProductDetail() {
     return (
         <Box p={3} bgcolor="#fff" borderRadius={2}>
             <Typography variant="h5" align="center" gutterBottom>Thông tin sản phẩm</Typography>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            {/* <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <SearchInput
                     ApiURL={apiURL.product.search}
                 />
@@ -222,7 +243,7 @@ function ListProductDetail() {
                         <FormControlLabel value="isSearchWithName=false" control={<Radio />} label="Mã sản phẩm" />
                     </RadioGroup>
                 </FormControl>
-            </Box>
+            </Box> */}
             <DataGrid
                 columns={columns}
                 rows={formattedRows}
