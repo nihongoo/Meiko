@@ -47,6 +47,15 @@ namespace API.Services
                     // Nếu có giảm giá, dùng giá giảm; nếu không, dùng giá gốc
                     var finalPrice = discountedPrice.HasValue ? discountedPrice.Value : productDetail.Price;
 
+                    // Tính tổng số lượng yêu cầu (đã có trong giỏ + số lượng mới thêm)
+                    int totalQuantity = (cartDetailEntity?.Quantity ?? 0) + Quantity;
+
+                    // Kiểm tra nếu tổng số lượng vượt quá tồn kho
+                    if (totalQuantity > productDetail.Quantity)
+                    {
+                        return "Số lượng sản phẩm trong giỏ hàng vượt quá số lượng tồn kho!";
+                    }
+
                     var response = $"Đã thêm {productDetail.Products.Name} vào giỏ hàng!";
 
                     if (cartDetailEntity == null)
@@ -56,41 +65,29 @@ namespace API.Services
                         {
                             Id = Guid.NewGuid(),
                             Quantity = Quantity,
-                            Price = Quantity * finalPrice, // Giá sau giảm
-                            Status = 5,  // Trạng thái sản phẩm trong giỏ
+                            Price = Quantity * finalPrice,
+                            Status = 5,
                             CartId = CartId,
                             ProductDetailsId = productDetailId
                         });
                     }
                     else
                     {
-                        // Nếu sản phẩm đã có trong giỏ, cập nhật số lượng và giá
                         cartDetailEntity.Quantity += Quantity;
 
-                        // Kiểm tra số lượng không vượt quá số lượng tồn kho
-                        if (cartDetailEntity.Quantity > productDetail.Quantity)
-                        {
-                            cartDetailEntity.Quantity = productDetail.Quantity;
-                            response = "Đã thêm số lượng sản phẩm tối đa còn lại trong kho!";
-                        }
-
-                        // Cập nhật giá trị cho giỏ
-                        cartDetailEntity.Price = cartDetailEntity.Quantity * finalPrice; // Giá sau giảm
+                        cartDetailEntity.Price = cartDetailEntity.Quantity * finalPrice;
 
                         _appDbContext.CartDetails.Update(cartDetailEntity);
                     }
 
-                    // Lưu thay đổi và cập nhật tổng giỏ hàng
                     await _appDbContext.SaveChangesAsync();
-                    await UpdateTotal(CartId);  // Cập nhật tổng giỏ hàng
+                    await UpdateTotal(CartId);
 
-                    // Cam kết transaction
                     await dbTrans.CommitAsync();
                     return response;
                 }
                 catch (Exception ex)
                 {
-                    // Nếu có lỗi, rollback transaction và trả về lỗi
                     await dbTrans.RollbackAsync();
                     return $"Lỗi: {ex.Message}";
                 }

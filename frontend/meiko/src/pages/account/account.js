@@ -19,6 +19,7 @@ import useFetchData from '../../customHook/useFetchData.js';
 import UpdateStaffDialog from './UpdateStaffDialog.js';
 import CreateStaffDialog from './CreateStaffDialog.js';
 import generateSerialCode from '../../customHook/useRandom.js';
+import EditIcon from '@mui/icons-material/Edit';
 
 function Account() {
   const { data: staff, refetch, loading, error } = useFetchData(apiURL.staff.all, (rawData) =>
@@ -66,7 +67,7 @@ function Account() {
           color="secondary"
           onClick={() => handleClickOpen(params.row)}
         >
-          <i className="fa-solid fa-pen"></i>
+          <EditIcon></EditIcon>
         </Button>
       ),
     },

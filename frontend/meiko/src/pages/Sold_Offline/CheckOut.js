@@ -61,36 +61,56 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             toast.error(error.message || 'Có lỗi xảy ra!');
         }
     };
+console.log(billInfo);
 
     const processOnlinePayment = async () => {
         try {
-            const res = await fetch(`${apiURL.bill.payOnline}${bill.id}?descrtiption=${'Thanh toán đơn hàng'}`, {
-                method: 'POST',
-            });
-
-            if (!res.ok) {
-                toast.error("Có lỗi xảy ra từ phía server.");
-                return;
+            
+if(billInfo.billDetails.length === 0){
+    toast.warning('Chưa chọn sản phẩm nào')
+    return
+}
+            if (remaining <= 0) {
+                const payload = {
+                    statusType: 5,
+                    note: 'Tạo mới hóa đơn thành công',
+                    staffWhoCreatedThis: staffInfo.id,
+                };
+                await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                handleCloseTab(index, 'Hóa đơn đã hoàn thành!');
             }
-
-            const msg = await res.json();
-            if (msg.checkoutUrl) {
-                window.open(msg.checkoutUrl, '_blank', 'noopener,noreferrer');
-            } else {
-                toast.error("Có lỗi xảy ra khi tạo thanh toán.");
+            else{
+                const res = await fetch(`${apiURL.bill.payOnline}${bill.id}?descrtiption=${'Thanh toán đơn hàng'}`, {
+                    method: 'POST',
+                });
+    
+                if (!res.ok) {
+                    toast.error("Có lỗi xảy ra từ phía server.");
+                    return;
+                }
+    
+                const msg = await res.json();
+                if (msg.checkoutUrl) {
+                    window.location.href = msg.checkoutUrl;
+                } else {
+                    toast.error("Có lỗi xảy ra khi tạo thanh toán.");
+                }
             }
         } catch (error) {
             console.error(error);
             toast.error("Có lỗi xảy ra khi kết nối tới server!");
         }
     };
-console.log(payHistory);
 
     const handlePayment = () => {
-        if (remaining <= 0) {
-            toast.error('Hóa đơn đã hoàn thành hoặc chưa có sản phẩm nào được chọn.');
-            return;
-        }
+        // if (remaining <= 0) {
+        //     toast.error('Hóa đơn đã hoàn thành hoặc chưa có sản phẩm nào được chọn.');
+        //     return;
+        // }
 
         if (paymentMethod === 'cash') {
             processCashPayment();

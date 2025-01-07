@@ -16,10 +16,19 @@ function ListProduct({ bill }) {
   const [open, setOpen] = useState(false);
   const { handleReloadFromAnother } = useContext(BillInfoContext);
   const { data: Detail, refetch: refetchData } = useFetchData(`${apiURL.bill.list}?id=${bill.id}`);
-  const listBill = Detail.map(item => ({
-    ...item,
-    totalPrice: item.price * item.quantity,
-  }));
+  const {data: sale, refetch: refetchData1} = useFetchData(apiURL.sale.search);
+  const listBill = Detail.map(item => {
+    // Tìm sản phẩm trong sale có cùng ID (hoặc điều kiện tương ứng)
+    const saleItem = sale?.find(saleProduct => saleProduct.productDetailId === item.productDetailId);
+    return {
+        ...item,
+        priceInput: item.price,
+        price: saleItem ? saleItem.discountedPrice : item.price, // Lấy giá từ sale nếu có, nếu không lấy item.price
+        totalPrice: (saleItem ? saleItem.discountedPrice : item.price) * item.quantity, // Tính tổng giá
+    };
+    
+});
+  
 
   const handleDeleteDetail = async (id) => {
     try {
@@ -149,6 +158,11 @@ function ListProduct({ bill }) {
                 <Typography fontWeight="bold" color="text.primary">
                   {item.name || "Tên sản phẩm"}
                 </Typography>
+                {item.priceInput && (
+  <Typography color="textSecondary" style={{ textDecoration: 'line-through' }}>
+    {`${item.priceInput} VND`}
+  </Typography>
+)}
                 <Typography color="error" fontWeight="bold">
                   {item.price ? `${item.price} VND` : `${item.price} VND`}
                 </Typography>
@@ -210,7 +224,7 @@ function ListProduct({ bill }) {
       </Box>
       <Box display="flex" justifyContent="flex-end" mt={4}>
         <Typography color="error" fontWeight="bold" sx={{ marginRight: 4 }}>
-          {totalSum}
+          {/* {totalSum} */}
         </Typography>
       </Box>
 
