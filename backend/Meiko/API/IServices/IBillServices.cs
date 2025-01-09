@@ -36,7 +36,7 @@ namespace API.IServices
 		//Bill
 		Task<ReturnMessage> Delete(Guid Id);
 		Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis);
-		Task<(bool k, Guid id)> Create(bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode);
+		Task<(bool k, Guid? id, string? message)> Create(bool IsShiping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode);
 
         Task<(bool k, Guid billId)> UpdateBill(Guid billId, decimal newShippingFee);
 

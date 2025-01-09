@@ -147,7 +147,7 @@ namespace API.Controllers
 			}
 			else
 			{
-				return BadRequest(new { success = result.k, message = "Failed to create bill." });
+				return BadRequest(new { success = result.k, message = result.message });
 			}
 		}
 

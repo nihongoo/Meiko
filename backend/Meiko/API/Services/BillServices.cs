@@ -593,11 +593,12 @@ namespace API.Services
 
 
         // Bill
-        public async Task<(bool k, Guid id)> Create(bool IsShipping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode)
+        public async Task<(bool k, Guid? id, string message)> Create(bool IsShipping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode)
         {
             bool check = false;
             Guid billId = Guid.Empty;
             Guid Id;
+			var message = new List<string>();
 
             using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
             {
@@ -613,7 +614,7 @@ namespace API.Services
                         Status = StatusType.TaoHoaDon,
                         PaymentAmount = 0,
                         ShippingFee = ShippingFee,
-                        CustomerId = CustomerWhoCreateThis,
+                        CustomerId = CustomerWhoCreateThis ?? StaffWhoCreateThis,
                         StaffId = StaffWhoCreateThis,
                         VoucherId = VoucherId
                     };
@@ -621,71 +622,86 @@ namespace API.Services
                     await _dbcontext.Bills.AddAsync(bill);
                     billId = bill.Id;
 
-                    if (CartId != null)
-                    {
-                        List<CartDetails>? cartDetails = await _dbcontext.CartDetails
-                            .Where(cd => cd.CartId == CartId)
-                            .Include(cd => cd.ProductDetails)
-                            .ThenInclude(pd => pd.SaleProducts)
-                            .ToListAsync();
+					if (CartId != null)
+					{
+						List<CartDetails>? cartDetails = await _dbcontext.CartDetails
+							.Where(cd => cd.CartId == CartId)
+							.Include(cd => cd.ProductDetails)
+							.ThenInclude(pd => pd.SaleProducts)
+							.Include(cd=>cd.ProductDetails)
+							.ThenInclude(pd => pd.Products)
+							.ToListAsync();
 
-                        if (cartDetails != null)
-                        {
-                            foreach (var cartDetail in cartDetails)
-                            {
-                                decimal? discountedPrice = cartDetail.ProductDetails.SaleProducts
-                                    .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-                                    .OrderByDescending(sp => sp.EffectiveDate)
-                                    .FirstOrDefault()?.DiscountedPrice;
+						if (cartDetails != null)
+						{
+							foreach (var cartDetail in cartDetails)
+							{
+								if(cartDetail.ProductDetails.Quantity < cartDetail.Quantity)
+								{
+									message.Add( $"Sản phẩm `{cartDetail.ProductDetails.Products.Name}` không đủ hàng");
+									check = false;
+									continue;
+								}
 
-                                var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
-                                    ? discountedPrice.Value
-                                    : cartDetail.Price;
+								decimal? discountedPrice = cartDetail.ProductDetails.SaleProducts
+									.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+									.OrderByDescending(sp => sp.EffectiveDate)
+									.FirstOrDefault()?.DiscountedPrice;
 
-                                await _dbcontext.BillDetails.AddAsync(new BillDetails()
-                                {
-                                    Id = Guid.NewGuid(),
-                                    Quantity = cartDetail.Quantity,
-                                    Price = finalPrice,
-                                    Status = cartDetail.Status,
-                                    BillId = bill.Id,
-                                    ProductDetailId = cartDetail.ProductDetailsId
-                                });
-                            }
-                        }
+								var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
+									? discountedPrice.Value
+									: cartDetail.Price;
 
-                        decimal productsTotal = cartDetails.Sum(cd =>
-                        {
-                            decimal? discountedPrice = cd.ProductDetails.SaleProducts
-                                .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-                                .OrderByDescending(sp => sp.EffectiveDate)
-                                .FirstOrDefault()?.DiscountedPrice;
+									await _dbcontext.BillDetails.AddAsync(new BillDetails()
+									{
+										Id = Guid.NewGuid(),
+										Quantity = cartDetail.Quantity,
+										Price = finalPrice,
+										Status = cartDetail.Status,
+										BillId = bill.Id,
+										ProductDetailId = cartDetail.ProductDetailsId
+									});
 
-                            var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
-                                ? discountedPrice.Value
-                                : cd.Price;
 
-                            return finalPrice;
-                        });
+								var productDetails = cartDetail.ProductDetails;
+								productDetails.Quantity -= cartDetail.Quantity;
+								_dbcontext.ProductDetails.Update(productDetails);
+							}
 
-                        if (VoucherId != null)
-                        {
-                            var voucher = await _dbcontext.Vouchers
-                                .Where(v => v.Id == VoucherId)
-                                .FirstOrDefaultAsync();
 
-                            if (voucher != null && voucher.Value > 0)
-                            {
-                                decimal discountPercentage = (decimal)voucher.Value;
-                                decimal discountAmount = (productsTotal * discountPercentage) / 100;
-                                productsTotal -= discountAmount;
-                            }
-                        }
+							decimal productsTotal = cartDetails.Sum(cd =>
+							{
+								decimal? discountedPrice = cd.ProductDetails.SaleProducts
+									.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+									.OrderByDescending(sp => sp.EffectiveDate)
+									.FirstOrDefault()?.DiscountedPrice;
 
-                        bill.Total = productsTotal + ShippingFee;
+								var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
+									? discountedPrice.Value
+									: cd.Price;
 
-                        check = true;
-                    }
+								return finalPrice;
+							});
+
+							if (VoucherId != null)
+							{
+								var voucher = await _dbcontext.Vouchers
+									.Where(v => v.Id == VoucherId)
+									.FirstOrDefaultAsync();
+
+								if (voucher != null && voucher.Value > 0)
+								{
+									decimal discountPercentage = (decimal)voucher.Value;
+									decimal discountAmount = (productsTotal * discountPercentage) / 100;
+									productsTotal -= discountAmount;
+								}
+							}
+
+							bill.Total = productsTotal + ShippingFee;
+
+							check = true;
+						}
+					}
 
                     // Save the changes
                     await _dbcontext.SaveChangesAsync();
@@ -696,12 +712,16 @@ namespace API.Services
                 {
                     await dbTransaction.RollbackAsync();
                     Console.WriteLine(ex.Message);
-                    return (false, Guid.Empty);
+                    return (false, Guid.Empty, ex.Message);
                 }
             }
-            if (check) await _cartDetailServices.ClearCart((Guid)CartId);
-
-            return (true, Id);
+			if (check)
+			{
+				await _cartDetailServices.ClearCart((Guid)CartId);
+				return (true, Id, string.Join(" , ", message));
+			}
+			else
+				return (false, null, string.Join(" , ", message));
         }
 
         public async Task<(bool k, Guid billId)> UpdateBill(Guid billId, decimal newShippingFee)
