@@ -638,7 +638,7 @@ namespace API.Services
 							{
 								if(cartDetail.ProductDetails.Quantity < cartDetail.Quantity)
 								{
-									message.Add( $"Sản phẩm `{cartDetail.ProductDetails.Products.Name}` không đủ hàng");
+									message.Add(cartDetail.ProductDetails.Products.Name);
 									check = false;
 									continue;
 								}
@@ -668,22 +668,11 @@ namespace API.Services
 								_dbcontext.ProductDetails.Update(productDetails);
 							}
 
+                            await _dbcontext.SaveChangesAsync();
 
-							decimal productsTotal = cartDetails.Sum(cd =>
-							{
-								decimal? discountedPrice = cd.ProductDetails.SaleProducts
-									.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-									.OrderByDescending(sp => sp.EffectiveDate)
-									.FirstOrDefault()?.DiscountedPrice;
+							bill.Total = bill.BillDetails != null ? bill.BillDetails.Sum(bd => bd.Price) : 0;
 
-								var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
-									? discountedPrice.Value
-									: cd.Price;
-
-								return finalPrice;
-							});
-
-							if (VoucherId != null)
+							if (VoucherId != null && bill.Total != 0)
 							{
 								var voucher = await _dbcontext.Vouchers
 									.Where(v => v.Id == VoucherId)
@@ -692,12 +681,12 @@ namespace API.Services
 								if (voucher != null && voucher.Value > 0)
 								{
 									decimal discountPercentage = (decimal)voucher.Value;
-									decimal discountAmount = (productsTotal * discountPercentage) / 100;
-									productsTotal -= discountAmount;
+									decimal discountAmount = (bill.Total * discountPercentage) / 100;
+									bill.Total -= discountAmount;
 								}
 							}
-
-							bill.Total = productsTotal + ShippingFee;
+							if(bill.Total != 0)
+								bill.Total += ShippingFee;
 
 							check = true;
 						}
