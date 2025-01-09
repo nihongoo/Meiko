@@ -1,7 +1,6 @@
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
-import SearchInput from '../../component/Search';
 import apiURL from '../../routes/API/index.js';
 import useFetchData from '../../customHook/useFetchData.js';
 import EditIcon from '@mui/icons-material/Edit';
@@ -18,10 +17,6 @@ function ManageMeterial() {
     const paginationModel = { page: 0, pageSize: 10 };
     const currentPage = 1;
     const { data: meterial, loading, error, refetch } = useFetchData(apiURL.meterial.all);
-
-    const handleSearch = () => {
-        refetch();
-    };
 
     const handleOpen = (item) => {
         setSelectedItem(item);
@@ -132,8 +127,7 @@ function ManageMeterial() {
                 Danh sách chất liệu
             </Typography>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <SearchInput ApiURL={apiURL.meterial.search} onSearch={handleSearch} />
+            <Box sx={{ display: 'flex', justifyContent: 'end', mb: 2 }}>
                 <Box>
                     <Button variant="outlined" color="success" onClick={() => setCreate(true)}>
                         + Thêm mới

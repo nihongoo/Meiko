@@ -5,19 +5,13 @@ import {
   Box,
   Button,
   CircularProgress,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
   Typography,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import apiURL from '../../routes/API/index.js';
-import SearchInput from '../../component/Search/index.js';
 import useFetchData from '../../customHook/useFetchData.js';
 import UpdateUserDialog from './UpdateUserDialog.js';
-
+import EditIcon from '@mui/icons-material/Edit';
 function ManageCustomer() {
   const { data: customers, refetch, loading, error } = useFetchData(apiURL.user.all, (rawData) =>
     rawData.map((item) => ({
@@ -30,7 +24,6 @@ function ManageCustomer() {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const paginationModel = { page: 0, pageSize: 10 };
-  const [searchType, setSearchType] = useState('isSearchEmail=true');
 
   const handleClickOpen = (user) => {
     const formattedUser = {
@@ -86,28 +79,7 @@ function ManageCustomer() {
       <Typography variant="h5" align="center" gutterBottom>
         Danh sách khách hàng
       </Typography>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <SearchInput ApiURL={apiURL.user.search} optional={searchType} />
-        <FormControl>
-          <FormLabel>Tìm kiếm theo:</FormLabel>
-          <RadioGroup
-            row
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value)}
-          >
-            <FormControlLabel
-              value="isSearchEmail=true"
-              control={<Radio />}
-              label="Email"
-            />
-            <FormControlLabel
-              value="isSearchEmail=false"
-              control={<Radio />}
-              label="Số điện thoại"
-            />
-          </RadioGroup>
-        </FormControl>
-      </Box>
+      
 
       <DataGrid
         autoHeight
@@ -132,7 +104,7 @@ function ManageCustomer() {
                 color="secondary"
                 onClick={() => handleClickOpen(params.row)}
               >
-                <i className="fa-solid fa-pen"></i>
+                <EditIcon></EditIcon>
               </Button>
             ),
           },

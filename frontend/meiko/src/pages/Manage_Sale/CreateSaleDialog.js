@@ -30,14 +30,14 @@ function CreateSaleDialog({ open, onClose, item, setItem, onCreate }) {
                 <Box display="flex" justifyContent="space-around" mb={3}>
                     <Box>
                         <Box display="flex" flexDirection="column" gap={2}>
-                            <TextField
+                            {/* <TextField
                                 label="Mã"
                                 variant="outlined"
                                 size="small"
                                 onChange={(e) =>
                                     setItem({ ...item, saleCode: e.target.value })
                                 }
-                            />
+                            /> */}
                             <TextField
                                 label="Tên đợt giảm giá"
                                 variant="outlined"

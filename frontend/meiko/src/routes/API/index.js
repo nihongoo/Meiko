@@ -139,7 +139,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Sales/Get-All',
         create: 'https://localhost:7172/api/Sales/Create',
         delete: 'https://localhost:7172/api/Sales/Delete/',
-        filter: 'https://localhost:7172/api/Sales/Filter'
+        filter: 'https://localhost:7172/api/Sales/Filter',
+        search: 'https://localhost:7172/api/SaleProduct/Get-All'
     },
     payHistory:{
         byBillId: 'https://localhost:7172/api/Bills/get-paymentHistories-by-billId/'
