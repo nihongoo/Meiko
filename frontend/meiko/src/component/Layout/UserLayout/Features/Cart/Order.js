@@ -93,7 +93,8 @@ function Order({
                     cartId: localStorage.getItem("cartId"),
                     customerId: localStorage.getItem("customerId"),
                     voucherId: voucherId,
-                    staffId: null
+                    staffId: null,
+                    billType: selectedPayment
                 }),
             });
     
@@ -154,7 +155,8 @@ function Order({
                 cartId: localStorage.getItem("cartId"),
                 customerId: localStorage.getItem("customerId"),
                 voucherId,
-                staffId: null
+                staffId: null,
+                billType: selectedPayment
             }),
         });
         return await response.json();

@@ -12,10 +12,10 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
     const [cashAmount, setCashAmount] = useState('');
     const [remaining, setRemaining] = useState(0);
     const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
-    const { data: payHistory, refetch } = useFetchData(`${apiURL.payHistory.byBillId}${bill.id}`,(raw) => {
+    const { data: payHistory, refetch } = useFetchData(`${apiURL.payHistory.byBillId}${bill.id}`, (raw) => {
         return raw.map((item) => ({
             ...item,
-            status: item.status === '11' ? 'Đã thanh toán' : item.status,
+            status: item.status === '10' ? 'Đã thanh toán' : item.status,
         }))
     });
 
@@ -41,7 +41,7 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             if (newRemaining <= 0) {
                 const payload = {
                     statusType: 5,
-                    note: 'Tạo mới hóa đơn thành công',
+                    note: 'thanh toán thành công',
                     staffWhoCreatedThis: staffInfo.id,
                 };
                 await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
@@ -64,20 +64,39 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
 
     const processOnlinePayment = async () => {
         try {
-            const res = await fetch(`${apiURL.bill.payOnline}${bill.id}?descrtiption=${'Thanh toán đơn hàng'}`, {
-                method: 'POST',
-            });
-
-            if (!res.ok) {
-                toast.error("Có lỗi xảy ra từ phía server.");
-                return;
+            if (billInfo.billDetails.length === 0) {
+                toast.warning('Chưa chọn sản phẩm nào')
+                return
             }
+            if (remaining <= 0) {
+                const payload = {
+                    statusType: 5,
+                    note: 'Tạo mới hóa đơn thành công',
+                    staffWhoCreatedThis: staffInfo.id,
+                };
+                await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                handleCloseTab(index, 'Hóa đơn đã hoàn thành!');
+            }
+            else {
+                const res = await fetch(`${apiURL.bill.payOnline}${bill.id}?descrtiption=${'Thanh toán đơn hàng'}`, {
+                    method: 'POST',
+                });
 
-            const msg = await res.json();
-            if (msg.checkoutUrl) {
-                window.open(msg.checkoutUrl, '_blank', 'noopener,noreferrer');
-            } else {
-                toast.error("Có lỗi xảy ra khi tạo thanh toán.");
+                if (!res.ok) {
+                    toast.error("Có lỗi xảy ra từ phía server.");
+                    return;
+                }
+
+                const msg = await res.json();
+                if (msg.checkoutUrl) {
+                    window.location.href = msg.checkoutUrl;
+                } else {
+                    toast.error("Có lỗi xảy ra khi tạo thanh toán.");
+                }
             }
         } catch (error) {
             console.error(error);
@@ -86,11 +105,6 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
     };
 
     const handlePayment = () => {
-        if (remaining <= 0) {
-            toast.error('Hóa đơn đã hoàn thành hoặc chưa có sản phẩm nào được chọn.');
-            return;
-        }
-
         if (paymentMethod === 'cash') {
             processCashPayment();
         } else if (paymentMethod === 'transfer') {

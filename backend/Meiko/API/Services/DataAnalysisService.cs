@@ -16,7 +16,7 @@ namespace API.Services
 		{
 			// Lấy danh sách hóa đơn đã hoàn thành hoặc đã thanh toán
 			var completedBills = await _dbcontext.Bills
-				.Where(b => b.Status == StatusType.HoanThanh || b.Status == StatusType.DaThanhToan)
+				.Where(b => b.Status == StatusType.HoanThanh)
 				.ToListAsync();
 
 			// Tính tổng số lượng sản phẩm, doanh thu và lợi nhuận
@@ -64,7 +64,7 @@ namespace API.Services
 		{
 			// Lấy dữ liệu hóa đơn đã hoàn thành hoặc đã thanh toán
 			var completedBills = await _dbcontext.Bills
-				.Where(b => b.Status == StatusType.HoanThanh || b.Status == StatusType.DaThanhToan)
+				.Where(b => b.Status == StatusType.HoanThanh)
 				.ToListAsync();
 
 			// Nhóm theo khách hàng và tính tổng số tiền
@@ -107,7 +107,7 @@ namespace API.Services
 					  bd => bd.BillId,
 					  b => b.Id,
 					  (bd, b) => new { BillDetail = bd, Bill = b })
-				.Where(x => x.Bill.Status == StatusType.HoanThanh || x.Bill.Status == StatusType.DaThanhToan);
+				.Where(x => x.Bill.Status == StatusType.HoanThanh);
 
 			// Lọc theo ngày nếu có
 			if (date.HasValue)

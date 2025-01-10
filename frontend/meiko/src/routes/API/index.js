@@ -121,6 +121,7 @@ const apiURL = {
         search: 'https://localhost:7172/api/Bills/Search',
         pay: 'https://localhost:7172/api/Bills/pay-for-bill/',
         changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/',
+        prevStatus: 'https://localhost:7172/api/Bills/prev-status-from-bill/',
         changeQuantity: 'https://localhost:7172/api/Bills/add-quantity-to/',
         refund: 'https://localhost:7172/api/Bills/return',
         listRefund: 'https://localhost:7172/api/Bills/List-Request',
