@@ -20,9 +20,9 @@ const OrderSuccess = () => {
             <p className="lead text-muted">
               Đơn hàng của bạn đã được xác nhận thành công và đang trong quá trình xử lý.
             </p>
-            <p className="text-info">
+            {/* <p className="text-info">
               Chúng tôi sẽ gửi thông tin chi tiết và trạng thái đơn hàng đến email của bạn.
-            </p>
+            </p> */}
 
             {/* Mã đơn hàng */}
             <div className="alert alert-success p-3 mt-3">

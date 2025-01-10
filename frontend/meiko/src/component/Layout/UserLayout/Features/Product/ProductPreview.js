@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 
 const ProductPreview = ({ mainImage, detailImages, selectedImageIndex, onSelectImage }) => {
-  const [activePreviewImage, setActivePreviewImage] = useState(mainImage || (detailImages && detailImages[0]));
+  const [activePreviewImage, setActivePreviewImage] = useState(mainImage || (detailImages && detailImages[0]) || null);
 
   const handlePreviewImageChange = (previewImage, index) => {
     setActivePreviewImage(previewImage);
@@ -10,7 +10,18 @@ const ProductPreview = ({ mainImage, detailImages, selectedImageIndex, onSelectI
   };
 
   if (!detailImages || detailImages.length === 0) {
-    return <div>No images available</div>;
+    return (
+      <div className="container d-flex align-items-center">
+        <div className="preview-display" style={{ height: "650px", overflow: "hidden" }}>
+          <img
+            src={mainImage}
+            alt="Main product image"
+            className="img-fluid object-fit-cover"
+            style={{ width: "85%", height: "75%", marginTop:"60px", marginLeft:"95px" }}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -29,10 +40,10 @@ const ProductPreview = ({ mainImage, detailImages, selectedImageIndex, onSelectI
           >
             {detailImages.map((previewImage, index) => (
               <div
-                className="preview-item-wrapper"
+                className="preview-item-wrapper p-2"
                 key={index}
                 onClick={() => handlePreviewImageChange(previewImage, index)}
-                style={{ width: "80px", height: "80px", cursor: "pointer" }}
+                style={{ width: "80px", height: "70px", cursor: "pointer"}}
               >
                 <div className="preview-item rounded-3 overflow-hidden">
                   <img

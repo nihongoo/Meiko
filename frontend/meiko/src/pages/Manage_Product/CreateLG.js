@@ -65,7 +65,8 @@ function CreateLG() {
                 weight: 0,
                 createTime: new Date().toISOString(),
                 sizeId: size.id,
-                productDetailCode: '222'
+                productDetailCode: '222',
+                imgUrl: 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png'
             }))
         );
 
@@ -85,7 +86,8 @@ function CreateLG() {
                 price: 0,
                 colorId: color.id,
                 sizeId: size.id,
-                productDetailCode: '222'
+                productDetailCode: '222',
+                imgUrl: 'https://res.cloudinary.com/dtsqxauba/image/upload/v1732854331/notfound_lgqmju_cyre8t.png'
             }))
         );
 
@@ -120,6 +122,8 @@ function CreateLG() {
         }));
         setError(false);
     };
+    console.log(newProduct);
+    
     return (
         <div>
             {/* Thông tin sản phẩm */}

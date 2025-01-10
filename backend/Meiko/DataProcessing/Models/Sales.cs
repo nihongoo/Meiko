@@ -35,6 +35,7 @@ namespace DataProcessing.Models
         [CustomDateRange("StartDay", ErrorMessage = "Ngày kết thúc phải lớn hơn ngày bắt đầu.")]
         public DateTime EndDay { get; set; }
 
+        [Required(ErrorMessage = "Cần nhập mô tả")]
         [StringLength(500, ErrorMessage = "Mô tả không được vượt quá 500 ký tự.")]
         public string Description { get; set; }
 

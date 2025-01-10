@@ -1286,7 +1286,12 @@ namespace API.Services
 
 					if (billDetail.Quantity <= 0) billDetail.Quantity = 0;
 
-					billDetail.Price = billDetail.Quantity * productDetail.Price;
+					var saleExist = await _dbcontext.SaleProducts.Where(sp => sp.ProductDetailId == productDetail.Id).FirstOrDefaultAsync();
+
+					if(saleExist != null)
+                        billDetail.Price = billDetail.Quantity * (decimal)saleExist.DiscountedPrice;
+                    else
+						billDetail.Price = billDetail.Quantity * productDetail.Price;
 
 					_dbcontext.BillDetails.Update(billDetail);
 
@@ -1479,13 +1484,14 @@ namespace API.Services
 				};
 			}
 
-			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId??bill.StaffId}";
-			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId}";
+			var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
+            var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)(bill.Total - bill.PaymentAmount),
 				description,
 				list,
 				cancelUrl,
-				returnUrl
+				bill.CustomerId != null ? returnUrl : returnURLForAdmin
 			);
 
 			var paymentResult = await payment.createPaymentLink(paymentRequestOs);

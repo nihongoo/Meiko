@@ -1,7 +1,6 @@
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
-import SearchInput from '../../component/Search';
 import apiURL from '../../routes/API/index.js';
 import useFetchData from '../../customHook/useFetchData.js';
 import EditIcon from '@mui/icons-material/Edit';
@@ -18,10 +17,6 @@ function ManageCategory() {
   const paginationModel = { page: 0, pageSize: 10 };
   const currentPage = 1;
   const { data: category, loading, error, refetch } = useFetchData(apiURL.category.all);
-
-  const handleSearch = () => {
-    refetch();
-  };
 
   const handleOpen = (item) => {
     setSelectedItem(item);
@@ -132,8 +127,8 @@ function ManageCategory() {
         Danh sách loại sản phẩm
       </Typography>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <SearchInput ApiURL={apiURL.category.search} onSearch={handleSearch} />
+      <Box sx={{ display: 'flex', justifyContent: 'end', mb: 2 }}>
+       
         <Box>
           <Button variant="outlined" color="success" onClick={() => setCreate(true)}>
             + Thêm mới

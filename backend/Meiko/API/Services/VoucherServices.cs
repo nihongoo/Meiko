@@ -18,6 +18,16 @@ namespace API.Services
         }
         public async Task<Vouchers> CreateVoucherAsync(VoucherViewModel voucherViewModel)
         {
+            // Kiểm tra trùng mã voucher
+            var existingVoucher = await _context.Vouchers
+                .AsNoTracking() // Không theo dõi entity vì chỉ cần kiểm tra
+                .FirstOrDefaultAsync(v => v.VoucherCode == voucherViewModel.VoucherCode);
+
+            if (existingVoucher != null)
+            {
+                throw new Exception($"Voucher code '{voucherViewModel.VoucherCode}' đã tồn tại.");
+            }
+
             var voucher = new Vouchers
             {
                 Id = Guid.NewGuid(),
@@ -45,7 +55,7 @@ namespace API.Services
                         Id = Guid.NewGuid(),
                         VoucherId = voucher.Id,
                         CustomerId = customer.Id,
-                        Status = 0 
+                        Status = 0
                     };
                     _context.VoucherDetails.Add(voucherDetail);
                     emailTasks.Add(_emailService.SendVoucherEmailAsync(customer.Email, "Thông báo Voucher mới", voucher, customer.Email));
@@ -77,6 +87,7 @@ namespace API.Services
 
             return voucher;
         }
+
         public async Task DeleteVoucherAsync(Guid id)
         {
             var voucher = await _context.Vouchers.FindAsync(id);
@@ -157,4 +168,5 @@ namespace API.Services
             }
         }
     }
+
 }

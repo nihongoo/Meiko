@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import useFetchData from '../../customHook/useFetchData';
 import moment from 'moment';
 import SearchIcon from '@mui/icons-material/Search';
+import generateSerialCode from '../../customHook/useRandom.js';
 import CreateSaleDialog from './CreateSaleDialog';
 
 function ManageDiscount() {
@@ -87,6 +88,13 @@ function ManageDiscount() {
     }
     const handleCreate = async () => {
         try {
+            const random = generateSerialCode();
+            setNewSale((pre) => ({
+                ...pre,
+                saleCode: `${random}`, // Thêm mã giảm giá vào newSale
+            }));
+            console.log(newSale);
+            
             const res = await fetch(apiURL.sale.create, {
                 method: 'POST',
                 headers: {
