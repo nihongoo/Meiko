@@ -1578,8 +1578,8 @@ namespace API.Services
 			}
 
 			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId}";
-			var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
-            var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			// var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
+            // var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 			var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
             var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)(bill.Total - bill.PaymentAmount),
@@ -1587,7 +1587,7 @@ namespace API.Services
 				list,
 				cancelUrl,
 				bill.CustomerId != null ? returnUrl : returnURLForAdmin
-				bill.CustomerId != null ? returnUrl : returnURLForAdmin
+				// bill.CustomerId != null ? returnUrl : returnURLForAdmin
 			);
 
 			var paymentResult = await payment.createPaymentLink(paymentRequestOs);
