@@ -1216,6 +1216,7 @@ namespace API.Services
 						? saleProduct.DiscountedPrice.Value
 						: productDetail.Price;
 						billDetail.Price = billDetail.Quantity * unitPrice;
+						productDetail.Quantity -= billDetail.Quantity;
 
 						if (productDetail.Quantity < billDetail.Quantity)
 							throw new Exception("Không đủ số lượng sản phẩm trong kho");
@@ -1238,8 +1239,9 @@ namespace API.Services
 						? saleProduct.DiscountedPrice.Value
 						: productDetail.Price;
 						billDetail.Price = billDetail.Quantity * unitPrice;
+                        productDetail.Quantity -= billDetail.Quantity;
 
-						_dbcontext.BillDetails.Update(billDetail);
+                        _dbcontext.BillDetails.Update(billDetail);
 					}
 
 					_dbcontext.ProductDetails.Update(productDetail);
@@ -1297,7 +1299,10 @@ namespace API.Services
 
 					billDetail.Price = billDetail.Quantity * productDetail.Price;
 
+					productDetail.Quantity -= billDetail.Quantity;
+
 					_dbcontext.BillDetails.Update(billDetail);
+					_dbcontext.ProductDetails.Update(productDetail);
 
 					await _dbcontext.SaveChangesAsync();
 
