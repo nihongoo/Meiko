@@ -602,7 +602,7 @@ namespace API.Services
 
 
         // Bill
-        public async Task<(bool k, Guid? id, string message)> Create(bool IsShipping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode)
+        public async Task<(bool k, Guid? id, string message)> Create(bool IsShipping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode, string billtype)
         {
             bool check = false;
             Guid billId = Guid.Empty;
@@ -1333,7 +1333,7 @@ namespace API.Services
 						decimal unitPrice = saleProduct != null && saleProduct.DiscountedPrice.HasValue
 						? saleProduct.DiscountedPrice.Value
 						: productDetail.Price;
-						billDetail.Price = billDetail.Quantity * unitPrice;
+						billDetail.Price = billDetail.Quantity *  unitPrice;
                         productDetail.Quantity -= billDetail.Quantity;
 
                         _dbcontext.BillDetails.Update(billDetail);
