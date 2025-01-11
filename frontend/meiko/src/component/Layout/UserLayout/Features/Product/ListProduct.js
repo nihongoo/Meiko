@@ -12,8 +12,6 @@ const ListProducts = ({ selectedFilters }) => {
   const [sortBy, setSortBy] = useState('name-asc'); 
   const [currentPage, setCurrentPage] = useState(1); 
   const itemsPerPage = 15;
-
-  // Gọi API để lấy dữ liệu sản phẩm
   useEffect(() => {
     fetch('https://localhost:7172/api/Product/Get-All')
       .then((response) => {
@@ -23,7 +21,8 @@ const ListProducts = ({ selectedFilters }) => {
         return response.json();
       })
       .then((data) => {
-        setProducts(data);
+        const filteredData = data.filter((product) => product.status !== 0);
+        setProducts(filteredData);
         setLoading(false);
       })
       .catch((error) => {

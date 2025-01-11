@@ -44,10 +44,11 @@ namespace API.Services
 					.Include(b => b.ShippingAddresses)
 					.Include(b => b.StatusHistories)
 					.Include(b => b.PaymentHistories)
-                    .Include(b => b.Vouchers)
-                    .Select(b => new BillDto
+					.Include(b => b.Vouchers)
+					.Select(b => new BillDto
 					{
 						Id = b.Id,
+						BillType = b.BillType,
 						BillCode = b.BillCode,
 						IsShipping = b.IsShipping,
 						Total = b.Total,
@@ -64,22 +65,22 @@ namespace API.Services
 						VoucherId = b.VoucherId,
 						StaffId = b.StaffId,
 
-                        // Ánh xạ bảng con
+						// Ánh xạ bảng con
 
-                        Voucherss = b.Vouchers != null ? new VoucherDto
-                        {
-                            Id = b.Vouchers.Id,
-                            VoucherCode = b.Vouchers.VoucherCode,
-                            Value = b.Vouchers.Value,
-                            MinimumOrderAmount = b.Vouchers.MinimumOrderAmount,
-                            Quantity = b.Vouchers.Quantity,
-                            StartDay = b.Vouchers.StartDay,
-                            EndDay = b.Vouchers.EndDay,
-                            Status = b.Vouchers.Status,
-                            IsPublic = b.Vouchers.IsPublic
-                        } : null,
+						Voucherss = b.Vouchers != null ? new VoucherDto
+						{
+							Id = b.Vouchers.Id,
+							VoucherCode = b.Vouchers.VoucherCode,
+							Value = b.Vouchers.Value,
+							MinimumOrderAmount = b.Vouchers.MinimumOrderAmount,
+							Quantity = b.Vouchers.Quantity,
+							StartDay = b.Vouchers.StartDay,
+							EndDay = b.Vouchers.EndDay,
+							Status = b.Vouchers.Status,
+							IsPublic = b.Vouchers.IsPublic
+						} : null,
 
-                        BillDetails = b.BillDetails.Select(d => new BillDetailDto
+						BillDetails = b.BillDetails.Select(d => new BillDetailDto
 						{
 							Id = d.Id,
 							BillId = d.BillId,
@@ -106,6 +107,7 @@ namespace API.Services
 						{
 							Id = c.Id,
 							Amount = c.Amount,
+							CreatedDate = c.CreatedDate,
 							PaymentMethod = c.PaymentMethod.GetDisplayName(),
 							Status = c.Status.GetDisplayName(),
 							BillId = c.BillId
@@ -139,6 +141,7 @@ namespace API.Services
 					.Select(b => new BillDto
 					{
 						Id = b.Id,
+						BillType = b.BillType,
 						BillCode = b.BillCode,
 						IsShipping = b.IsShipping,
 						Total = b.Total,
@@ -183,6 +186,7 @@ namespace API.Services
 						{
 							Id = c.Id,
 							Amount = c.Amount,
+							CreatedDate = c.CreatedDate,
 							PaymentMethod = c.PaymentMethod.GetDisplayName(),
 							Status = c.Status.GetDisplayName(),
 							BillId = c.BillId
@@ -267,12 +271,14 @@ namespace API.Services
 				// Truy vấn hóa đơn kèm bảng phụ
 				var bills = await context.Bills
 					.Include(b => b.BillDetails)
-					.Include(b => b.ShippingAddresses)
+					.Include(b => b.ShippingAddresses) 
 					.Include(b => b.StatusHistories)
 					.Include(b => b.PaymentHistories)
+					.OrderByDescending(b => b.CreatedDate) // Add this line to sort by newest first
 					.Select(b => new BillDto
 					{
 						Id = b.Id,
+						BillType = b.BillType,
 						BillCode = b.BillCode,
 						IsShipping = b.IsShipping,
 						Total = b.Total,
@@ -317,6 +323,7 @@ namespace API.Services
 						{
 							Id = c.Id,
 							Amount = c.Amount,
+							CreatedDate = c.CreatedDate,
 							PaymentMethod = c.PaymentMethod.GetDisplayName(),
 							Status = c.Status.GetDisplayName(),
 							BillId = c.BillId
@@ -350,6 +357,7 @@ namespace API.Services
 					.Select(b => new BillDto
 					{
 						Id = b.Id,
+						BillType = b.BillType,
 						BillCode = b.BillCode,
 						IsShipping = b.IsShipping,
 						Total = b.Total,
@@ -441,6 +449,7 @@ namespace API.Services
 					{
 						Id = c.Id,
 						Amount = c.Amount,
+						CreatedDate = c.CreatedDate,
 						PaymentMethod = c.PaymentMethod.GetDisplayName(),
 						Status = c.Status.GetDisplayName(),
 						BillId = c.BillId
@@ -619,8 +628,8 @@ namespace API.Services
                         VoucherId = VoucherId
                     };
 
-                    await _dbcontext.Bills.AddAsync(bill);
-                    billId = bill.Id;
+					await _dbcontext.Bills.AddAsync(bill);
+					billId = bill.Id;
 
 					if (CartId != null)
 					{
@@ -713,76 +722,106 @@ namespace API.Services
 				return (false, null, string.Join(" , ", message));
         }
 
-        public async Task<(bool k, Guid billId)> UpdateBill(Guid billId, decimal newShippingFee)
-        {
-            bool isSuccess = false;
-            Guid billIdResult = Guid.Empty;
+		public async Task<(bool k, Guid billId)> UpdateBill(Guid billId, decimal newShippingFee)
+		{
+			bool isSuccess = false;
+			Guid billIdResult = Guid.Empty;
 
-            using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    var bill = await _dbcontext.Bills
-                        .Include(b => b.BillDetails)
-                        .ThenInclude(bd => bd.ProductDetails)
-                        .ThenInclude(pd => pd.SaleProducts)
-                        .FirstOrDefaultAsync(b => b.Id == billId);
+			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					var bill = await _dbcontext.Bills
+						.Include(b => b.BillDetails)
+						.ThenInclude(bd => bd.ProductDetails)
+						.ThenInclude(pd => pd.SaleProducts)
+						.FirstOrDefaultAsync(b => b.Id == billId);
 
-                    if (bill == null)
-                    {
-                        return (false, Guid.Empty);
-                    }
+					if (bill == null)
+					{
+						return (false, Guid.Empty);
+					}
 
-                    decimal oldShippingFee = bill.ShippingFee;
-                    bill.ShippingFee = newShippingFee;
+					decimal oldShippingFee = bill.ShippingFee;
+					bill.ShippingFee = newShippingFee;
 
-                    decimal productsTotal = bill.BillDetails?.Sum(bd =>
-                    {
-                        if (bd.ProductDetails == null || bd.ProductDetails.SaleProducts == null)
-                            return bd.Price;
+					decimal productsTotal = bill.BillDetails?.Sum(bd =>
+					{
+						if (bd.ProductDetails == null || bd.ProductDetails.SaleProducts == null)
+							return bd.Price;
 
-                        decimal? discountedPrice = bd.ProductDetails.SaleProducts
-                            .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-                            .OrderByDescending(sp => sp.EffectiveDate)
-                            .FirstOrDefault()?.DiscountedPrice;
+						decimal? discountedPrice = bd.ProductDetails.SaleProducts
+							.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+							.OrderByDescending(sp => sp.EffectiveDate)
+							.FirstOrDefault()?.DiscountedPrice;
 
-                        return discountedPrice.HasValue && discountedPrice.Value > 0
-                            ? discountedPrice.Value
-                            : bd.Price;
-                    }) ?? 0;
+						return discountedPrice.HasValue && discountedPrice.Value > 0
+							? discountedPrice.Value
+							: bd.Price;
+					}) ?? 0;
 
-                    bill.Total = productsTotal + newShippingFee;
+					bill.Total = productsTotal + newShippingFee;
 
-                    await _dbcontext.SaveChangesAsync();
-                    await dbTransaction.CommitAsync();
+					await _dbcontext.SaveChangesAsync();
+					await dbTransaction.CommitAsync();
 
-                    billIdResult = bill.Id;
-                    isSuccess = true;
-                }
-                catch (Exception ex)
-                {
-                    await dbTransaction.RollbackAsync();
-                    Console.WriteLine($"Error in UpdateBill: {ex.Message}");
-                    return (false, Guid.Empty);
-                }
-            }
-            return (k: isSuccess, billId: billIdResult);
-        }
-        public async Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
+					billIdResult = bill.Id;
+					isSuccess = true;
+				}
+				catch (Exception ex)
+				{
+					await dbTransaction.RollbackAsync();
+					Console.WriteLine($"Error in UpdateBill: {ex.Message}");
+					return (false, Guid.Empty);
+				}
+			}
+			return (k: isSuccess, billId: billIdResult);
+		}
+		public async Task<ReturnMessage> ChangeStatusTo(Guid BillId, int Status, string note, Guid UserWhoCreateThis)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{
 				try
 				{
-					var bill = await _dbcontext.Bills.FindAsync(BillId);
+					var bill = await _dbcontext.Bills
+						.Include(b => b.BillDetails)
+						.FirstOrDefaultAsync(b => b.Id == BillId);
+
+					if (bill == null)
+						return new ReturnMessage { status = 1, message = "Không tìm thấy hóa đơn" };
+
+					// Validate chuyển trạng thái
+					if (!ValidateStatusTransition(bill.BillType, bill.Status, (StatusType)Status))
+						return new ReturnMessage { status = 1, message = "Không thể chuyển sang trạng thái này" };
+
+					// Xử lý đặc biệt cho từng trạng thái
+					switch ((StatusType)Status)
+					{
+						case StatusType.DangGiaoHang:
+							bill.DeliveryDate = DateTime.Now;
+							break;
+
+						case StatusType.HoanThanh:
+							if (bill.BillType == "POS" && bill.PaymentAmount < bill.Total)
+								return new ReturnMessage { status = 1, message = "Chưa thanh toán đủ" };
+							break;
+
+						case StatusType.DaHuy:
+							// Hoàn trả số lượng vào kho
+							foreach (var detail in bill.BillDetails)
+							{
+								var product = await _dbcontext.ProductDetails
+									.FirstOrDefaultAsync(p => p.Id == detail.ProductDetailId);
+								if (product != null)
+									product.Quantity += detail.Quantity;
+							}
+							break;
+					}
+
 					bill.Status = (StatusType)Status;
 
-					if (bill.Status == StatusType.DangGiaoHang) bill.DeliveryDate = DateTime.Now;
-					if (bill.Status == StatusType.DaGiaoToi) bill.DeliveryDate = DateTime.Now;
-
-					_dbcontext.Bills.Update(bill);
-
-					await _dbcontext.StatusHistories.AddAsync(new StatusHistory()
+					// Lưu lịch sử trạng thái
+					await _dbcontext.StatusHistories.AddAsync(new StatusHistory
 					{
 						Id = Guid.NewGuid(),
 						CreatedDate = DateTime.Now,
@@ -792,28 +831,84 @@ namespace API.Services
 						BillId = BillId
 					});
 
-
-
 					await _dbcontext.SaveChangesAsync();
-
 					await dbTransaction.CommitAsync();
-					return new ReturnMessage()
-					{
-						status = 0,
-						message = "Đã chuyển trạng thái thành công"
-					};
 
+					return new ReturnMessage { status = 0, message = "Đã chuyển trạng thái thành công" };
 				}
 				catch (Exception ex)
 				{
 					await dbTransaction.RollbackAsync();
-
-					return new ReturnMessage()
-					{
-						status = 2,
-						message = $"Đã có lỗi xảy ra : {ex.InnerException}"
-					};
+					return new ReturnMessage { status = 2, message = $"Lỗi: {ex.Message}" };
 				}
+			}
+		}
+		private static bool ValidateStatusTransition(string billType, StatusType currentStatus, StatusType newStatus)
+		{
+			// Kiểm tra logic chuyển trạng thái theo loại hóa đơn
+			return billType switch
+			{
+				"POS" => ValidatePOSTransition(currentStatus, newStatus),
+				"COD" => ValidateDeliveryTransition(billType, currentStatus, newStatus),
+				"Online" => ValidateDeliveryTransition(billType, currentStatus, newStatus),
+				_ => false
+			};
+		}
+		private static bool ValidatePOSTransition(StatusType currentStatus, StatusType newStatus)
+		{			
+			return currentStatus switch
+			{
+				StatusType.TaoHoaDon when newStatus == StatusType.DaThanhToan => true,
+				StatusType.DaThanhToan when newStatus == StatusType.HoanThanh => true,
+				StatusType.TaoHoaDon when newStatus == StatusType.DaHuy => true,
+				StatusType.TaoHoaDon when newStatus == StatusType.ChoXuLy => true,
+				StatusType.ChoXuLy when newStatus == StatusType.DaThanhToan => true,
+				_ => false
+			};
+		}
+
+		private static bool ValidateDeliveryTransition(string billType, StatusType currentStatus, StatusType newStatus)
+		{
+			switch (billType)
+			{
+				case "COD":
+					return currentStatus switch
+					{
+						StatusType.TaoHoaDon when newStatus == StatusType.ChoXuLy => true,
+						StatusType.ChoXuLy when newStatus == StatusType.DangChuanBiHang => true,
+
+						StatusType.ChoXuLy when newStatus == StatusType.ChoCoHang => true,
+						StatusType.ChoCoHang when newStatus == StatusType.DangChuanBiHang => true,
+						StatusType.ChoCoHang when newStatus == StatusType.DaHuy => true,
+						StatusType.DangGiaoHang when newStatus == StatusType.DaHuy => true,
+
+						StatusType.DangChuanBiHang when newStatus == StatusType.DangGiaoHang => true,
+						StatusType.DangGiaoHang when newStatus == StatusType.DaGiaoToi => true,
+						StatusType.DaGiaoToi when newStatus == StatusType.DaThanhToan => true,
+						StatusType.DaThanhToan when newStatus == StatusType.HoanThanh => true,
+						_ => false
+					};
+
+				case "Online":
+					return currentStatus switch
+					{
+						StatusType.TaoHoaDon when newStatus == StatusType.DaThanhToan => true,
+						StatusType.DaThanhToan when newStatus == StatusType.ChoXuLy => true,
+
+						StatusType.ChoXuLy when newStatus == StatusType.ChoCoHang => true,
+						StatusType.ChoCoHang when newStatus == StatusType.DangChuanBiHang => true,
+						StatusType.ChoCoHang when newStatus == StatusType.DaHuy => true,
+						StatusType.DangGiaoHang when newStatus == StatusType.DaHuy => true,
+
+						StatusType.ChoXuLy when newStatus == StatusType.DangChuanBiHang => true,
+						StatusType.DangChuanBiHang when newStatus == StatusType.DangGiaoHang => true,
+						StatusType.DangGiaoHang when newStatus == StatusType.DaGiaoToi => true,
+						StatusType.DaGiaoToi when newStatus == StatusType.HoanThanh => true,
+						_ => false
+					};
+
+				default:
+					return false;
 			}
 		}
 		public async Task<ReturnMessage> Delete(Guid Id)
@@ -1471,7 +1566,6 @@ namespace API.Services
 		public async Task<CreatePaymentResult> CreatePayOSRequestAsync(Guid id, string description)
 		{
 			var cancelUrl = $"https://localhost:7172/api/Bills/PayOS/CancelPayOS/{id}";
-			
 
 			PayOS payment = new(_clientId, _apiKey, _checkSum);
 			var list = new List<ItemData>();
@@ -1493,37 +1587,22 @@ namespace API.Services
 				};
 			}
 
-			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId??bill.StaffId}";
-			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId}";
+			// var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
+            // var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
+            var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)(bill.Total - bill.PaymentAmount),
 				description,
 				list,
 				cancelUrl,
-				returnUrl
+				bill.CustomerId != null ? returnUrl : returnURLForAdmin
+				// bill.CustomerId != null ? returnUrl : returnURLForAdmin
 			);
 
 			var paymentResult = await payment.createPaymentLink(paymentRequestOs);
 			return paymentResult;
 		}
-
-		//public static string GenerateSignature(decimal amount, string cancelUrl, string description, string orderCode, string returnUrl, string checksumKey)
-		//{
-		//	// Tạo chuỗi data theo định dạng được sắp xếp alphabet
-		//	string data = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}";
-
-		//	// Chuyển checksumKey thành byte
-		//	var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
-
-		//	// Tạo chữ ký HMAC_SHA256
-		//	using (var hmac = new HMACSHA256(keyBytes))
-		//	{
-		//		var dataBytes = Encoding.UTF8.GetBytes(data);
-		//		var hashBytes = hmac.ComputeHash(dataBytes);
-
-		//		// Chuyển đổi hash thành chuỗi hex
-		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-		//	}
-		//}
 
 		private async Task UpdatePrice(Guid BillId)
 		{
@@ -1638,6 +1717,7 @@ namespace API.Services
 				.Select(b => new BillDto
 				{
 					Id = b.Id,
+					BillType = b.BillType,
 					BillCode = b.BillCode,
 					IsShipping = b.IsShipping,
 					Total = b.Total,
@@ -1718,6 +1798,11 @@ namespace API.Services
 			// Cập nhật thời gian tạo yêu cầu
 			request.CreateTime = DateTime.UtcNow;
 
+			foreach (var item in request.RefundItems)
+			{
+				item.Id = Guid.NewGuid();
+			}
+
 			// Tìm hóa đơn tương ứng và cập nhật trạng thái
 			var bill = await _dbcontext.Bills.FindAsync(request.BillId);
 			if (bill == null)
@@ -1771,7 +1856,7 @@ namespace API.Services
 			foreach (var item in refundRequest.RefundItems)
 			{
 				// Tìm sản phẩm trong kho (giả sử bạn có một DbSet cho sản phẩm)
-				var product = await _dbcontext.ProductDetails.FindAsync(item.Id);
+				var product = await _dbcontext.ProductDetails.FindAsync(item.ProductId);
 				if (product != null)
 				{
 					product.Quantity += item.Quantity; // Cộng sản phẩm vào kho
@@ -1873,6 +1958,55 @@ namespace API.Services
 			}).ToList();
 
 			return requestRefundDtos;
+		}
+
+		public async Task<ReturnMessage> PrevStatus(Guid BillId, int Status, string? note, Guid UserWhoCreateThis)
+		{
+			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					var bill = await _dbcontext.Bills.FindAsync(BillId);
+					bill.Status = (StatusType)Status;
+
+					if (bill.Status == StatusType.DangGiaoHang) bill.DeliveryDate = DateTime.Now;
+					if (bill.Status == StatusType.DaGiaoToi) bill.DeliveryDate = DateTime.Now;
+
+					_dbcontext.Bills.Update(bill);
+
+					await _dbcontext.StatusHistories.AddAsync(new StatusHistory()
+					{
+						Id = Guid.NewGuid(),
+						CreatedDate = DateTime.Now,
+						StatusType = (StatusType)Status,
+						Note = note,
+						WhoCreatedThis = UserWhoCreateThis,
+						BillId = BillId
+					});
+
+
+
+					await _dbcontext.SaveChangesAsync();
+
+					await dbTransaction.CommitAsync();
+					return new ReturnMessage()
+					{
+						status = 0,
+						message = "Đã chuyển trạng thái thành công"
+					};
+
+				}
+				catch (Exception ex)
+				{
+					await dbTransaction.RollbackAsync();
+
+					return new ReturnMessage()
+					{
+						status = 2,
+						message = $"Đã có lỗi xảy ra : {ex.InnerException}"
+					};
+				}
+			}
 		}
 	}
 

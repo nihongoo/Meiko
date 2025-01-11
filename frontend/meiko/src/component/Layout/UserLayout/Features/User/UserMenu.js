@@ -130,9 +130,9 @@ const UserMenu = () => {
           </li>
           <li className="nav-menu-item">
             <Link
-              to="/accountUser"
+              to={`/accountUser/${customerId}`}
               className={`nav-menu-link ${
-                location.pathname === "/accountUser" ||
+                location.pathname === `/accountUser/${customerId}` ||
                 location.pathname === "/AddressScreen"
                   ? "active"
                   : ""

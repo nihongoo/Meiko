@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Checkbox } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import styles from "./ProductCart.module.css";
+import { toast } from "react-toastify";
 
 function ProductCart() {
   const [selectedCoupon, setSelectedCoupon] = useState("");
@@ -192,13 +193,13 @@ function ProductCart() {
   const increaseQuantity = (cartDetailId, productDetailId, quantity) => {
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
     if (!item) {
-      alert("Không tìm thấy sản phẩm trong giỏ hàng");
+      toast.error("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
     const stockQuantity = item.productDetails.quantity;
     const newQuantity = item.quantity + 1;
     if (newQuantity > stockQuantity) {
-      alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
+      toast.error(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
     setCartDetails(prevCartDetails =>
@@ -212,30 +213,30 @@ function ProductCart() {
   const decreaseQuantity = (cartDetailId, productDetailId, quantity) => {
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
     if (!item) {
-      alert("Không tìm thấy sản phẩm trong giỏ hàng");
+      toast.error("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
     if (item.quantity > 1) {
       const newQuantity = item.quantity - 1;
       updateQuantity(cartDetailId, productDetailId, newQuantity);
     } else {
-      alert("Số lượng không thể giảm xuống dưới 1");
+      toast.error("Số lượng không thể giảm xuống dưới 1");
     }
   };
   const handleQuantityChange = (e, cartDetailId) => {
     const newQuantity = parseInt(e.target.value, 10);
     if (isNaN(newQuantity) || newQuantity <= 0) {
-      alert("Số lượng không hợp lệ");
+      toast.error("Số lượng không hợp lệ");
       return;
     }
     const item = cartDetails.find((cartItem) => cartItem.id === cartDetailId);
     if (!item) {
-      alert("Không tìm thấy sản phẩm trong giỏ hàng");
+      toast.error("Không tìm thấy sản phẩm trong giỏ hàng");
       return;
     }
     const stockQuantity = item.productDetails.stockQuantity;
     if (newQuantity > stockQuantity) {
-      alert(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
+      toast.error(`Số lượng sản phẩm trong kho chỉ còn ${stockQuantity}. Không thể thêm nhiều hơn.`);
       return;
     }
     setCartDetails(prevCartDetails =>
@@ -248,6 +249,30 @@ function ProductCart() {
 
   const handlePayment = () => {
     const selectedItems = cartDetails.filter(item => item.selected);
+    
+    if (selectedItems.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+      return;
+    }
+  
+    for (let item of selectedItems) {
+      const product = products[item.productDetails.productId];
+      
+      if (item.quantity <= 0 || item.quantity > item.productDetails.quantity) {
+        toast.error(`Số lượng sản phẩm ${product?.name || 'không xác định'} không hợp lệ. Vui lòng kiểm tra lại.`);
+        return;
+      }
+      if (product && product.status === 0) {
+        toast.error(`Sản phẩm ${product?.name || 'không xác định'} không khả dụng để mua.`);
+        return;
+      }
+    }
+  
+    if (errorMessage) {
+      toast.error("Voucher không hợp lệ. Vui lòng kiểm tra lại.");
+      return;
+    }
+  
     const voucherId = selectedCoupon ? selectedCoupon.id : null;
     const voucherDetailIdd = voucherDetailId;
     const productDetailsInfo = selectedItems.map(item => {
@@ -257,18 +282,16 @@ function ProductCart() {
       return `${productName} - ${color}, ${size}`;
     });
     const paymentData = {
-        cartId,
-        selectedItems,
-        voucherId,
-        voucherDetailIdd,
-        total: total - discount,
-        coupon: selectedCoupon,
-        productDetailsInfo,
+      cartId,
+      selectedItems,
+      voucherId,
+      voucherDetailIdd,
+      total: total - discount,
+      coupon: selectedCoupon,
+      productDetailsInfo,
     };
     navigate('/checkout', { state: { paymentData } });
   };
-
-
   return (
     <div className="container row" style={{ marginLeft: '80px' }}>
       <div className="d-flex">
@@ -335,7 +358,16 @@ function ProductCart() {
                         min="1"
                         max={item.productDetails.quantity}
                         value={item.quantity || 1}
-                        onChange={(e) => handleQuantityChange(e, item.id)}
+                        onChange={(e) => handleQuantityChange(e, item.id, item.productDetails.quantity)}
+                        onBlur={(e) => {
+                          if (e.target.value > item.productDetails.quantity) {
+                            setCartDetails((prevCartDetails) =>
+                              prevCartDetails.map((cartItem) =>
+                                cartItem.id === item.id ? { ...cartItem, quantity: item.productDetails.quantity } : cartItem
+                              )
+                            );
+                          }
+                        }}
                         className={styles.quantityInput}
                       />
                       <button
@@ -426,7 +458,9 @@ function ProductCart() {
                 })}
               </div>
             )}
-            <button onClick={handlePayment} className={styles.applyButton}>Thanh toán</button>
+            <button className={styles.applyButton} onClick={handlePayment} disabled={cartDetails.filter(item => item.selected).length === 0 || !!errorMessage}>
+              Thanh toán
+            </button>
           </div>
         </div>
       </div>

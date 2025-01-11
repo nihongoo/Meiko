@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Container } from "../styles/styles";
 import Breadcrumb from "../Features/common/Breadcrumb";
@@ -6,7 +7,6 @@ import UserMenu from "../Features/User/UserMenu";
 import Title from "../Features/common/Title";
 import { breakpoints, defaultTheme } from "../styles/themes/default";
 import OrderItemList from "../Features/User/OrderItemList";
-import { useState, useEffect } from "react";
 
 const OrderListScreenWrapper = styled.div`
   .order-tabs-contents {
@@ -19,7 +19,7 @@ const OrderListScreenWrapper = styled.div`
   }
 
   .order-tabs-content {
-    display: none; /* Hidden by default */
+    display: none; /* Ẩn mặc định */
   }
 
   .order-tabs-head {
@@ -43,7 +43,7 @@ const OrderListScreenWrapper = styled.div`
   }
 
   .order-tabs-content.active {
-    display: block; /* Show the active tab */
+    display: block; /* Hiển thị tab active */
   }
 `;
 
@@ -52,7 +52,6 @@ const breadcrumbItems = [
   { label: "Đơn hàng", link: "/order" },
 ];
 
-// Chuyển các trạng thái thành số cho dễ lọc
 const statusLabels = {
   0: "Chờ xử lý",
   1: "Đang chuẩn bị hàng",
@@ -63,10 +62,12 @@ const statusLabels = {
 };
 
 const OrderListScreen = () => {
-  const [activeTab, setActiveTab] = useState(0); // Thay đổi activeTab thành số
+  const [activeTab, setActiveTab] = useState(0);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllOrders, setShowAllOrders] = useState(false); // Trạng thái hiển thị tất cả đơn hàng
+  const [searchTerm, setSearchTerm] = useState(""); // Trạng thái tìm kiếm đơn hàng
 
   const customerId = localStorage.getItem("customerId");
 
@@ -77,9 +78,8 @@ const OrderListScreen = () => {
         if (!response.ok) {
           throw new Error("Không thể tải đơn hàng. Vui lòng thử lại sau.");
         }
-  
+
         const data = await response.json();
-        console.log("Fetched Orders: ", data);
         setOrders(data);
         setLoading(false);
       } catch (err) {
@@ -87,7 +87,7 @@ const OrderListScreen = () => {
         setLoading(false);
       }
     };
-  
+
     fetchOrders();
   }, [customerId]);
 
@@ -99,10 +99,23 @@ const OrderListScreen = () => {
       const latestStatusHistory = order.statusHistories
         .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))[0];
       const latestStatus = latestStatusHistory?.statusType?.trim();
-      console.log(latestStatus); 
-      console.log(statusLabels[statusNumber]);
-      return latestStatus === statusLabels[statusNumber]; 
+      return latestStatus === statusLabels[statusNumber];
     });
+  };
+
+  // Hàm xử lý tìm kiếm
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Lọc đơn hàng theo billCode
+  const filteredOrdersByBillCode = orders.filter((order) =>
+    order.billCode.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Hiển thị tất cả đơn hàng
+  const showAllOrdersHandler = () => {
+    setShowAllOrders(true); // Chuyển trạng thái hiển thị tất cả đơn hàng
   };
 
   return (
@@ -113,7 +126,41 @@ const OrderListScreen = () => {
           <UserDashboardWrapper>
             <UserMenu />
             <UserContent>
-              <Title titleText={"Đơn hàng của tôi"} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Title titleText={"Đơn hàng của tôi"} />
+                <button
+                  onClick={showAllOrdersHandler}
+                  style={{
+                    fontSize: "16px",
+                    color: defaultTheme.color_outerspace,
+                    fontWeight: "bold",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer"
+                  }}
+                >
+                  Tất cả đơn hàng
+                </button>
+              </div>
+
+              {/* Tìm kiếm đơn hàng */}
+              <div style={{ margin: "20px 0" }}>
+                <input
+                  type="text"
+                  placeholder="Tìm đơn hàng theo mã đơn"
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  style={{
+                    padding: "10px",
+                    width: "100%",
+                    maxWidth: "300px",
+                    marginBottom: "20px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                  }}
+                />
+              </div>
+
               <div className="order-tabs">
                 <div className="order-tabs-heads d-flex">
                   {Object.keys(statusLabels).map((statusNumber) => (
@@ -122,7 +169,8 @@ const OrderListScreen = () => {
                       type="button"
                       className={`order-tabs-head text-lg font-italic ${activeTab === parseInt(statusNumber) ? "order-tabs-head-active" : ""}`}
                       onClick={() => {
-                        setActiveTab(parseInt(statusNumber)); // Cập nhật trạng thái tab khi người dùng nhấn
+                        setActiveTab(parseInt(statusNumber)); 
+                        setShowAllOrders(null);
                       }}
                     >
                       {statusLabels[statusNumber]} 
@@ -132,14 +180,24 @@ const OrderListScreen = () => {
                 <div className="order-tabs-contents">
                   {loading && <div>Đang tải đơn hàng...</div>}
                   {error && <div>{error}</div>}
-                  {Object.keys(statusLabels).map((statusNumber) => (
-                    <div
-                      key={statusNumber}
-                      className={`order-tabs-content ${activeTab === parseInt(statusNumber) ? "active" : ""}`}
-                    >
-                      <OrderItemList orders={filteredOrders(parseInt(statusNumber))} />
+
+                  {showAllOrders && (
+                    <div className="order-tabs-content active">
+                      <OrderItemList orders={filteredOrdersByBillCode || []} />
                     </div>
-                  ))}
+                  )}
+
+                  {!showAllOrders &&
+                    Object.keys(statusLabels).map((statusNumber) => (
+                      <div
+                        key={statusNumber}
+                        className={`order-tabs-content ${
+                          activeTab === parseInt(statusNumber) ? "active" : ""
+                        }`}
+                      >
+                        <OrderItemList orders={filteredOrders(parseInt(statusNumber)) || []} />
+                      </div>
+                    ))}
                 </div>
               </div>
             </UserContent>

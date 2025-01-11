@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Checkbox } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import styles from './Order.module.css';
+import { toast} from 'react-toastify';
 import Swal from 'sweetalert2';
 import '@sweetalert2/theme-material-ui/material-ui.css';
 
@@ -42,11 +43,11 @@ function Order({
     // Xử lý đặt hàng
     const handlePlaceOrder = async () => {
         if (!selectedPayment) {
-            alert("Vui lòng chọn hình thức thanh toán.");
+            toast.error("Vui lòng chọn hình thức thanh toán.");
             return;
         }
         if (!selectedAddress) {
-            alert("Vui lòng nhập địa chỉ giao hàng.");
+            toast.error("Vui lòng nhập địa chỉ giao hàng.");
             return;
         }
 
@@ -92,7 +93,8 @@ function Order({
                     cartId: localStorage.getItem("cartId"),
                     customerId: localStorage.getItem("customerId"),
                     voucherId: voucherId,
-                    staffId: null
+                    staffId: null,
+                    billType: selectedPayment
                 }),
             });
     
@@ -102,7 +104,7 @@ function Order({
     
             if (!billId) {
                 setLoading(false);
-                alert("Không thể tạo hóa đơn. Vui lòng thử lại.");
+                toast.error("Không thể tạo hóa đơn. Vui lòng thử lại.");
                 return;
             }
 
@@ -120,12 +122,11 @@ function Order({
 
             // Xử lý thanh toán online
             if (selectedPayment === "Online") {
-                const paymentResponse = await createOnlinePayment(billData.id);
+                const paymentResponse = await createOnlinePayment(createBillData.id);
                 if (paymentResponse.checkoutUrl) {
-                    // Chuyển hướng đến trang thanh toán của PayOS
                     window.location.href = paymentResponse.checkoutUrl;
                 } else {
-                    alert("Có lỗi xảy ra khi tạo thanh toán.");
+                    toast.error("Có lỗi xảy ra khi tạo thanh toán.");
                 }
             } else {
                 resetForm();
@@ -135,7 +136,7 @@ function Order({
         } catch (error) {
             setLoading(false);
             console.error("Error placing order:", error);
-            alert("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.");
+            toast.error("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.");
         }
     };
 
@@ -154,7 +155,8 @@ function Order({
                 cartId: localStorage.getItem("cartId"),
                 customerId: localStorage.getItem("customerId"),
                 voucherId,
-                staffId: null
+                staffId: null,
+                billType: selectedPayment
             }),
         });
         return await response.json();

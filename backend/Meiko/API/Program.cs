@@ -52,7 +52,6 @@ namespace Meiko
 			builder.Services.AddScoped<IBillServices, BillServices>();
 
 
-
 			builder.Services.AddExtentionsService(builder.Configuration);
 
 			// Thêm Identity

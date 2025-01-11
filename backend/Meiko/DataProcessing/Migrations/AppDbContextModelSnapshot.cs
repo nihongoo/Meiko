@@ -234,6 +234,9 @@ namespace DataProcessing.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasComment("Mã hóa đơn, không quá 50 ký tự");
 
+                    b.Property<string>("BillType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
                         .HasComment("Ngày tạo hóa đơn");
@@ -743,6 +746,9 @@ namespace DataProcessing.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -1472,11 +1478,9 @@ namespace DataProcessing.Migrations
 
             modelBuilder.Entity("DataProcessing.Models.RefundItem", b =>
                 {
-                    b.HasOne("DataProcessing.Models.RequestRefund", "RequestRefund")
+                    b.HasOne("DataProcessing.Models.RequestRefund", null)
                         .WithMany("RefundItems")
                         .HasForeignKey("RequestRefundId");
-
-                    b.Navigation("RequestRefund");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.SaleProducts", b =>

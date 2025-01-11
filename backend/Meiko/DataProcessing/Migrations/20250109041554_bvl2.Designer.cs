@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataProcessing.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241206021809_Kh")]
-    partial class Kh
+    [Migration("20250109041554_bvl2")]
+    partial class bvl2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -235,6 +235,9 @@ namespace DataProcessing.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasComment("Mã hóa đơn, không quá 50 ký tự");
+
+                    b.Property<string>("BillType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2")
@@ -727,6 +730,71 @@ namespace DataProcessing.Migrations
                     b.HasIndex("TargretCustomerId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.RefundItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("RequestRefundId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestRefundId");
+
+                    b.ToTable("RefundItem");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.RequestRefund", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("AmountRefund")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("BillId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("requester")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RequestRefunds");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Review", b =>
@@ -1410,6 +1478,13 @@ namespace DataProcessing.Migrations
                     b.Navigation("TargretCustomers");
                 });
 
+            modelBuilder.Entity("DataProcessing.Models.RefundItem", b =>
+                {
+                    b.HasOne("DataProcessing.Models.RequestRefund", null)
+                        .WithMany("RefundItems")
+                        .HasForeignKey("RequestRefundId");
+                });
+
             modelBuilder.Entity("DataProcessing.Models.SaleProducts", b =>
                 {
                     b.HasOne("DataProcessing.Models.ProductDetails", "Productdetail")
@@ -1602,6 +1677,11 @@ namespace DataProcessing.Migrations
                     b.Navigation("FavoriteProducts");
 
                     b.Navigation("ProductDetails");
+                });
+
+            modelBuilder.Entity("DataProcessing.Models.RequestRefund", b =>
+                {
+                    b.Navigation("RefundItems");
                 });
 
             modelBuilder.Entity("DataProcessing.Models.Sales", b =>

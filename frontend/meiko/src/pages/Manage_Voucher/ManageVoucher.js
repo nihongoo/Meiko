@@ -65,28 +65,30 @@ function ManageVoucher() {
             const res = await fetch(apiURL.voucher.create, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(newVoucher)
-            })
+                body: JSON.stringify(newVoucher),
+            });
+    
             if (res.ok) {
-                refetch()
-                toast.success('Tạo mới thành công')
-            }
-            else {
-                const errorData = await res.json();
-                if (errorData.errors) {
-                    const firstErrorKey = Object.keys(errorData.errors)[0];
-                    const firstErrorMessage = errorData.errors[firstErrorKey][0];
-                    if (firstErrorMessage) {
-                        toast.error(`${firstErrorMessage}`);
-                    }
-                }
+                refetch();
+                toast.success('Tạo mới thành công');
+            } else {
+               const errorData = await res.json();
+                               if (errorData.errors) {
+                                   const firstErrorKey = Object.keys(errorData.errors)[0];
+                                   const firstErrorMessage = errorData.errors[firstErrorKey][0];
+                                   if (firstErrorMessage) {
+                                       toast.error(`${firstErrorMessage}`);
+                                   }
+                               }
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
+            toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
         }
-    }
+    };
+    
     const handleSetApi = () =>{
         if (filter.startDate === null || filter.endDate === null) {
             setApi(apiURL.voucher.all)

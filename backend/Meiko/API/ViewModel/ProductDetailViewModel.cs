@@ -39,5 +39,8 @@ namespace API.ViewModel
 
         [Required(ErrorMessage = "Id kích thước không được để trống.")]
         public Guid SizeId { get; set; }
+
+        public string? ImgUrl { get; set; }
+        public string? PublicId { get; set; }
     }
 }

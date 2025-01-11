@@ -121,11 +121,15 @@ const apiURL = {
         search: 'https://localhost:7172/api/Bills/Search',
         pay: 'https://localhost:7172/api/Bills/pay-for-bill/',
         changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/',
+        prevStatus: 'https://localhost:7172/api/Bills/prev-status-from-bill/',
         changeQuantity: 'https://localhost:7172/api/Bills/add-quantity-to/',
         refund: 'https://localhost:7172/api/Bills/return',
         listRefund: 'https://localhost:7172/api/Bills/List-Request',
         accept: 'https://localhost:7172/api/Bills/',
         statusHis: 'https://localhost:7172/api/Bills/get-statusHistories-by-billId/',
+        payOnline: 'https://localhost:7172/api/Bills/CreatePaymentWithPayOS/',
+        checkStatusOffline: 'https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/',
+        payForBill:"https://localhost:7172/api/Bills/pay-for-bill/"
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',
@@ -137,7 +141,8 @@ const apiURL = {
         all: 'https://localhost:7172/api/Sales/Get-All',
         create: 'https://localhost:7172/api/Sales/Create',
         delete: 'https://localhost:7172/api/Sales/Delete/',
-        filter: 'https://localhost:7172/api/Sales/Filter'
+        filter: 'https://localhost:7172/api/Sales/Filter',
+        search: 'https://localhost:7172/api/SaleProduct/Get-All'
     },
     payHistory:{
         byBillId: 'https://localhost:7172/api/Bills/get-paymentHistories-by-billId/'

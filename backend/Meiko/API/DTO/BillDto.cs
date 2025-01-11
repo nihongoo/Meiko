@@ -6,6 +6,7 @@ namespace API.DTO
 	public class BillDto
 	{
 		public Guid Id { get; set; }
+		public string BillType { get; set; }
 		public string? BillCode { get; set; }
 		public bool? IsShipping { get; set; }
 		public decimal Total { get; set; } = 0;

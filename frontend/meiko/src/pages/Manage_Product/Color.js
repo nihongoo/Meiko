@@ -74,7 +74,9 @@ function Color({ onClose, onAddColor, colorSelect }) {
                                             border: selectedColors.some(selected => selected.id === color.id)
                                                 ? `2px solid ${color.hex}`
                                                 : '2px solid',
+                                            // border:' 1px solid #000' ,
                                             color: selectedColors.some(selected => selected.id === color.id) ? '#fff' : `${color.hex}`,
+                                            // color: '#000',
                                             position: 'relative',
                                             backgroundColor: selectedColors.some(selected => selected.id === color.id) ? `${color.hex}` : '#fff'
                                         }}

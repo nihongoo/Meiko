@@ -7,17 +7,17 @@ import useFetchData from '../../customHook/useFetchData';
 import { BillInfoContext } from './SoldOfline';
 
 function CheckOut({ open, onClose, bill, billInfo, reload }) {
-    const {handleCloseTab, index} = useContext(BillInfoContext)
+    const { handleCloseTab, index } = useContext(BillInfoContext);
     const [paymentMethod, setPaymentMethod] = useState('transfer');
     const [cashAmount, setCashAmount] = useState('');
     const [remaining, setRemaining] = useState(0);
-    const paginationModel = { page: 0, pageSize: 5 };
     const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
-    const { data: payHistory, refetch } = useFetchData(`${apiURL.payHistory.byBillId}${bill.id}`);
-
-    const handlePaymentMethod = (method) => {
-        setPaymentMethod(method);
-    };
+    const { data: payHistory, refetch } = useFetchData(`${apiURL.payHistory.byBillId}${bill.id}`, (raw) => {
+        return raw.map((item) => ({
+            ...item,
+            status: item.status === '10' ? 'Đã thanh toán' : item.status,
+        }))
+    });
 
     const totalPaid = payHistory?.reduce((acc, item) => acc + item.amount, 0) || 0;
 
@@ -25,48 +25,93 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
         setRemaining(billInfo.total - totalPaid);
     }, [billInfo.total, totalPaid]);
 
-    const handleCheckout = async () => {
-        if (remaining <= 0) {
-            toast.error('Hóa đơn đã hoàn thành hoặc chưa có sản phẩm nào được chọn');
-            return;
+    const handlePaymentMethod = (method) => setPaymentMethod(method);
+
+    const processCashPayment = async () => {
+        const newRemaining = remaining - cashAmount;
+
+        try {
+            const res = await fetch(`${apiURL.bill.pay}${bill.id}?paymentAmount=${cashAmount}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!res.ok) throw new Error('Thanh toán thất bại.');
+
+            if (newRemaining <= 0) {
+                const payload = {
+                    statusType: 5,
+                    note: 'thanh toán thành công',
+                    staffWhoCreatedThis: staffInfo.id,
+                };
+                await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                handleCloseTab(index, 'Hóa đơn đã hoàn thành!');
+            }
+
+            toast.success('Thanh toán thành công!');
+            setCashAmount('');
+            reload();
+            refetch();
+        } catch (error) {
+            console.error(error);
+            toast.error(error.message || 'Có lỗi xảy ra!');
         }
-        if (paymentMethod === 'cash') {
-            const newRemaining = remaining - cashAmount;
-            try {
-                const res = await fetch(`${apiURL.bill.pay}${bill.id}?paymentAmount=${cashAmount}`, {
+    };
+console.log(billInfo);
+
+    const processOnlinePayment = async () => {
+        try {
+            if (billInfo.billDetails.length === 0) {
+                toast.warning('Chưa chọn sản phẩm nào')
+                return
+            }
+            if (remaining <= 0) {
+                const payload = {
+                    statusType: 5,
+                    note: 'Tạo mới hóa đơn thành công',
+                    staffWhoCreatedThis: staffInfo.id,
+                };
+                await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                handleCloseTab(index, 'Hóa đơn đã hoàn thành!');
+            }
+            else {
+                const res = await fetch(`${apiURL.bill.payOnline}${bill.id}?descrtiption=${'Thanh toán đơn hàng'}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                 });
 
                 if (!res.ok) {
-                    throw new Error('Thanh toán thất bại');
-                }
-                if (newRemaining <= 0) {
-                    const payload = {
-                        statusType: 5,
-                        note: 'Tạo mới hóa đơn thành công',
-                        staffWhoCreatedThis: staffInfo.id,
-                    };
-                    await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(payload),
-                    });
-                    handleCloseTab(index, 'Hóa đơn đã hoàn thành!')
+                    toast.error("Có lỗi xảy ra từ phía server.");
+                    return;
                 }
 
-                toast.success('Thanh toán thành công!');
-                setCashAmount('');
-                reload()
-                refetch();
-            } catch (error) {
-                console.error(error);
-                toast.error(error.message || 'Có lỗi xảy ra!');
+                const msg = await res.json();
+                if (msg.checkoutUrl) {
+                    window.location.href = msg.checkoutUrl;
+                } else {
+                    toast.error("Có lỗi xảy ra khi tạo thanh toán.");
+                }
             }
+        } catch (error) {
+            console.error(error);
+            toast.error("Có lỗi xảy ra khi kết nối tới server!");
+        }
+    };
+
+    const handlePayment = () => {
+        if (paymentMethod === 'cash') {
+            processCashPayment();
+        } else if (paymentMethod === 'transfer') {
+            processOnlinePayment();
+        } else {
+            toast.warning('Vui lòng chọn phương thức thanh toán!');
         }
     };
 
@@ -83,27 +128,17 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
         amount: new Intl.NumberFormat('vi-VN').format(item.amount) + ' VND',
         status: item.status,
     })) || [];
+
     return (
-        <Dialog open={open} maxWidth="sm" onClose={onClose} fullWidth overflowY={'hidden'}>
+        <Dialog open={open} maxWidth="sm" onClose={onClose} fullWidth>
             <DialogTitle>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6">Thanh toán</Typography>
-                    <Button variant="text" color="error" onClick={onClose}>
-                        X
-                    </Button>
+                    <Button variant="text" color="error" onClick={onClose}>X</Button>
                 </Box>
             </DialogTitle>
             <DialogContent>
-                <Box
-                    sx={{
-                        overflowY: 'auto',
-                        padding: 2,
-                        "&::-webkit-scrollbar": { width: "6px" },
-                        "&::-webkit-scrollbar-thumb": { backgroundColor: "#888", borderRadius: "10px" },
-                        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#555" },
-                        "&::-webkit-scrollbar-track": { backgroundColor: "#f1f1f1" },
-                    }}
-                >
+                <Box sx={{ overflowY: 'auto', padding: 2 }}>
                     <Box display="flex" justifyContent="space-between" mb={2}>
                         <Typography variant="body1">Tổng tiền hàng</Typography>
                         <Typography variant="body1" color="error" fontWeight="bold">
@@ -130,38 +165,22 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
                         <TextField
                             fullWidth
                             label="Tiền khách đưa"
-                            onChange={(e) => {
-                                const value = Math.max(0, Number(e.target.value));
-                                setCashAmount(value);
-                            }}
+                            onChange={(e) => setCashAmount(Math.max(0, Number(e.target.value)))}
                             variant="outlined"
                             type="number"
                             value={cashAmount}
                         />
                         {paymentMethod !== 'cash' && (
-                            <TextField fullWidth label="Mã giao dịch" variant="outlined" />
+                            <TextField fullWidth label="Mã giao dịch" disabled variant="outlined" />
                         )}
                     </Box>
                     <Box sx={{ height: 300, width: '100%', marginTop: 2 }}>
                         <DataGrid
                             rows={rows}
                             columns={columns}
-                            initialState={{ pagination: { paginationModel } }}
-                            pageSize={5}
                             pageSizeOptions={[5, 10]}
                             disableSelectionOnClick
-                            sx={{
-                                border: 'none',
-                                '& .MuiDataGrid-cell': {
-                                    borderBottom: 'none',
-                                },
-                                '& .MuiDataGrid-columnHeaders': {
-                                    borderBottom: 'none',
-                                },
-                                backgroundColor: '#fff',
-                                minHeight: 300,
-                                maxHeight: 'calc(100vh - 200px)',
-                            }}
+                            sx={{ border: 'none', backgroundColor: '#fff' }}
                         />
                     </Box>
                     <Box display="flex" justifyContent="space-between" mt={2}>
@@ -172,10 +191,8 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
                     </Box>
                 </Box>
             </DialogContent>
-            <DialogActions className="justify-content-center">
-                <Button variant="outlined" color="success" onClick={handleCheckout}>
-                    Xác nhận
-                </Button>
+            <DialogActions>
+                <Button variant="outlined" color="success" onClick={handlePayment}>Xác nhận</Button>
             </DialogActions>
         </Dialog>
     );

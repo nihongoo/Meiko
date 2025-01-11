@@ -67,10 +67,7 @@ public class GHNService : IGHNService
             service_type_id = (int?)null, 
             to_district_id = toDistrictID,
             to_ward_code = toWardCode,
-            height = 50,
-            length = 20,
             weight = 200,
-            width = 20,
             insurance_value = 10000,
             cod_failed_amount = 2000,
             coupon = (string)null, // null

@@ -19,6 +19,7 @@ namespace API.Models
 
 		[Range(0, double.MaxValue, ErrorMessage = "Phí vận chuyển phải lớn hơn hoặc bằng 0.")]
 		public decimal ShippingFee { get; set; }
+		public string BillType { get; set; }
 
 		public Guid? CartId { get; set; }
 		public Guid? CustomerId { get; set; }

@@ -50,8 +50,9 @@ namespace DataProcessing.Models
 
         [StringLength(500, ErrorMessage = "Lý do khách hủy không được vượt quá 500 ký tự.")]
         public string? ReasonForCancellation { get; set; }
+        public string? BillType { get; set; }
 
-        public Guid? CustomerId { get; set; }
+		public Guid? CustomerId { get; set; }
         public Guid? VoucherId { get; set; }
         public Guid? StaffId { get; set; }
 
@@ -68,35 +69,33 @@ namespace DataProcessing.Models
 
     public enum StatusType
     {
-        [Display(Name = "Tạo hoá đơn")]
+        [Display(Name = "Tạo hóa đơn")]
         TaoHoaDon = 0,
-		[Display(Name= "Chờ xử lý")]
-		ChoXuly = 1,
-		[Display(Name = "Đang chuẩn bị hàng")]
-		DangChuanBiHang = 2,
-		[Display(Name = "Đang giao hàng")]
-		DangGiaoHang = 3,
-		[Display(Name = "Đã giao tới")]
-		DaGiaoToi = 4,
-		[Display(Name = "Hoàn thành")]
-		HoanThanh = 5,
 
-        //Trạng thái cho trường hợp treo hoá đơn
-		[Display(Name = "Chờ có hàng")]
-		ChoCoHang = 6,
-		[Display(Name = "Chờ người giao hàng")]
-		ChoNguoiGiaoHang = 7,
+        // Trạng thái cho POS
+        [Display(Name = "Chờ thanh toán")]
+        ChoThanhToan = 1,
+        [Display(Name = "Hoàn thành")]
+        HoanThanh = 6,
 
-		//Trạng thái cho trường hợp huỷ đơn
-		[Display(Name = "Mất hàng")]
-		MatHang = 8,
-		[Display(Name = "Hoàn trả")]
-		HoanTra = 9,
-		[Display(Name = "Đã huỷ")]
-		DaHuy = 10,
+        // Trạng thái cho COD/Online
+        [Display(Name = "Chờ xử lý")]
+        ChoXuLy = 2,
+        [Display(Name = "Đang chuẩn bị hàng")]
+        DangChuanBiHang = 3,
+        [Display(Name = "Đang giao hàng")]
+        DangGiaoHang = 4,
+        [Display(Name = "Đã giao tới")]
+        DaGiaoToi = 5,
 
-        //Tôi phải thêm trạng thái
+        // Trạng thái đặc biệt
+        [Display(Name = "Chờ có hàng")]
+        ChoCoHang = 7,
+        [Display(Name = "Hoàn trả")]
+        HoanTra = 8,
+        [Display(Name = "Đã hủy")]
+        DaHuy = 9,
         [Display(Name = "Đã thanh toán")]
-        DaThanhToan = 11,
-	}
+        DaThanhToan = 10
+    }
 }

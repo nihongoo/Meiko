@@ -24,7 +24,7 @@ function ChooseDetail({ open, onClose, item, reloadList, bill }) {
             productDetailId: item.id
         }
         const payload = {
-            statusType: 1,
+            statusType: 2,
             note: 'Hóa đơn có sản phẩm, đang chờ xử lý',
             staffWhoCreatedThis: staffInfo.id,
         };
@@ -40,6 +40,7 @@ function ChooseDetail({ open, onClose, item, reloadList, bill }) {
                 toast.success('Thêm sản phẩm thành công')
                 reloadList()
                 handleReloadFromAnother()
+                
                 await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
                     method: "POST",
                     headers: {

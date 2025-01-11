@@ -46,59 +46,81 @@ namespace API.Services
                                           .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task CreateAsync(ProductViewModel model, List<ProductDetailViewModel> productDetails)
-        {
-            var imgUrl = await GetAnImage(model.ImageUrl);
-            var genCode = Extention.Extention.GenerateSerialCode();
-            model.ProductCode = genCode;
+		public async Task CreateAsync(ProductViewModel model, List<ProductDetailViewModel> productDetails)
+		{
+			var imgUrl = await GetAnImage(model.PublicId);
+			var genCode = Extention.Extention.GenerateSerialCode();
+			model.ProductCode = genCode;
 
 			var product = new Products
-            {
-                Id = Guid.NewGuid(),
-                Name = model.Name,
-                Description = model.Description,
-                ProductCode = genCode,
-                ImageUrl = imgUrl,
-                PublicId = model.PublicId,
-                WarrantyPeriod = model.WarrantyPeriod,
-                CreateTime = DateTime.Now,
-                Status = 1,
-                MaterialId = model.MaterialId,
-                BrandId = model.BrandId,
-                CategoryId = model.CategoryId,
-                TargretCustomerId = model.TargretCustomerId,
+			{
+				Id = Guid.NewGuid(),
+				Name = model.Name,
+				Description = model.Description,
+				ProductCode = genCode,
+				ImageUrl = imgUrl,
+				PublicId = model.PublicId,
+				WarrantyPeriod = model.WarrantyPeriod,
+				CreateTime = DateTime.Now,
+				Status = 1,
+				MaterialId = model.MaterialId,
+				BrandId = model.BrandId,
+				CategoryId = model.CategoryId,
+				TargretCustomerId = model.TargretCustomerId,
 				ProductDetails = new List<ProductDetails>()
 			};
-            foreach (var details in productDetails)
-            {
-                var genCodeDetail = Extention.Extention.GenerateSerialCode();
-                details.ProductDetailCode = genCodeDetail;
 
-                product.ProductDetails.Add(new ProductDetails
-                {
-                    Id = Guid.NewGuid(),
-                    ProductDetailCode = genCodeDetail,
-                    Quantity = details.Quantity,
-                    Weight = details.Weight,
-                    ImportPrice = details.ImportPrice,
-                    Price = details.Price,
-                    CreatTime = DateTime.Now,
-                    Status = 1,
-                    ProductId = product.Id,
-                    ColorId = details.ColorId,
-                    SizeId = details.SizeId,
-                });
-            }
+			foreach (var details in productDetails)
+			{
+				var genCodeDetail = Extention.Extention.GenerateSerialCode();
+				details.ProductDetailCode = genCodeDetail;
 
-            await _context.Products.AddAsync(product);
-            await _context.SaveChangesAsync();
-        }
+				var productDetail = new ProductDetails
+				{
+					Id = Guid.NewGuid(),
+					ProductDetailCode = genCodeDetail,
+					Quantity = details.Quantity,
+					Weight = details.Weight,
+					ImportPrice = details.ImportPrice,
+					Price = details.Price,
+					CreatTime = DateTime.Now,
+					Status = 1,
+					ProductId = product.Id,
+					ColorId = details.ColorId,
+					SizeId = details.SizeId,
+				};
 
-        public async Task UpdateAsync(Guid id, ProductViewModel model)
+				// Kiểm tra nếu ProductDetailViewModel có PublicId và ImgUrl, thêm ảnh vào ProductDetail
+				if (!string.IsNullOrEmpty(details.PublicId))
+				{
+					var imgDtUrl = string.IsNullOrEmpty(details.ImgUrl) ? await GetAnImage(details.PublicId) : details.ImgUrl;
+
+					var image = new Images
+					{
+						Id = Guid.NewGuid(),
+						ImgUrl = imgDtUrl,
+						PublicId = details.PublicId,
+						ProductDetailId = productDetail.Id
+					};
+
+					await _context.Images.AddAsync(image);
+				}
+
+				// Thêm ProductDetail vào danh sách ProductDetails
+				product.ProductDetails.Add(productDetail);
+			}
+
+			// Thêm sản phẩm vào cơ sở dữ liệu
+			await _context.Products.AddAsync(product);
+			await _context.SaveChangesAsync();
+		}
+
+
+		public async Task UpdateAsync(Guid id, ProductViewModel model)
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null) throw new Exception("Product not found");
-			var imgUrl = await GetAnImage(model.ImageUrl);
+			var imgUrl = await GetAnImage(model.PublicId);
 			product.Name = model.Name;
             product.ImageUrl = imgUrl;
             product.Description = model.Description;

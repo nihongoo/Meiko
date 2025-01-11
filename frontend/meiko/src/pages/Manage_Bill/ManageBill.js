@@ -29,8 +29,8 @@ function ManageBill() {
         return raw.map((item) => ({
             ...item,
             total: item.total + 'VND',
+            billType: item.billType,
             totalProducts: item.billDetails.reduce((sum, detail) => sum + detail.quantity, 0),
-            billType: item.customerId ? 'Trực tuyến' : 'Tại quầy',
             customerName: customer.find((customer) => customer.id === item.customerId)?.name || 'Khách lẻ',
             createdDate: moment(item.createdDate).format('DD-MM-YYYY HH:mm'),
             billDetails: item.billDetails.map(billDetail => {
@@ -44,11 +44,17 @@ function ManageBill() {
                 }
                 return billDetail;
             }),
+            paymentHistories: item.paymentHistories.map(history => ({
+                ...history,
+                createdDate: moment(history.createdDate).format('DD-MM-YYYY HH:mm'),
+            })),
             ADRS: (!item.shippingAddresses || item.shippingAddresses.length === 0)
                 ? 'Nhận hàng tại quầy'
                 : `${item.shippingAddresses[0].ward}, ${item.shippingAddresses[0].district}, ${item.shippingAddresses[0].city}`
-        }))
-    })
+        }));
+    });
+    console.log(rows);
+    
 
     const handleFindStaff = (staffId) => {
         const staffMember = staff.find((s) => s.id === staffId);
@@ -90,7 +96,7 @@ function ManageBill() {
             <div>
                 <p>Tên khách hàng: ${bill.customerName}</p>
                 <p>Địa chỉ nhận hàng: ${bill.ADRS}</p>
-                <p>Nhân viên: ${staffMember.staffName}</p>
+                <p>Nhân viên: ${staffMember?.staffName||''}</p>
             </div>
             <div>
                 <p>Mã hóa đơn: ${bill.billCode}</p>
