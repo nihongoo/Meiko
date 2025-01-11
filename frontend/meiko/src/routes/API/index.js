@@ -128,6 +128,7 @@ const apiURL = {
         statusHis: 'https://localhost:7172/api/Bills/get-statusHistories-by-billId/',
         payOnline: 'https://localhost:7172/api/Bills/CreatePaymentWithPayOS/',
         checkStatusOffline: 'https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/',
+        payForBill:"https://localhost:7172/api/Bills/pay-for-bill/"
     },
     voucher:{
         create: 'https://localhost:7172/api/Voucher/Create',

@@ -50,6 +50,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
         'Đang chuẩn bị hàng',
         'Đang giao hàng',
         'Đã giao tới',
+        'Đã thanh toán',
         'Đã hoàn thành',
     ]
     const staffInfo = JSON.parse(localStorage.getItem('staffInfo'));
@@ -73,22 +74,41 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 "Đang chuẩn bị hàng": 2,
                 "Đang giao hàng": 3,
                 "Đã giao tới": 4,
+                "Đã thanh toán": 11,
                 "Đã hoàn thành": 5,
             };
+    
             const lastStatus = sortedStatusHistories[sortedStatusHistories.length - 1];
             const currentStatus = statusMapping[lastStatus.statusType];
-            const newStatus = currentStatus + 1;
-            const statusType = Object.keys(statusMapping).find(
-                (key) => statusMapping[key] === newStatus
-            );
-            if (!statusType) {
-                throw new Error("Trạng thái tiếp theo không hợp lệ");
+    
+            let newStatus;
+            let statusType;
+    
+            if (currentStatus === 4 && sortedStatusHistories.some(status => status.statusType === "Đã thanh toán")) {
+                newStatus = 5;
+                statusType = "Đã hoàn thành";
+            } else if (currentStatus === 4) {
+                newStatus = 11;
+                statusType = "Đã thanh toán";
+            } else if (currentStatus === 11) {
+                newStatus = 5;
+                statusType = "Đã hoàn thành";
+            } else {
+                newStatus = currentStatus + 1;
+                statusType = Object.keys(statusMapping).find(
+                    (key) => statusMapping[key] === newStatus
+                );
+    
+                if (!statusType) {
+                    throw new Error("Trạng thái tiếp theo không hợp lệ");
+                }
             }
             const payload = {
                 statusType: newStatus,
-                note: `Trạng thái đã thay đổi thành "${statusType}"`,
+                note: `Trạng thái đã thay đổi thành \"${statusType}\"`,
                 staffWhoCreatedThis: staffInfo.id,
             };
+    
             await fetch(`${apiURL.bill.changeStatus}${item.id}`, {
                 method: "POST",
                 headers: {
@@ -96,14 +116,30 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 },
                 body: JSON.stringify(payload),
             });
-            reloadBill()
-            refetch()
-            toast.success(`Trạng thái đã thay đổi thành "${statusType}"`);
+    
+            if (newStatus === 11) {
+                const paymentAmount = calculatePaymentAmount(item);
+                const payForBillURL = `${apiURL.bill.payForBill}${item.id}?paymentAmount=${paymentAmount}&staffWhoDoThis=${staffInfo.id}`;
+                await fetch(payForBillURL, {
+                    method: "POST",
+                });
+            }
+
+            reloadBill();
+            refetch();
+            toast.success(`Trạng thái đã thay đổi thành \"${statusType}\"`);
         } catch (error) {
             console.error("Lỗi khi thay đổi trạng thái:", error);
             toast.error("Không thể thay đổi trạng thái");
         }
     };
+    
+    const calculatePaymentAmount = (item) => {
+        const rawAmount = item.total || "0";
+        const numericAmount = parseFloat(rawAmount.replace(/[^\d.]/g, ""));
+        return numericAmount;
+    };
+    
     const handlePrev = async () => {
         try {
             if (note.length < 30) {
@@ -120,7 +156,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             };
 
             const lastStatus = sortedStatusHistories[sortedStatusHistories.length - 1];
-            const currentStatus = statusMapping[lastStatus.statusType];  // Trạng thái hiện tại của đơn hàng
+            const currentStatus = statusMapping[lastStatus.statusType]; 
             const prevStatus = currentStatus - 1;
 
             if (prevStatus < 0) {
@@ -150,8 +186,8 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             });
 
             if (response.ok) {
-                reloadBill(); // Reload dữ liệu sau khi thay đổi trạng thái
-                refetch(); // Refetch để cập nhật thông tin
+                reloadBill();
+                refetch();
                 toast.success(`Trạng thái đã thay đổi thành "${statusType}"`);
             } else {
                 toast.error("Không thể thay đổi trạng thái");
