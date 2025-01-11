@@ -54,7 +54,7 @@ function SubmitButton({ obj, image }) {
                 className="btn btn-success"
                 onClick={handleCreateProduct}
             >
-                Create
+                Tạo mới
             </button>
         </div>
     );

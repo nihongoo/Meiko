@@ -96,7 +96,7 @@ function ManageBill() {
             <div>
                 <p>Tên khách hàng: ${bill.customerName}</p>
                 <p>Địa chỉ nhận hàng: ${bill.ADRS}</p>
-                <p>Nhân viên: ${staffMember.staffName}</p>
+                <p>Nhân viên: ${staffMember?.staffName||''}</p>
             </div>
             <div>
                 <p>Mã hóa đơn: ${bill.billCode}</p>

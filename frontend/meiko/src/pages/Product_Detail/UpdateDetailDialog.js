@@ -103,7 +103,7 @@ function UpdateDetailDialog({
                                 setSelectedUser({ ...selectedUser, quantity: e.target.value })
                             }
                         />
-                        <FormControl component="fieldset" margin="dense">
+                        {/* <FormControl component="fieldset" margin="dense">
                             <FormLabel component="legend">Trạng thái</FormLabel>
                             <RadioGroup
                                 row
@@ -124,7 +124,7 @@ function UpdateDetailDialog({
                                     label="Đang bán"
                                 />
                             </RadioGroup>
-                        </FormControl>
+                        </FormControl> */}
                     </Box>
 
                     <Box flex={1} display="flex" flexDirection="column" alignItems="center">

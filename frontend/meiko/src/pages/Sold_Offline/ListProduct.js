@@ -220,6 +220,7 @@ function ListProduct({ bill }) {
       <Box display="flex" justifyContent="flex-end" mt={4}>
         <Typography color="error" fontWeight="bold" sx={{ marginRight: 4 }}>
           {/* {totalSum} */}
+          {/* {totalSum} */}
         </Typography>
       </Box>
 

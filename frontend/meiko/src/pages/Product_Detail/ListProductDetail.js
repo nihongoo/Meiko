@@ -7,6 +7,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { Button, Box, Typography } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
+import EditIcon from '@mui/icons-material/Edit';
 
 function ListProductDetail() {
     const { id } = useParams();
@@ -67,7 +68,7 @@ function ListProductDetail() {
         { field: 'price', headerName: 'Giá bán', flex:1 },
         { field: 'quantity', headerName: 'Số lượng', flex:1 },
         { field: 'createTime', headerName: 'Ngày tạo', flex:1 },
-        { field: 'tt', headerName: 'Trạng thái', flex:1 },
+        // { field: 'tt', headerName: 'Trạng thái', flex:1 },
         {
             field: 'action',
             headerName: 'Thao tác',
@@ -79,7 +80,7 @@ function ListProductDetail() {
                         color="secondary"
                         onClick={() => handleClickOpen(params.row)}
                     >
-                        <i className="fa-solid fa-pen"></i>
+                        <EditIcon></EditIcon>
                     </Button>
                 </div>
             ),

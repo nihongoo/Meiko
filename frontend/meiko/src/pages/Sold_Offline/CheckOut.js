@@ -61,6 +61,7 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
             toast.error(error.message || 'Có lỗi xảy ra!');
         }
     };
+console.log(billInfo);
 
     const processOnlinePayment = async () => {
         try {

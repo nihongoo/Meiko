@@ -26,7 +26,7 @@ const ProductDetails = () => {
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [discountPercentage, setDiscountPercentage] = useState(null);
 
-
+  console.log(product);
   // Lấy dữ liệu sản phẩm từ API
   useEffect(() => {
     const fetchProduct = async () => {
@@ -66,7 +66,7 @@ const ProductDetails = () => {
       );
   
       if (selectedProductDetail) {
-        // Cập nhật ảnh sản phẩm chi tiết
+        // Cập nhật ảnh sản phẩm chi tiết hoặc ảnh mặc định
         setImageUrl(selectedProductDetail.images[0]?.imgUrl || product.imageUrl);
         setSelectedPrice(selectedProductDetail.price);
         setAvailableQuantity(selectedProductDetail.quantity);
@@ -86,10 +86,11 @@ const ProductDetails = () => {
       } else {
         setSelectedPrice(null);
         setAvailableQuantity(0);
-        setImageUrl('');
+        setImageUrl(product.imageUrl);
       }
     }
   }, [selectedSize, selectedColor, product]);
+  
 
   if (error) return <div className={styles.error}>{error}</div>;
   if (!product) return <div className={styles.notFound}>Không tìm thấy sản phẩm</div>;
@@ -166,12 +167,12 @@ const ProductDetails = () => {
       const selectedProductDetail = product.Product_detail?.find(
         (detail) => detail.sizes.name === selectedSize && detail.colors.name === selectedColor
       );
-      let imageUrlToUse = '';
+      let imageUrlToUse = "";
       if (selectedProductDetail) {
         if (selectedProductDetail.images && selectedProductDetail.images.length > 0) {
           imageUrlToUse = selectedProductDetail.images[0].imgUrl;
         } else {
-          imageUrlToUse = product.imageUrl; // Sử dụng ảnh mặc định của sản phẩm
+          imageUrlToUse = product.imageUrl;
         }
       } else {
         toast.error("Sản phẩm không hợp lệ hoặc không tồn tại.");
@@ -215,7 +216,7 @@ const ProductDetails = () => {
   };
   const handleSelectImage = (newImageUrl, index) => {
     setImageUrl(newImageUrl);
-
+  
     const selectedProductDetail = product.Product_detail.find(detail =>
       detail.images.some(image => image.imgUrl === newImageUrl)
     );
@@ -223,13 +224,16 @@ const ProductDetails = () => {
     if (selectedProductDetail) {
       setSelectedSize(selectedProductDetail.sizes.name);
       setSelectedColor(selectedProductDetail.colors.name);
-  
       setSelectedPrice(selectedProductDetail.price);
       setAvailableQuantity(selectedProductDetail.quantity);
       setQuantity(1);
+    } else {
+      setImageUrl(product.imageUrl);
     }
+  
     setSelectedImageIndex(index);
   };
+  
 
   const calculateAverageRating = () => {
     if (reviews.length === 0) return 0;
@@ -275,7 +279,7 @@ const ProductDetails = () => {
           {/* ProductPreview nằm bên trái */}
           <div className="col-12 col-lg-6">
             <ProductPreview 
-              mainImage={imageUrl}          
+              mainImage={imageUrl || product.imageUrl}          
               detailImages={detailImages}  
               selectedImageIndex={selectedImageIndex} 
               onSelectImage={handleSelectImage} 

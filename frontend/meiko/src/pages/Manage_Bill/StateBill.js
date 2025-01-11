@@ -362,20 +362,30 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
         }
         try {
             const currentBills = JSON.parse(localStorage.getItem('bills')) || [];
-            const updatedBills = [...currentBills, { id: billId }];
-            localStorage.setItem('bills', JSON.stringify(updatedBills));
-
             const currentTabs = JSON.parse(localStorage.getItem('tabs')) || [];
-            const newTabs = [...currentTabs, `Hóa đơn ${item?.billCode}`];
-            localStorage.setItem('tabs', JSON.stringify(newTabs));
-
+    
+            // Kiểm tra nếu billId đã tồn tại
+            const billExists = currentBills.some(bill => bill.id === billId);
+    
+            if (!billExists) {
+                // Thêm bill mới nếu chưa tồn tại
+                const updatedBills = [...currentBills, { id: billId }];
+                localStorage.setItem('bills', JSON.stringify(updatedBills));
+    
+                const newTabs = [...currentTabs, `Hóa đơn ${item?.billCode}`];
+                localStorage.setItem('tabs', JSON.stringify(newTabs));
+            } else {
+                console.log(`Hóa đơn với ID ${billId} đã tồn tại`);
+            }
+    
+            // Điều hướng tới trang
             navigate('/soldoffline');
-
         } catch (error) {
             console.error('Lỗi khi mở hóa đơn: ', error);
             toast.error('Không thể mở hóa đơn');
         }
     };
+    
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth >
@@ -490,8 +500,8 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                                 <Typography variant="body1">Tổng thanh toán:</Typography>
                             </Grid>
                             <Grid item xs={6} textAlign="right">
-                                <Typography variant="body1">{item?.total || 'N/A'}</Typography>
-                                <Typography variant="body1">{item?.shippingFee || 'N/A'}VND</Typography>
+                                <Typography variant="body1">{item?.total || '0'}</Typography>
+                                <Typography variant="body1">{item?.shippingFee || '0'}VND</Typography>
                                 <Typography variant="body1">{totalPaid || '0'}VND</Typography>
                             </Grid>
                         </Grid>

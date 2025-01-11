@@ -11,7 +11,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import apiURL from '../../routes/API/index.js';
 import useFetchData from '../../customHook/useFetchData.js';
 import UpdateUserDialog from './UpdateUserDialog.js';
-
+import EditIcon from '@mui/icons-material/Edit';
 function ManageCustomer() {
   const { data: customers, refetch, loading, error } = useFetchData(apiURL.user.all, (rawData) =>
     rawData.map((item) => ({
@@ -104,7 +104,7 @@ function ManageCustomer() {
                 color="secondary"
                 onClick={() => handleClickOpen(params.row)}
               >
-                <i className="fa-solid fa-pen"></i>
+                <EditIcon></EditIcon>
               </Button>
             ),
           },
