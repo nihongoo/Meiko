@@ -59,7 +59,8 @@ function SoldOfline() {
             status: 0,
             paymentAmount: 0,
             shippingFee: 0,
-            staffId: staffInfo.id
+            staffId: staffInfo.id,
+            billType:'POS'
         };
         const payload = {
             statusType: 0,

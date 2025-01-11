@@ -139,7 +139,7 @@ namespace API.Controllers
 		public async Task<ActionResult<object>> CreateBill(BillInfoModel model)
 		{
 
-			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId, model.BillCode);
+			var result = await _IBillServices.Create(model.IsShipping, model.ShippingFee, model.StaffId, model.CustomerId, model.CartId, model.VoucherId, model.BillCode, model.BillType);
 
 			if (result.k)
 			{
@@ -151,36 +151,36 @@ namespace API.Controllers
 			}
 		}
 
-        [HttpPut("update-shipping-fee/{billId}")]
-        public async Task<IActionResult> UpdateShippingFee(Guid billId, [FromBody] UpdateShippingFeeViewModel request)
-        {
-            if (billId == Guid.Empty || request == null || request.NewShippingFee < 0)
-            {
-                return BadRequest("Thông tin không hợp lệ.");
-            }
+		[HttpPut("update-shipping-fee/{billId}")]
+		public async Task<IActionResult> UpdateShippingFee(Guid billId, [FromBody] UpdateShippingFeeViewModel request)
+		{
+			if (billId == Guid.Empty || request == null || request.NewShippingFee < 0)
+			{
+				return BadRequest("Thông tin không hợp lệ.");
+			}
 
-            try
-            {
-                // Gọi service để cập nhật hóa đơn
-                var (success, updatedBillId) = await _IBillServices.UpdateBill(billId, request.NewShippingFee);
+			try
+			{
+				// Gọi service để cập nhật hóa đơn
+				var (success, updatedBillId) = await _IBillServices.UpdateBill(billId, request.NewShippingFee);
 
-                if (success)
-                {
-                    return Ok(new { Status = 0 });
-                }
-                else
-                {
-                    return NotFound("Hóa đơn không tồn tại hoặc không thể cập nhật.");
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Lỗi máy chủ: {ex.Message}");
-            }
-        }
+				if (success)
+				{
+					return Ok(new { Status = 0 });
+				}
+				else
+				{
+					return NotFound("Hóa đơn không tồn tại hoặc không thể cập nhật.");
+				}
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"Lỗi máy chủ: {ex.Message}");
+			}
+		}
 
 
-        [HttpDelete("delete-bill/{id}")]
+		[HttpDelete("delete-bill/{id}")]
 		public async Task<IActionResult> DeleteBill(Guid id, [FromQuery] string? note, [FromQuery] Guid StaffWhoDothis)
 		{
 			var result = _IBillServices.Delete(id).Result;
@@ -208,6 +208,13 @@ namespace API.Controllers
 		{
 			return Ok(await _IBillServices.ChangeStatusTo(id, model.StatusType, model.Note, model.StaffWhoCreatedThis));
 		}
+
+		[HttpPost("prev-status-from-bill/{id}")]
+		public async Task<IActionResult> PrevStatus(Guid id, StatusInfo model)
+		{
+			return Ok(await _IBillServices.PrevStatus(id, model.StatusType, model.Note, model.StaffWhoCreatedThis));
+		}
+
 
 		[HttpPost("pay-for-bill/{id}")]
 		public async Task<IActionResult> PayForBill(Guid id, [FromQuery] decimal paymentAmount, [FromQuery] Guid staffWhoDoThis)
@@ -283,20 +290,20 @@ namespace API.Controllers
 		}
 
 		[HttpGet("PayOS/ReturnPayOS/{billId}/{whodothis}")]
-		public async Task<IActionResult> ReturnData(Guid billId, [FromRoute]Guid whodothis, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
+		public async Task<IActionResult> ReturnData(Guid billId, [FromRoute] Guid whodothis, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
 		{
 			try
 			{
 				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
 				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
-				
+
 				if (status == "PAID")
 				{
 					// Cập nhật trạng thái đơn hàng trong hệ thống
-					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 11, billId);
-					await _IBillServices.ChangeStatusTo(billId, 11, null, whodothis);
-                    await _IBillServices.ChangeStatusTo(billId, 2, "Khách hàng đặt hàng", whodothis);
-                }
+					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 0, billId);
+					await _IBillServices.ChangeStatusTo(billId, 10, null, whodothis);
+					await _IBillServices.ChangeStatusTo(billId, 2, "Khách hàng đặt hàng", whodothis);
+				}
 				else
 				{
 					// Xử lý các trạng thái khác (PENDING, CANCELLED...)
@@ -315,27 +322,27 @@ namespace API.Controllers
 				});
 			}
 		}
-
-		//[HttpGet("PayOS/ReturnPayOSOffline/{billId}")]
-		//public async Task<IActionResult> ReturnDataOffline(Guid billId, [FromQuery] long orderCode)
-		//{
-		//	try
-		//	{
-		//		PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
-		//		PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
-
-		//		return Ok(paymentLinkInfo);
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		return StatusCode(500, new ReturnMessage()
-		//		{
-		//			status = 2,
-		//			message = $"Đã xảy ra lỗi khi giao dịch : {ex.InnerException}",
-		//		});
-		//	}
-		//}
-
+		[HttpGet("PayOS/ReturnPayOSOffline/{billId}/{whodothis}")]
+		public async Task<IActionResult> ReturnDataOffline(Guid billId, [FromRoute] Guid whodothis, [FromQuery] long orderCode)
+		{
+			try
+			{
+				PayOS payOS = new PayOS(_clientId, _apiKey, _checkSum);
+				PaymentLinkInformation paymentLinkInfo = await payOS.getPaymentLinkInformation(orderCode);
+                await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 0, billId);
+                await _IBillServices.ChangeStatusTo(billId, 10, null, whodothis);
+                await _IBillServices.ChangeStatusTo(billId, 6, null, whodothis);
+				return Redirect("http://localhost:3000/soldoffline");
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, new ReturnMessage()
+				{
+					status = 2,
+					message = $"Đã xảy ra lỗi khi giao dịch : {ex.InnerException}",
+				});
+			}
+		}
 
 		[HttpGet("PayOS/CancelPayOS/{billId}")]
 		public async Task<IActionResult> CancelData(Guid billId, [FromQuery] int code, [FromQuery] string id, [FromQuery] bool cancel, [FromQuery] string status, [FromQuery] long orderCode)
@@ -359,17 +366,6 @@ namespace API.Controllers
 				return StatusCode(500, new ReturnMessage { status = 2, message = $"Đã xảy ra lỗi :  {ex.Message}" });
 			}
 		}
-
-		//private string GenerateSignature(string data, string checksumKey)
-		//{
-		//	var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
-		//	using (var hmac = new HMACSHA256(keyBytes))
-		//	{
-		//		var dataBytes = Encoding.UTF8.GetBytes(data);
-		//		var hashBytes = hmac.ComputeHash(dataBytes);
-		//		return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-		//	}
-		//}
 
 		[HttpGet("Search")]
 		public async Task<IActionResult> Search(string query)
