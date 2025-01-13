@@ -224,9 +224,7 @@ namespace API.Controllers
 			{
 				await _IBillServices.ChangeStatusTo(id, 11, null, staffWhoDoThis);
 				var bill = _IBillServices.GetBillById(id).Result;
-
-				if (bill.PaymentAmount >= bill.Total && bill.IsShipping == true)
-					await _IBillServices.ChangeStatusTo(id, 5, null, staffWhoDoThis);
+				return Ok(bill);
 			}
 			return Ok(result);
 		}

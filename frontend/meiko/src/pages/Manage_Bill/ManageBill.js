@@ -28,6 +28,7 @@ function ManageBill() {
     const { data: rows, refetch, loading, error } = useFetchData(api, (raw) => {
         return raw.map((item) => ({
             ...item,
+            payAmount: item.total,
             total: item.total + 'VND',
             billType: item.billType,
             totalProducts: item.billDetails.reduce((sum, detail) => sum + detail.quantity, 0),

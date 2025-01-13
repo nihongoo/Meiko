@@ -26,6 +26,13 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
     const [currentStatus, setCurrentStatus] = useState(item?.status);
     const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${item?.id}`);
     const { data: hist, refetch } = useFetchData(`${apiURL.bill.statusHis}${item?.id}`)
+    const { data: payHis, refetch: reloadPaydata } = useFetchData(`${apiURL.payHistory.byBillId}${item?.id}`, (r)=>{
+        return r.map((item) => ({
+            ...item,
+            createdDate: moment(item.createdDate).format('DD-MM-YYYY HH:mm'),
+            amount: item.amount + ' VND',
+        }))
+    })
     const { data: listRefund } = useFetchData(`${apiURL.bill.listRefund}?id=${item?.id}`, (r) => {
         return r.map((item) => ({
             ...item,
@@ -37,7 +44,6 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
     useEffect(() => {
         setCurrentStatus(item?.status);
     }, [item]);
-
 
     const getNextSteps = (billType, currentStatus) => {
         switch (billType) {
@@ -135,15 +141,28 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
         };
         return statusMapping[status];
     };
-    
 
     const handleNext = async () => {
         try {
-            const nextSteps = getNextSteps(item.billType, currentStatus); // Use currentStatus here
-            const currentStep = nextSteps.find(step => step.from === currentStatus); // Use currentStatus here
+            const nextSteps = getNextSteps(item.billType, currentStatus);
+            const currentStep = nextSteps.find(step => step.from === currentStatus);
 
             if (!currentStep) {
                 throw new Error("Không thể chuyển trạng thái tiếp theo");
+            }
+            if (item.billType === "COD" &&
+                currentStatus === "Đã giao tới" &&
+                currentStep.to === "Đã thanh toán") {
+                const paymentResponse = await fetch(`${apiURL.bill.pay}${item.id}?paymentAmount=${item.payAmount}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (!paymentResponse.ok) {
+                    throw new Error("Không thể tạo lịch sử thanh toán COD");
+                }
+                await reloadPaydata();
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
 
             const payload = {
@@ -152,7 +171,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 staffWhoCreatedThis: staffInfo.id
             };
             console.log(payload);
-            
+
 
             const response = await fetch(`${apiURL.bill.changeStatus}${item.id}`, {
                 method: "POST",
@@ -196,14 +215,14 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                     'Đang giao hàng': { nextStatus: 9, statusName: 'Đã hủy' } // 9 = DaHuy
                 }
             };
-    
+
             const transition = closeTransitions[item.billType]?.[currentStatus];
-            
+
             if (!transition) {
                 toast.error('Không thể chuyển trạng thái ở bước này');
                 return;
             }
-    
+
             const payload = {
                 statusType: transition.nextStatus,
                 note: `Chuyển từ ${item.status} sang ${transition.statusName}`,
@@ -215,28 +234,28 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
-    
+
             if (!response.ok) {
                 throw new Error('Lỗi khi chuyển trạng thái');
             }
-    
+
             setCurrentStatus(transition.statusName);
             await reloadBill();
             await refetch();
             toast.success(`Đã chuyển sang ${transition.statusName}`);
-    
+
         } catch (error) {
             console.error("Error:", error);
             toast.error(error.message || "Lỗi khi chuyển trạng thái");
         }
     };
-    
+
     const calculatePaymentAmount = (item) => {
         const rawAmount = item.total || "0";
         const numericAmount = parseFloat(rawAmount.replace(/[^\d.]/g, ""));
         return numericAmount;
     };
-    
+
     const handlePrev = async () => {
         try {
             if (note.length < 30) {
@@ -258,7 +277,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 "Đã thanh toán": 10,
             };
             const lastStatus = sortedStatusHistories[sortedStatusHistories.length - 1];
-            const currentStatus = statusMapping[lastStatus.statusType]; 
+            const currentStatus = statusMapping[lastStatus.statusType];
             const prevStatus = currentStatus - 1;
 
             if (prevStatus < 0) {
@@ -370,21 +389,21 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
         try {
             const currentBills = JSON.parse(localStorage.getItem('bills')) || [];
             const currentTabs = JSON.parse(localStorage.getItem('tabs')) || [];
-    
+
             // Kiểm tra nếu billId đã tồn tại
             const billExists = currentBills.some(bill => bill.id === billId);
-    
+
             if (!billExists) {
                 // Thêm bill mới nếu chưa tồn tại
                 const updatedBills = [...currentBills, { id: billId }];
                 localStorage.setItem('bills', JSON.stringify(updatedBills));
-    
+
                 const newTabs = [...currentTabs, `Hóa đơn ${item?.billCode}`];
                 localStorage.setItem('tabs', JSON.stringify(newTabs));
             } else {
                 console.log(`Hóa đơn với ID ${billId} đã tồn tại`);
             }
-    
+
             // Điều hướng tới trang
             navigate('/soldoffline');
         } catch (error) {
@@ -392,7 +411,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             toast.error('Không thể mở hóa đơn');
         }
     };
-    
+
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth >
@@ -486,12 +505,12 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                                 </Button>
                                 {closeBtn.includes(currentStatus) && (
                                     <Button
-                                    variant="contained"
-                                    color="error"
-                                    onClick={handleClose}
+                                        variant="contained"
+                                        color="error"
+                                        onClick={handleClose}
                                     >
-                                    <CloseIcon />
-                                </Button>
+                                        <CloseIcon />
+                                    </Button>
                                 )}
                             </Box>
                         </Box>
@@ -569,7 +588,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                                 Lịch sử thanh toán
                             </Typography>
                             <DataGrid
-                                rows={item?.paymentHistories}
+                                rows={payHis}
                                 columns={paymentColumns}
                                 autoHeight
                                 disableSelectionOnClick
