@@ -12,51 +12,130 @@ namespace API.Services
 		{
 			_dbcontext = appDbContext;
 		}
+		//public async Task<DataAnalysisAllDTO> General()
+		//{
+		//	// Lấy danh sách hóa đơn đã hoàn thành hoặc đã thanh toán
+		//	var completedBills = await _dbcontext.Bills
+		//		.Where(b => b.Status == StatusType.HoanThanh)
+		//		.ToListAsync();
+
+		//	// Tính tổng số lượng sản phẩm, doanh thu và lợi nhuận
+		//	var totalQuantity = 0;
+		//	decimal totalRevenue = 0;
+		//	decimal totalProfit = 0;
+
+		//	foreach (var bill in completedBills)
+		//	{
+		//		// Duyệt qua từng chi tiết hóa đơn
+		//		var billDetails = await _dbcontext.BillDetails
+		//			.Where(bd => bd.BillId == bill.Id)
+		//			.Include(bd => bd.ProductDetails)
+		//			.ToListAsync();
+
+		//		foreach (var detail in billDetails)
+		//		{
+		//			// Doanh thu = Giá bán * Số lượng
+		//			var revenue = detail.Price * detail.Quantity;
+		//			totalRevenue += revenue;
+
+		//			// Giá nhập = Giá nhập * Số lượng
+		//			var importCost = detail.ImportPrice * detail.Quantity;
+
+		//			// Lợi nhuận = Doanh thu - Giá nhập
+		//			var profit = revenue - importCost;
+		//			totalProfit += profit;
+
+		//			// Tổng số lượng sản phẩm
+		//			totalQuantity += detail.Quantity;
+		//		}
+		//	}
+
+		//	// Trả về DTO
+		//	return new DataAnalysisAllDTO
+		//	{
+		//		AllQuantityProduct = totalQuantity,
+		//		TotalRevenue = totalRevenue,
+		//		Profit = totalProfit
+		//	};
+		//}
+
 		public async Task<DataAnalysisAllDTO> General()
 		{
-			// Lấy danh sách hóa đơn đã hoàn thành hoặc đã thanh toán
-			var completedBills = await _dbcontext.Bills
-				.Where(b => b.Status == StatusType.HoanThanh)
+			var today = DateTime.Today.AddDays(1).AddTicks(-1);
+			var last7Days = today.AddDays(-7);
+			var previous7Days = last7Days.AddDays(-7);
+
+			// Current week metrics
+			var currentWeekBills = await _dbcontext.Bills
+				.Where(b => b.Status == StatusType.HoanThanh &&
+						   b.CreatedDate >= last7Days &&
+						   b.CreatedDate <= today)
+				.Include(b => b.BillDetails)
 				.ToListAsync();
 
-			// Tính tổng số lượng sản phẩm, doanh thu và lợi nhuận
-			var totalQuantity = 0;
+			// Previous week metrics
+			var previousWeekBills = await _dbcontext.Bills
+				.Where(b => b.Status == StatusType.HoanThanh &&
+					   b.CreatedDate >= previous7Days &&
+					   b.CreatedDate < last7Days)
+				.Include(b => b.BillDetails)
+				.ToListAsync();
+
+			// Calculate current week totals
+			var (currentQuantity, currentRevenue, currentProfit) = CalculateMetrics(currentWeekBills);
+
+			// Calculate previous week totals
+			var (prevQuantity, prevRevenue, prevProfit) = CalculateMetrics(previousWeekBills);
+
+			// Calculate growth rates
+			var quantityGrowth = CalculateGrowthRate(currentQuantity, prevQuantity);
+			var revenueGrowth = CalculateGrowthRate(currentRevenue, prevRevenue);
+			var profitGrowth = CalculateGrowthRate(currentProfit, prevProfit);
+
+			return new DataAnalysisAllDTO
+			{
+				AllQuantityProduct = currentQuantity,
+				TotalRevenue = currentRevenue,
+				Profit = currentProfit,
+				QuantityGrowth = quantityGrowth,
+				RevenueGrowth = revenueGrowth,
+				ProfitGrowth = profitGrowth,
+				ComparedToLastWeek = new
+				{
+					Quantity = prevQuantity,
+					Revenue = prevRevenue,
+					Profit = prevProfit
+				}
+			};
+		}
+
+		private (int Quantity, decimal Revenue, decimal Profit) CalculateMetrics(List<Bills> bills)
+		{
+			int totalQuantity = 0;
 			decimal totalRevenue = 0;
 			decimal totalProfit = 0;
 
-			foreach (var bill in completedBills)
+			foreach (var bill in bills)
 			{
-				// Duyệt qua từng chi tiết hóa đơn
-				var billDetails = await _dbcontext.BillDetails
-					.Where(bd => bd.BillId == bill.Id)
-					.Include(bd => bd.ProductDetails)
-					.ToListAsync();
-
-				foreach (var detail in billDetails)
+				foreach (var detail in bill.BillDetails)
 				{
-					// Doanh thu = Giá bán * Số lượng
 					var revenue = detail.Price * detail.Quantity;
-					totalRevenue += revenue;
+					var cost = detail.ImportPrice * detail.Quantity;
 
-					// Giá nhập = Giá nhập * Số lượng
-					var importCost = detail.ProductDetails.ImportPrice * detail.Quantity;
-
-					// Lợi nhuận = Doanh thu - Giá nhập
-					var profit = revenue - importCost;
-					totalProfit += profit;
-
-					// Tổng số lượng sản phẩm
 					totalQuantity += detail.Quantity;
+					totalRevenue += revenue;
+					totalProfit += revenue - cost;
 				}
 			}
 
-			// Trả về DTO
-			return new DataAnalysisAllDTO
-			{
-				AllQuantityProduct = totalQuantity,
-				TotalRevenue = totalRevenue,
-				Profit = totalProfit
-			};
+			return (totalQuantity, totalRevenue, totalProfit);
+		}
+
+		private decimal CalculateGrowthRate(decimal current, decimal previous)
+		{
+			if (previous == 0)
+				return current > 0 ? 100 : 0;
+			return ((current - previous) / previous) * 100;
 		}
 
 

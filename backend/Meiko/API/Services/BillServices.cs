@@ -271,7 +271,7 @@ namespace API.Services
 				// Truy vấn hóa đơn kèm bảng phụ
 				var bills = await context.Bills
 					.Include(b => b.BillDetails)
-					.Include(b => b.ShippingAddresses) 
+					.Include(b => b.ShippingAddresses)
 					.Include(b => b.StatusHistories)
 					.Include(b => b.PaymentHistories)
 					.OrderByDescending(b => b.CreatedDate) // Add this line to sort by newest first
@@ -656,6 +656,7 @@ namespace API.Services
 								{
 									Id = Guid.NewGuid(),
 									Quantity = cartDetail.Quantity,
+									ImportPrice = cartDetail.ProductDetails.ImportPrice,
 									Price = finalPrice,
 									Status = cartDetail.Status,
 									BillId = bill.Id,
@@ -847,7 +848,7 @@ namespace API.Services
 			};
 		}
 		private static bool ValidatePOSTransition(StatusType currentStatus, StatusType newStatus)
-		{			
+		{
 			return currentStatus switch
 			{
 				StatusType.TaoHoaDon when newStatus == StatusType.DaThanhToan => true,
@@ -855,6 +856,7 @@ namespace API.Services
 				StatusType.TaoHoaDon when newStatus == StatusType.DaHuy => true,
 				StatusType.TaoHoaDon when newStatus == StatusType.ChoXuLy => true,
 				StatusType.ChoXuLy when newStatus == StatusType.DaThanhToan => true,
+				StatusType.DaThanhToan when newStatus == StatusType.HoanThanh => true,
 				_ => false
 			};
 		}
@@ -1294,6 +1296,7 @@ namespace API.Services
 							Id = Guid.NewGuid(),
 							Quantity = model.Quantity,
 							Price = 0,
+							ImportPrice = productDetail.ImportPrice,
 							Status = model.Status,
 							BillId = model.BillId,
 							ProductDetailId = model.ProductDetailId
@@ -1383,9 +1386,9 @@ namespace API.Services
 					if (billDetail.Quantity <= 0) billDetail.Quantity = 0;
 
 					var saleExist = await _dbcontext.SaleProducts.Where(sp => sp.ProductDetailId == productDetail.Id).FirstOrDefaultAsync();
-					if(saleExist != null)
-                        billDetail.Price = billDetail.Quantity * (decimal)saleExist.DiscountedPrice;
-                    else
+					if (saleExist != null)
+						billDetail.Price = billDetail.Quantity * (decimal)saleExist.DiscountedPrice;
+					else
 						billDetail.Price = billDetail.Quantity * productDetail.Price;
 					_dbcontext.BillDetails.Update(billDetail);
 
@@ -1579,15 +1582,15 @@ namespace API.Services
 
 			var returnUrl = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOS/{id}/{bill.CustomerId}";
 			// var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
-            // var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			// var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 			var returnURLForAdmin = $"https://localhost:7172/api/Bills/PayOS/ReturnPayOSOffline/{id}/{bill.StaffId}";
-            var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+			var paymentRequestOs = new PaymentData(DateTimeOffset.Now.ToUnixTimeMilliseconds(),
 				(int)(bill.Total - bill.PaymentAmount),
 				description,
 				list,
 				cancelUrl,
 				bill.CustomerId != null ? returnUrl : returnURLForAdmin
-				// bill.CustomerId != null ? returnUrl : returnURLForAdmin
+			// bill.CustomerId != null ? returnUrl : returnURLForAdmin
 			);
 
 			var paymentResult = await payment.createPaymentLink(paymentRequestOs);

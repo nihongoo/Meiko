@@ -1,12 +1,39 @@
 import React, { useState } from "react";
 import { Box, Typography, Card, Grid, Divider, TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import CategoryIcon from '@mui/icons-material/Category';
 import useFetchData from "../../customHook/useFetchData";
 import apiURL from "../../routes/API";
 import moment from "moment";
 
+const StatCard = ({ title, value, growth, icon: Icon }) => (
+    <Card className="border rounded-2 p-3">
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Box>
+                <Typography color="error" variant="h6">
+                    {new Intl.NumberFormat('vi-VN').format(value || 0)} {title.includes("VND") ? "VND" : ""}
+                </Typography>
+                <Typography>{title}</Typography>
+            </Box>
+            <Icon />
+        </Box>
+        {growth !== undefined && (
+            <Box display="flex" alignItems="center" mt={1}>
+                {growth >= 0 ? (
+                    <TrendingUpIcon color="success" />
+                ) : (
+                    <TrendingDownIcon color="error" />
+                )}
+                <Typography color={growth >= 0 ? "success.main" : "error"}>
+                    {Math.abs(growth).toFixed(2)}%
+                </Typography>
+            </Box>
+        )}
+    </Card>
+);
 const revenueColumns = [
     { field: "date", headerName: "Ngày", width: 150 },
     { field: "name", headerName: "Tên sản phẩm", width: 200 },
@@ -26,56 +53,45 @@ const productColumns = [
 ];
 
 const Home = () => {
-    const paginationModel = { page: 0, pageSize: 10 };
-    const [day, setDay] = useState(new Date().toISOString().substr(0, 10))
-    const { data: topProductForDay } = useFetchData(`${apiURL.analysis.topProduct}?date=${day}`, (r) => {
-        return r.map((item, index) => ({
-            ...item,
-            id: index,
-            date: moment(item.date).format('DD-MM-YYYY')
-        }));
-    })
-    const { data: all } = useFetchData(apiURL.analysis.all)
-    const { data: topProduct } = useFetchData(apiURL.analysis.topProduct, (r) => {
-        return r.map((item, index) => ({
-            ...item,
-            id: index + 1,
-        }));
-    })
-    const { data: topCustomer } = useFetchData(apiURL.analysis.topCustomer, (r) => {
-        return r.map((item) => ({
-            ...item,
-            amountSpent: new Intl.NumberFormat('vi-VN').format(item.amountSpent) + ' VND'
-        }));
-    })
+    const [day, setDay] = useState(new Date().toISOString().substr(0, 10));
+    const { data: all = {} } = useFetchData(apiURL.analysis.all);
+    const { data: topProductForDay = [] } = useFetchData(`${apiURL.analysis.topProduct}?date=${day}`, formatTopProduct);
+    const { data: topProduct = [] } = useFetchData(apiURL.analysis.topProduct, formatTopProduct);
+    const { data: topCustomer = [] } = useFetchData(apiURL.analysis.topCustomer, formatCustomer);
+
     const totalRevenue = topProductForDay.reduce((total, item) => total + item.revenue, 0);
+
+    const paginationModel = { page: 0, pageSize: 10 };
     return (
         <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 2 }}>
-            <Box>
+            <Box mb={4}>
                 <Typography variant="h4" color="primary" gutterBottom>
-                    Thống kê
+                    Thống kê tuần này
                 </Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={4}>
-                        <Card className="me-3 border rounded-2 p-3">
-                            <Typography color="error" variant="h6">{all.allQuantityProduct || '0'}</Typography>
-                            <Typography>Sản phẩm đã bán</Typography>
-                            <CategoryIcon />
-                        </Card>
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={4}>
+                        <StatCard 
+                            title="Sản phẩm đã bán"
+                            value={all.allQuantityProduct}
+                            growth={all.quantityGrowth}
+                            icon={CategoryIcon}
+                        />
                     </Grid>
-                    <Grid item xs={4}>
-                        <Card className="me-3 border rounded-2 p-3">
-                            <Typography color="error" variant="h6">{all.totalRevenue || '0'} VND</Typography>
-                            <Typography>Doanh thu</Typography>
-                            <LocalAtmIcon></LocalAtmIcon>
-                        </Card>
+                    <Grid item xs={12} md={4}>
+                        <StatCard 
+                            title="Doanh thu (VND)"
+                            value={all.totalRevenue}
+                            growth={all.revenueGrowth}
+                            icon={LocalAtmIcon}
+                        />
                     </Grid>
-                    <Grid item xs={4}>
-                        <Card className="me-3 border rounded-2 p-3">
-                            <Typography color="error" variant="h6">{all.profit || '0'} VND</Typography>
-                            <Typography>Lợi nhuận</Typography>
-                            <LocalAtmIcon />
-                        </Card>
+                    <Grid item xs={12} md={4}>
+                        <StatCard 
+                            title="Lợi nhuận (VND)"
+                            value={all.profit}
+                            growth={all.profitGrowth}
+                            icon={LocalAtmIcon}
+                        />
                     </Grid>
                 </Grid>
             </Box>
@@ -187,5 +203,16 @@ const Home = () => {
         </Box>
     );
 };
+const formatTopProduct = (r) => r.map((item, index) => ({
+    ...item,
+    id: index + 1,
+    revenue: new Intl.NumberFormat('vi-VN').format(item.revenue),
+    date: moment(item.date).format('DD-MM-YYYY')
+}));
+
+const formatCustomer = (r) => r.map((item) => ({
+    ...item,
+    amountSpent: new Intl.NumberFormat('vi-VN').format(item.amountSpent)
+}));
 
 export default Home;

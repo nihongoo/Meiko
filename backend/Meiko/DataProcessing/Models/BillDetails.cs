@@ -20,6 +20,7 @@ namespace DataProcessing.Models
         [Required(ErrorMessage = "Giá không được để trống.")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn hoặc bằng 0.")]
         public decimal Price { get; set; }
+        public decimal ImportPrice { get; set; }
 
         [Required(ErrorMessage = "Trạng thái không được để trống.")]
         [Range(0, 2, ErrorMessage = "Trạng thái phải từ 0 đến 2.")]

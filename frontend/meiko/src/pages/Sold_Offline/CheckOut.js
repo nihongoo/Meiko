@@ -29,29 +29,49 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
 
     const processCashPayment = async () => {
         const newRemaining = remaining - cashAmount;
-
+    
         try {
+            // Step 1: Process payment
             const res = await fetch(`${apiURL.bill.pay}${bill.id}?paymentAmount=${cashAmount}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
-
+    
             if (!res.ok) throw new Error('Thanh toán thất bại.');
-
+    
             if (newRemaining <= 0) {
-                const payload = {
-                    statusType: 5,
-                    note: 'thanh toán thành công',
+                // Step 2: Change to "Đã thanh toán"
+                const paymentStatus = {
+                    statusType: 10, // Đã thanh toán
+                    note: 'Thanh toán thành công',
                     staffWhoCreatedThis: staffInfo.id,
                 };
+                
                 await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(paymentStatus),
                 });
+    
+                // Wait 1 second
+                await new Promise(resolve => setTimeout(resolve, 1000));
+    
+                // Step 3: Change to "Hoàn thành"
+                const completeStatus = {
+                    statusType: 6, // Hoàn thành
+                    note: 'Hoàn thành đơn hàng',
+                    staffWhoCreatedThis: staffInfo.id,
+                };
+    
+                await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(completeStatus),
+                });
+    
                 handleCloseTab(index, 'Hóa đơn đã hoàn thành!');
             }
-
+    
             toast.success('Thanh toán thành công!');
             setCashAmount('');
             reload();
