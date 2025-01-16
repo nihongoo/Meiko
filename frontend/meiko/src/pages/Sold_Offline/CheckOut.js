@@ -29,7 +29,7 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
 
     const processCashPayment = async () => {
         const newRemaining = remaining - cashAmount;
-    
+
         try {
             // Step 1: Process payment
             const res = await fetch(`${apiURL.bill.pay}${bill.id}?paymentAmount=${cashAmount}`, {
@@ -37,11 +37,11 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
                 headers: { 'Content-Type': 'application/json' },
             });
             const resData = await res.json();
-    
-            if (resData.status !== 0) { 
+
+            if (resData.status !== 0) {
                 throw new Error(resData.message || 'Thanh toán thất bại.');
             }
-    
+
             if (newRemaining <= 0) {
                 // Step 2: Change to "Đã thanh toán"
                 const paymentStatus = {
@@ -49,32 +49,32 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
                     note: 'Thanh toán thành công',
                     staffWhoCreatedThis: staffInfo.id,
                 };
-                
+
                 await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(paymentStatus),
                 });
-    
+
                 // Wait 1 second
                 await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
                 // Step 3: Change to "Hoàn thành"
                 const completeStatus = {
                     statusType: 6, // Hoàn thành
                     note: 'Hoàn thành đơn hàng',
                     staffWhoCreatedThis: staffInfo.id,
                 };
-    
+
                 await fetch(`${apiURL.bill.changeStatus}${bill.id}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(completeStatus),
                 });
-    
+
                 handleCloseTab(index, 'Hóa đơn đã hoàn thành!');
             }
-    
+
             toast.success('Thanh toán thành công!');
             setCashAmount('');
             reload();
@@ -187,10 +187,24 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
                         <TextField
                             fullWidth
                             label="Tiền khách đưa"
-                            onChange={(e) => setCashAmount(Math.max(0, Number(e.target.value)))}
+                            onChange={(e) => {
+                                const value = Number(e.target.value);
+                                if (value < 0) {
+                                    setCashAmount(0);
+                                } else if (value > remaining) {
+                                    toast.error('Số tiền không được lớn hơn số tiền cần thanh toán');
+                                    setCashAmount(remaining);
+                                } else {
+                                    setCashAmount(value);
+                                }
+                            }}
                             variant="outlined"
                             type="number"
                             value={cashAmount}
+                            inputProps={{
+                                max: remaining,
+                                min: 0
+                            }}
                         />
                         {paymentMethod !== 'cash' && (
                             <TextField fullWidth label="Mã giao dịch" disabled variant="outlined" />

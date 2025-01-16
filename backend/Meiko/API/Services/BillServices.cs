@@ -812,6 +812,8 @@ namespace API.Services
 							break;
 
 						case StatusType.DaHuy:
+							if (bill.BillType == "POS")
+								break;
 							// Hoàn trả số lượng vào kho
 							foreach (var detail in bill.BillDetails)
 							{
@@ -865,7 +867,7 @@ namespace API.Services
 			{
 				StatusType.TaoHoaDon when newStatus == StatusType.DaThanhToan => true,
 				StatusType.DaThanhToan when newStatus == StatusType.HoanThanh => true,
-				StatusType.TaoHoaDon when newStatus == StatusType.DaHuy => true,
+				StatusType.ChoXuLy when newStatus == StatusType.DaHuy => true,
 				StatusType.TaoHoaDon when newStatus == StatusType.ChoXuLy => true,
 				StatusType.ChoXuLy when newStatus == StatusType.DaThanhToan => true,
 				StatusType.DaThanhToan when newStatus == StatusType.HoanThanh => true,

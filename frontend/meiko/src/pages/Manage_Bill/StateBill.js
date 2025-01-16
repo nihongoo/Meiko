@@ -26,7 +26,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
     const [currentStatus, setCurrentStatus] = useState(item?.status);
     const { data: Detail } = useFetchData(`${apiURL.bill.list}?id=${item?.id}`);
     const { data: hist, refetch } = useFetchData(`${apiURL.bill.statusHis}${item?.id}`)
-    const { data: payHis, refetch: reloadPaydata } = useFetchData(`${apiURL.payHistory.byBillId}${item?.id}`, (r)=>{
+    const { data: payHis, refetch: reloadPaydata } = useFetchData(`${apiURL.payHistory.byBillId}${item?.id}`, (r) => {
         return r.map((item) => ({
             ...item,
             createdDate: moment(item.createdDate).format('DD-MM-YYYY HH:mm'),
@@ -49,8 +49,9 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
         switch (billType) {
             case 'POS':
                 return [
-                    { from: 'Tạo hóa đơn', to: 'Chờ thanh toán' },
-                    { from: 'Chờ thanh toán', to: 'Hoàn thành' }
+                    { from: 'Tạo hóa đơn', to: 'Chờ xử lý' },
+                    { from: 'Chờ xử lý', to: 'Đã hủy' },
+                    { from: 'Chờ xử lý', to: 'Hoàn thành' }
                 ];
 
             case 'COD':
@@ -200,6 +201,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             toast.error(error.message);
         }
     };
+    
     const handleClose = async () => {
         try {
             // Define status transitions for close button
@@ -213,6 +215,9 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                     'Chờ xử lý': { nextStatus: 7, statusName: 'Chờ có hàng' },  // 2 = ChoCoHang
                     'Chờ có hàng': { nextStatus: 9, statusName: 'Đã hủy' }, // 3 = DangChuanBiHang
                     'Đang giao hàng': { nextStatus: 9, statusName: 'Đã hủy' } // 9 = DaHuy
+                },
+                'POS': {
+                    'Chờ xử lý': { nextStatus: 9, statusName: 'Đã hủy' } // 9 = DaHuy
                 }
             };
 
@@ -239,9 +244,27 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
                 throw new Error('Lỗi khi chuyển trạng thái');
             }
 
+            // Close tab if POS bill is cancelled
+            if (item.billType === 'POS' && transition.statusName === 'Đã hủy') {
+                const storedTabs = JSON.parse(localStorage.getItem('tabs') || '[]');
+                const storedBills = JSON.parse(localStorage.getItem('bills') || '[]');
+
+                const billIndex = storedBills.findIndex(b => b.id === item.id);
+
+                if (billIndex !== -1) {
+                    // Remove bill and tab
+                    const newTabs = storedTabs.filter((_, index) => index !== billIndex);
+                    const newBills = storedBills.filter((_, index) => index !== billIndex);
+
+                    localStorage.setItem('tabs', JSON.stringify(newTabs));
+                    localStorage.setItem('bills', JSON.stringify(newBills));
+                }
+            }
+
             setCurrentStatus(transition.statusName);
             await reloadBill();
             await refetch();
+            onClose();
             toast.success(`Đã chuyển sang ${transition.statusName}`);
 
         } catch (error) {
@@ -249,7 +272,6 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             toast.error(error.message || "Lỗi khi chuyển trạng thái");
         }
     };
-
     const calculatePaymentAmount = (item) => {
         const rawAmount = item.total || "0";
         const numericAmount = parseFloat(rawAmount.replace(/[^\d.]/g, ""));

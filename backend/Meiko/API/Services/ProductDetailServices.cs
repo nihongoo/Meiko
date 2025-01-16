@@ -158,7 +158,8 @@ namespace API.Services
 						Size = detailItem.Sizes?.Name,
 						Color = detailItem.Colors?.Name,
 						Price = detailItem.Price,
-						Quantity = detailItem.Quantity
+						Quantity = detailItem.Quantity,
+						status = product.Status
 					};
 
 					data.Add(viewModel);
