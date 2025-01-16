@@ -119,7 +119,7 @@ namespace API.Services
 			{
 				foreach (var detail in bill.BillDetails)
 				{
-					var revenue = detail.Price * detail.Quantity;
+					var revenue = detail.Price;
 					var cost = detail.ImportPrice * detail.Quantity;
 
 					totalQuantity += detail.Quantity;
@@ -201,7 +201,7 @@ namespace API.Services
 				{
 					ProductDetailId = group.Key,
 					Sold = group.Sum(x => x.BillDetail.Quantity),
-					Revenue = group.Sum(x => x.BillDetail.Quantity * x.BillDetail.Price)
+					Revenue = group.Sum(x => x.BillDetail.Price)
 				})
 				.OrderByDescending(x => x.Sold)
 				.Take(10) // Lấy top 10 sản phẩm bán chạy

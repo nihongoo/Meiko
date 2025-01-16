@@ -55,7 +55,9 @@ namespace API.IServices
 
 		//PaymentHistory
 		Task<ReturnMessage> Pay(decimal AmountInput, int PaymentMethod, int Status, Guid BillId);
-		Task<ReturnMessage> CancelPaymentById(Guid id, long billCode);
+		Task<ReturnMessage> PayForCustomer(decimal AmountInput, int PaymentMethod, int Status, Guid BillId);
+
+        Task<ReturnMessage> CancelPaymentById(Guid id, long billCode);
 
 		//BillDetails
 		Task<ReturnMessage> AddToBill(BillDetailInfoModel model);

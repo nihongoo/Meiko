@@ -33,13 +33,6 @@ function Order({
         setSelectedPayment(selectedPayment === option ? null : option);
     };
 
-    // Tạo mã hóa đơn
-    const generateBillCode = () => {
-        const timestamp = new Date().getTime();
-        const randomSuffix = Math.floor(Math.random() * 10000);
-        return `BILL${timestamp}${randomSuffix}`;
-    };
-
     // Xử lý đặt hàng
     const handlePlaceOrder = async () => {
         if (!selectedPayment) {
@@ -100,8 +93,12 @@ function Order({
     
             const createBillData = await createBillResponse.json();
             const billId = createBillData.id;
-            console.log(billId);
-    
+            if(createBillData.success == false) {
+                setLoading(false);
+                toast.error("Không thể tạo hóa đơn. Số lượng không cho phép");
+                return;
+            }
+
             if (!billId) {
                 setLoading(false);
                 toast.error("Không thể tạo hóa đơn. Vui lòng thử lại.");

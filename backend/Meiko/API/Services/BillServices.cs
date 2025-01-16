@@ -601,121 +601,133 @@ namespace API.Services
 		}
 
 
-		// Bill
-		public async Task<(bool k, Guid id)> Create(bool IsShipping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode, string billtype)
-		{
-			bool check = false;
-			Guid billId = Guid.Empty;
-			Guid Id;
+        // Bill
+        public async Task<(bool k, Guid id)> Create(bool IsShipping, decimal ShippingFee, Guid? StaffWhoCreateThis, Guid? CustomerWhoCreateThis, Guid? CartId, Guid? VoucherId, string billcode, string billtype)
+        {
+            bool check = false;
+            Guid billId = Guid.Empty;
+            Guid Id;
 
-			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
-			{
-				try
-				{
-					Bills bill = new Bills()
-					{
-						Id = Guid.NewGuid(),
-						BillCode = billcode,
-						IsShipping = IsShipping,
-						Total = 0,
-						CreatedDate = DateTime.Now,
-						Status = StatusType.TaoHoaDon,
-						PaymentAmount = 0,
-						ShippingFee = ShippingFee,
-						CustomerId = CustomerWhoCreateThis,
-						StaffId = StaffWhoCreateThis,
-						VoucherId = VoucherId,
-						BillType = billtype
-					};
+            using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    Bills bill = new Bills()
+                    {
+                        Id = Guid.NewGuid(),
+                        BillCode = billcode,
+                        IsShipping = IsShipping,
+                        Total = 0,
+                        CreatedDate = DateTime.Now,
+                        Status = StatusType.TaoHoaDon,
+                        PaymentAmount = 0,
+                        ShippingFee = ShippingFee,
+                        CustomerId = CustomerWhoCreateThis,
+                        StaffId = StaffWhoCreateThis,
+                        VoucherId = VoucherId,
+                        BillType = billtype
+                    };
 
-					await _dbcontext.Bills.AddAsync(bill);
-					billId = bill.Id;
+                    await _dbcontext.Bills.AddAsync(bill);
+                    billId = bill.Id;
 
-					if (CartId != null)
-					{
-						List<CartDetails>? cartDetails = await _dbcontext.CartDetails
-							.Where(cd => cd.CartId == CartId)
-							.Include(cd => cd.ProductDetails)
-							.ThenInclude(pd => pd.SaleProducts)
-							.ToListAsync();
+                    if (CartId != null)
+                    {
+                        List<CartDetails>? cartDetails = await _dbcontext.CartDetails
+                            .Where(cd => cd.CartId == CartId)
+                            .Include(cd => cd.ProductDetails)
+                            .ThenInclude(pd => pd.SaleProducts)
+                            .ToListAsync();
 
-						if (cartDetails != null)
-						{
-							foreach (var cartDetail in cartDetails)
-							{
-								decimal? discountedPrice = cartDetail.ProductDetails.SaleProducts
-									.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-									.OrderByDescending(sp => sp.EffectiveDate)
-									.FirstOrDefault()?.DiscountedPrice;
+                        if (cartDetails != null)
+                        {
+                            foreach (var cartDetail in cartDetails)
+                            {
+                                if (cartDetail.ProductDetails.Quantity < cartDetail.Quantity)
+                                {
+                                    await dbTransaction.RollbackAsync(); 
+                                    return (false, Guid.Empty); 
+                                }
 
-								var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
-									? discountedPrice.Value
-									: cartDetail.Price;
+                                decimal? discountedPrice = cartDetail.ProductDetails.SaleProducts
+                                    .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+                                    .OrderByDescending(sp => sp.EffectiveDate)
+                                    .FirstOrDefault()?.DiscountedPrice;
 
-								await _dbcontext.BillDetails.AddAsync(new BillDetails()
-								{
-									Id = Guid.NewGuid(),
-									Quantity = cartDetail.Quantity,
-									ImportPrice = cartDetail.ProductDetails.ImportPrice,
-									Price = finalPrice,
-									Status = cartDetail.Status,
-									BillId = bill.Id,
-									ProductDetailId = cartDetail.ProductDetailsId
-								});
-							}
-						}
+                                var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
+                                    ? discountedPrice.Value
+                                    : cartDetail.Price;
 
-						decimal productsTotal = cartDetails.Sum(cd =>
-						{
-							decimal? discountedPrice = cd.ProductDetails.SaleProducts
-								.Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
-								.OrderByDescending(sp => sp.EffectiveDate)
-								.FirstOrDefault()?.DiscountedPrice;
+                                await _dbcontext.BillDetails.AddAsync(new BillDetails()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    Quantity = cartDetail.Quantity,
+                                    ImportPrice = cartDetail.ProductDetails.ImportPrice,
+                                    Price = finalPrice,
+                                    Status = cartDetail.Status,
+                                    BillId = bill.Id,
+                                    ProductDetailId = cartDetail.ProductDetailsId
+                                });
+                                var productDetails = cartDetail.ProductDetails;
+                                productDetails.Quantity -= cartDetail.Quantity;
+                                _dbcontext.ProductDetails.Update(productDetails);
+                            }
+                        }
 
-							var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
-								? discountedPrice.Value
-								: cd.Price;
+                        decimal productsTotal = cartDetails.Sum(cd =>
+                        {
+                            decimal? discountedPrice = cd.ProductDetails.SaleProducts
+                                .Where(sp => sp.EffectiveDate <= DateTime.Now && sp.ExpiryDate >= DateTime.Now)
+                                .OrderByDescending(sp => sp.EffectiveDate)
+                                .FirstOrDefault()?.DiscountedPrice;
 
-							return finalPrice;
-						});
+                            var finalPrice = discountedPrice.HasValue && discountedPrice.Value > 0
+                                ? discountedPrice.Value
+                                : cd.Price;
 
-						if (VoucherId != null)
-						{
-							var voucher = await _dbcontext.Vouchers
-								.Where(v => v.Id == VoucherId)
-								.FirstOrDefaultAsync();
+                            return finalPrice;
+                        });
 
-							if (voucher != null && voucher.Value > 0)
-							{
-								decimal discountPercentage = (decimal)voucher.Value;
-								decimal discountAmount = (productsTotal * discountPercentage) / 100;
-								productsTotal -= discountAmount;
-							}
-						}
 
-						bill.Total = productsTotal + ShippingFee;
+                        if (VoucherId != null)
+                        {
+                            var voucher = await _dbcontext.Vouchers
+                                .Where(v => v.Id == VoucherId)
+                                .FirstOrDefaultAsync();
 
-						check = true;
-					}
+                            if (voucher != null && voucher.Value > 0)
+                            {
+                                decimal discountPercentage = (decimal)voucher.Value;
+                                decimal discountAmount = (productsTotal * discountPercentage) / 100;
+                                productsTotal -= discountAmount;
+                            }
+                        }
 
-					// Save the changes
-					await _dbcontext.SaveChangesAsync();
-					await dbTransaction.CommitAsync();
-					Id = bill.Id;
-				}
-				catch (Exception ex)
-				{
-					await dbTransaction.RollbackAsync();
-					Console.WriteLine(ex.Message);
-					return (false, Guid.Empty);
-				}
-			}
-			if (check) await _cartDetailServices.ClearCart((Guid)CartId);
+                        bill.Total = productsTotal + ShippingFee;
 
-			return (true, Id);
-		}
+                        check = true;
+                    }
 
-		public async Task<(bool k, Guid billId)> UpdateBill(Guid billId, decimal newShippingFee)
+                    // Save the changes
+                    await _dbcontext.SaveChangesAsync();
+                    await dbTransaction.CommitAsync();
+                    Id = bill.Id;
+                }
+                catch (Exception ex)
+                {
+                    await dbTransaction.RollbackAsync();
+                    Console.WriteLine(ex.Message);
+                    return (false, Guid.Empty);
+                }
+            }
+
+            if (check) await _cartDetailServices.ClearCart((Guid)CartId);
+
+            return (true, Id);
+        }
+
+
+        public async Task<(bool k, Guid billId)> UpdateBill(Guid billId, decimal newShippingFee)
 		{
 			bool isSuccess = false;
 			Guid billIdResult = Guid.Empty;
@@ -1200,7 +1212,9 @@ namespace API.Services
 					List<ProductDetails> productDetails = new List<ProductDetails>();
 					for (int i = 0; i < billDetails.Count; i++)
 					{
-						ProductDetails productDetail = await _dbcontext.ProductDetails.FirstOrDefaultAsync(k => k.Id == billDetails[i].ProductDetailId);
+						ProductDetails productDetail = await _dbcontext.ProductDetails
+							.Include(pb => pb.Products)
+							.FirstOrDefaultAsync(k => k.Id == billDetails[i].ProductDetailId);
 						if (billDetails[i].Quantity > productDetail.Quantity)
 							return new ReturnMessage()
 							{
@@ -1233,7 +1247,61 @@ namespace API.Services
 			}
 		}
 
-		public async Task<ReturnMessage> CancelPaymentById(Guid id, long billCode)
+        public async Task<ReturnMessage> PayForCustomer(decimal AmountInput, int PaymentMethod, int Status, Guid BillId)
+        {
+            using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var billDetails = await _dbcontext.BillDetails.Where(b => b.BillId == BillId).Include(bd => bd.ProductDetails).ToListAsync();
+                    var bill = _dbcontext.Bills.FirstOrDefault(b => b.Id == BillId);
+                    var billCode = bill.BillCode;
+
+
+                    if (bill.PaymentAmount == bill.Total && bill.PaymentAmount > 0)
+                        return new ReturnMessage()
+                        {
+                            status = 3,
+                            message = "Đơn hàng đã được thanh toán đủ"
+                        };
+
+                    if (bill.Status == StatusType.DaHuy)
+                        return new ReturnMessage()
+                        {
+                            status = 4,
+                            message = "Đơn hàng đã bị huỷ, không thể thanh toán"
+                        };
+
+                    await _dbcontext.PaymentHistories.AddAsync(new PaymentHistory()
+                    {
+                        Id = Guid.NewGuid(),
+                        CreatedDate = DateTime.Now,
+                        Amount = AmountInput,
+                        PaymentMethod = (PaymentMethods)PaymentMethod,
+                        Status = (StatusForPayment)Status,
+                        BillId = BillId
+                    });
+
+                    bill.PaymentDate = DateTime.Now;
+                    bill.PaymentAmount = AmountInput;
+
+                    _dbcontext.Bills.Update(bill);
+
+                    await _dbcontext.SaveChangesAsync();
+
+                    await dbTransaction.CommitAsync();
+                    return new ReturnMessage() { status = 0, message = $"Thanh toán thành công {AmountInput} VND cho đơn hàng {billCode}!" };
+
+                }
+                catch (Exception ex)
+                {
+                    await dbTransaction.RollbackAsync();
+                    return new ReturnMessage() { status = 2, message = $"Đã có lỗi xảy ra: {ex.Message}" };
+                }
+            }
+        }
+
+        public async Task<ReturnMessage> CancelPaymentById(Guid id, long billCode)
 		{
 			using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
 			{

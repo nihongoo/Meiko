@@ -153,7 +153,7 @@ function StateBill({ open, onClose, item, print, setItem, reloadBill }) {
             if (item.billType === "COD" &&
                 currentStatus === "Đã giao tới" &&
                 currentStep.to === "Đã thanh toán") {
-                const paymentResponse = await fetch(`${apiURL.bill.pay}${item.id}?paymentAmount=${item.payAmount}`, {
+                const paymentResponse = await fetch(`${apiURL.bill.payForCustomer}${item.id}?paymentAmount=${item.payAmount}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                 });

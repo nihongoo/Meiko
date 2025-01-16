@@ -36,8 +36,11 @@ function CheckOut({ open, onClose, bill, billInfo, reload }) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
+            const resData = await res.json();
     
-            if (!res.ok) throw new Error('Thanh toán thất bại.');
+            if (resData.status !== 0) { 
+                throw new Error(resData.message || 'Thanh toán thất bại.');
+            }
     
             if (newRemaining <= 0) {
                 // Step 2: Change to "Đã thanh toán"

@@ -223,14 +223,27 @@ namespace API.Controllers
 			if (result.status == 0)
 			{
 				await _IBillServices.ChangeStatusTo(id, 11, null, staffWhoDoThis);
-				var bill = _IBillServices.GetBillById(id).Result;
-				return Ok(bill);
+
+				return Ok(result);
 			}
 			return Ok(result);
 		}
 
-		//Shipping Address
-		[HttpPost("add-address-to-bill")]
+        [HttpPost("pay-for-customer/{id}")]
+        public async Task<IActionResult> PayForCustomer(Guid id, [FromQuery] decimal paymentAmount, [FromQuery] Guid staffWhoDoThis)
+        {
+            var result = await _IBillServices.PayForCustomer(paymentAmount, 0, 0, id);
+            if (result.status == 0)
+            {
+                await _IBillServices.ChangeStatusTo(id, 11, null, staffWhoDoThis);
+
+                return Ok(result);
+            }
+            return Ok(result);
+        }
+
+        //Shipping Address
+        [HttpPost("add-address-to-bill")]
 		public async Task<IActionResult> AddAddressToBill(ShippingAddressInfoModel model)
 		{
 			return Ok(await _IBillServices.AddAddressToBill(model));
@@ -298,7 +311,7 @@ namespace API.Controllers
 				if (status == "PAID")
 				{
 					// Cập nhật trạng thái đơn hàng trong hệ thống
-					await _IBillServices.Pay(paymentLinkInfo.amountPaid, 1, 0, billId);
+					await _IBillServices.PayForCustomer(paymentLinkInfo.amountPaid, 1, 0, billId);
 					await _IBillServices.ChangeStatusTo(billId, 10, null, whodothis);
 					await _IBillServices.ChangeStatusTo(billId, 2, "Khách hàng đặt hàng", whodothis);
 				}

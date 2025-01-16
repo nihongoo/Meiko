@@ -120,6 +120,7 @@ const apiURL = {
         filter: 'https://localhost:7172/api/Bills/Filter',
         search: 'https://localhost:7172/api/Bills/Search',
         pay: 'https://localhost:7172/api/Bills/pay-for-bill/',
+        payForCustomer: 'https://localhost:7172/api/Bills/pay-for-customer/',
         changeStatus: 'https://localhost:7172/api/Bills/change-status-from-bill/',
         prevStatus: 'https://localhost:7172/api/Bills/prev-status-from-bill/',
         changeQuantity: 'https://localhost:7172/api/Bills/add-quantity-to/',
