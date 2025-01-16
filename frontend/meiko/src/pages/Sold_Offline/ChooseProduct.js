@@ -62,23 +62,23 @@ function ChooseProduct({ open, onClose, reloadList, bill }) {
                 />
             ),
         },
-        { field: 'name', headerName: 'Tên', width: 150 },
-        { field: 'code', headerName: 'Mã', width: 150 },
-        { field: 'category', headerName: 'Loại', width: 100 },
-        { field: 'brand', headerName: 'Thương hiệu', width: 120 },
-        { field: 'material', headerName: 'Chất liệu', width: 100 },
-        { field: 'target', headerName: 'Đối tượng', width: 120 },
-        { field: 'size', headerName: 'Size', width: 80 },
-        { field: 'color', headerName: 'Màu', width: 100 },
+        { field: 'name', headerName: 'Tên', flex: 1 },
+        { field: 'code', headerName: 'Mã', flex: 1 },
+        { field: 'category', headerName: 'Loại', flex: 1 },
+        { field: 'brand', headerName: 'Thương hiệu', flex: 1 },
+        { field: 'material', headerName: 'Chất liệu', flex: 1 },
+        { field: 'target', headerName: 'Đối tượng', flex: 1 },
+        { field: 'size', headerName: 'Size', flex: 1},
+        { field: 'color', headerName: 'Màu', flex: 1 },
         {
             field: 'priceFM',
             headerName: 'Giá',
-            width: 120,
+            flex: 1,
         },
         {
             field: 'action',
             headerName: 'Thao tác',
-            width: 150,
+            flex: 1,
             renderCell: (params) => (
                 <Button
                     variant="outlined"
@@ -96,7 +96,7 @@ function ChooseProduct({ open, onClose, reloadList, bill }) {
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
-            <Box padding={3}>
+            <Box padding={2} >
                 {/* Header */}
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                     <Typography variant="h6" fontWeight="bold">
@@ -108,7 +108,7 @@ function ChooseProduct({ open, onClose, reloadList, bill }) {
                 </Box>
 
                 {/* Search and Slider */}
-                <Grid container spacing={2} mb={3} justifyContent="space-between">
+                <Grid container spacing={2} mb={1} justifyContent="space-between">
                     <Grid item xs={5}>
                         <TextField
                             fullWidth
@@ -134,7 +134,7 @@ function ChooseProduct({ open, onClose, reloadList, bill }) {
                 </Grid>
 
                 {/* DataGrid */}
-                <Box sx={{ height: 550, width: '100%' }}>
+                <Box sx={{ height: 510, width: '100%' }}>
                     <DataGrid
                         rows={filteredData}
                         columns={columns}
@@ -153,7 +153,7 @@ function ChooseProduct({ open, onClose, reloadList, bill }) {
                                 borderBottom: 'none',
                             },
                             backgroundColor: '#fff',
-                            minHeight: 550,
+                            minHeight: 200,
                             maxHeight: 'calc(100vh - 200px)',
                         }}
                     />
