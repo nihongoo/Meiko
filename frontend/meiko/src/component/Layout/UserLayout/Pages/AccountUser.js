@@ -108,6 +108,7 @@ const AccountUser = () => {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({});
   const [gender, setGender] = useState("");
+  const [addresses, setAddresses] = useState([]);
 
   const fetchCustomerData = async () => {
     try {
@@ -125,6 +126,18 @@ const AccountUser = () => {
       });
     } catch (error) {
       console.error("Error fetching customer data:", error);
+    }
+  };
+
+  const fetchAddresses = async () => {
+    try {
+      const userId = localStorage.getItem("customerId");
+      const response = await fetch(`https://localhost:7172/api/Address/${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch addresses");
+      const data = await response.json();
+      setAddresses(data);
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
     }
   };
 
@@ -157,6 +170,7 @@ const AccountUser = () => {
 
   useEffect(() => {
     fetchCustomerData();
+    fetchAddresses();
   }, []);
 
   const handleInputChange = (e) => {
@@ -284,12 +298,9 @@ const AccountUser = () => {
                 <h4 className="title-sm" style={{ paddingTop: "30px" }}>
                   Địa Chỉ Của Tôi
                 </h4>
-                <div style={{ paddingTop: "20px" }}>
-                  <BaseLinkGreen to="/AddressScreen">Thêm Địa Chỉ</BaseLinkGreen>
-                </div>
                 <div className="address-list">
-                  {userData.addresses && userData.addresses.length > 0 ? (
-                    userData.addresses.map((address, index) => (
+                  {addresses && addresses.length > 0 ? (
+                    addresses.map((address, index) => (
                       <div key={index} className="address-item">
                         <p className="text-outerspace text-lg font-semibold address-title">
                           {address.recipientName}
@@ -302,13 +313,6 @@ const AccountUser = () => {
                           {address.isDefault && <li>Địa Chỉ Thanh Toán Mặc Định</li>}
                         </ul>
                         <div className="address-btns">
-                          <Link to="/" className="text-base text-outerspace font-semibold">
-                            Xóa
-                          </Link>
-                          <div className="btn-separator"></div>
-                          <Link to="/" className="text-base text-outerspace font-semibold">
-                            Chỉnh Sửa
-                          </Link>
                         </div>
                       </div>
                     ))

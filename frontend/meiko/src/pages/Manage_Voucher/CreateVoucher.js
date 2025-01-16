@@ -78,15 +78,6 @@ function CreateVoucher({ item, setItem, open, onClose, onCreate }) {
                                 }}
                             />
                             <TextField
-                                label="Số lượng"
-                                variant="outlined"
-                                size="small"
-                                type="number"
-                                onChange={(e) =>
-                                    setItem({ ...item, quantity: e.target.value })
-                                }
-                            />
-                            <TextField
                                 label="Ngày bắt đầu"
                                 type="date"
                                 InputLabelProps={{ shrink: true }}

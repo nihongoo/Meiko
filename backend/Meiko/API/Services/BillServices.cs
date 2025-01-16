@@ -900,6 +900,7 @@ namespace API.Services
 					return currentStatus switch
 					{
 						StatusType.TaoHoaDon when newStatus == StatusType.DaThanhToan => true,
+						StatusType.TaoHoaDon when newStatus == StatusType.DaHuy => true,
 						StatusType.DaThanhToan when newStatus == StatusType.ChoXuLy => true,
 
 						StatusType.ChoXuLy when newStatus == StatusType.DaHuy => true,

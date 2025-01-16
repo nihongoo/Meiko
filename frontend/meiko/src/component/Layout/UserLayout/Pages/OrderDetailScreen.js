@@ -8,6 +8,7 @@ import { currencyFormat } from "../utils/helper";
 import styles from './OrderDetailScreen.module.css';
 import { useEffect, useState } from "react";
 import EditAddress from "../Features/Cart/EditAddress";
+import { toast } from "react-toastify";
 
 const breadcrumbItems = [ 
   { label: "Trang chủ", link: "/homeUser" },
@@ -39,30 +40,35 @@ const OrderDetailScreen = () => {
 
   const statusMapping = {
     "Chờ xử lý": {
-      color: "text-warning", 
-      icon: "fa-hourglass-half", 
+        color: "text-warning",
+        icon: "fa-hourglass-half",
     },
     "Đang chuẩn bị hàng": {
-      color: "text-primary",
-      icon: "fa-cogs", 
+        color: "text-primary",
+        icon: "fa-cogs",
     },
     "Đang giao hàng": {
-      color: "text-info", 
-      icon: "fa-truck", 
+        color: "text-info",
+        icon: "fa-truck",
+    },
+    "Đã giao tới": {
+        color: "text-success",
+        icon: "fa-truck",
+    },
+    "Đã thanh toán": {
+        color: "text-success",
+        icon: "fa-credit-card",
     },
     "Hoàn thành": {
-      color: "text-success",
-      icon: "fa-check-circle",
+        color: "text-success",
+        icon: "fa-check-circle",
     },
     "Đã hủy": {
-      color: "text-danger",
-      icon: "fa-times-circle",
-    },
-    "Hoàn trả": {
-      color: "text-secondary",
-      icon: "fa-undo-alt",
+        color: "text-danger",
+        icon: "fa-times-circle",
     },
   };
+
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -226,15 +232,15 @@ const OrderDetailScreen = () => {
   
       const result = await response.json();
       if (result.status === 0) {
-        alert("Cập nhật phí vận chuyển thành công!");
+        toast.success("Cập nhật phí vận chuyển thành công!");
         return true;
       } else {
-        alert("Có lỗi khi cập nhật phí vận chuyển.");
+        toast.error("Có lỗi khi cập nhật phí vận chuyển.");
         return false;
       }
     } catch (error) {
       console.error("Lỗi khi cập nhật phí vận chuyển:", error);
-      alert("Không thể cập nhật phí vận chuyển.");
+      toast.error("Không thể cập nhật phí vận chuyển.");
       return false;
     }
   };
@@ -260,7 +266,7 @@ const OrderDetailScreen = () => {
       
       const result = await response.json();
       if (result.status === 0) {
-        alert('Đơn hàng đã được hủy thành công!');
+        toast.success('Đơn hàng đã được hủy thành công!');
         setIsCanceling(false); 
         setCancelReason(''); 
         setCancelError('');  
@@ -268,13 +274,14 @@ const OrderDetailScreen = () => {
           ...prevState,
           status: 'Đã hủy',
         }));
+        window.location.reload();
         await reloadOrderData();
       } else {
-        alert('Có lỗi xảy ra khi hủy đơn hàng.');
+        toast.error('Có lỗi xảy ra khi hủy đơn hàng.');
       }
     } catch (error) {
       console.error("Lỗi khi hủy đơn:", error);
-      alert('Không thể hủy đơn hàng.');
+      toast.error('Không thể hủy đơn hàng.');
     }
   };
 
@@ -282,14 +289,14 @@ const OrderDetailScreen = () => {
     try {
       const response = await fetch(`https://localhost:7172/api/Bills/get-bill-by-id/${billId}`);
       if (!response.ok) {
-        alert("Có lỗi khi tải lại dữ liệu.");
+        toast.error("Có lỗi khi tải lại dữ liệu.");
         return;
       }
       const data = await response.json();
       setOrder(data);
     } catch (error) {
       console.error("Lỗi khi tải lại dữ liệu:", error);
-      alert("Có lỗi khi tải lại dữ liệu.");
+      toast.error("Có lỗi khi tải lại dữ liệu.");
     }
   };
 

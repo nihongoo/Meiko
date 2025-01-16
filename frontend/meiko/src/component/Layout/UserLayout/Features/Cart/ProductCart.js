@@ -247,6 +247,10 @@ function ProductCart() {
     updateQuantity(cartDetailId, item.productDetails.id, newQuantity);
   };
 
+  const handleNavigatee = () => {
+    navigate("/shop");
+  };
+
   const handlePayment = () => {
     const selectedItems = cartDetails.filter(item => item.selected);
     
@@ -397,7 +401,7 @@ function ProductCart() {
               ))}
             </tbody>
           </table>
-          <button className={styles.continueButton}>Tiếp tục mua hàng</button>
+          <button className={styles.continueButton} onClick={handleNavigatee}>Tiếp tục mua hàng</button>
         </div>
         <div className={`${styles.discountSection} col-md-3`}>
           <h4>Mã giảm giá</h4>

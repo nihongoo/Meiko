@@ -52,7 +52,11 @@ function ListProduct({ bill }) {
     totalSum += item.totalPrice;
   }
 
-  const handleChangeQuantity = async (id, quantity) => {
+  const handleChangeQuantity = async (id, currentQuantity, quantity,) => {
+    if (currentQuantity + quantity <= 0) {
+      toast.error('Số lượng không thể nhỏ hơn hoặc bằng 0');
+      return;
+  }
     try {
       const res = await fetch(`${apiURL.bill.changeQuantity}${id}?Quantity=${quantity}`, {
         method: 'PUT',
@@ -157,7 +161,7 @@ function ListProduct({ bill }) {
                   {item.name || "Tên sản phẩm"}
                 </Typography>
                 {item.priceInput && (
-                  <Typography color="textSecondary" style={{ textDecoration: 'line-through' }}>
+                  <Typography color="textSecondary">
                     {`${item.priceInput} VND`}
                   </Typography>
                 )}
@@ -184,9 +188,9 @@ function ListProduct({ bill }) {
                 mx={2}
                 sx={{ mb: { xs: 2, sm: 0 } }}
               >
-                <Button size="small" onClick={() => { handleChangeQuantity(item.id, -1) }}>-</Button>
+                <Button size="small" onClick={() => { handleChangeQuantity(item.id, item.quantity, -1) }}>-</Button>
                 <Typography mx={1}>{item.quantity}</Typography>
-                <Button size="small" onClick={() => { handleChangeQuantity(item.id, 1) }}>+</Button>
+                <Button size="small" onClick={() => { handleChangeQuantity(item.id, item.quantity, 1) }}>+</Button>
               </Box>
 
               {/* Total Price */}

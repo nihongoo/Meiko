@@ -18,7 +18,7 @@ namespace API.ViewModel
 
         [Required(ErrorMessage = "Số lượng không được để trống.")]
         [Range(1, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 1.")]
-        public int Quantity { get; set; }
+        public int Quantity { get; set; } = 11;
 
         [Required(ErrorMessage = "Ngày bắt đầu không được để trống.")]
         public DateTime StartDay { get; set; }

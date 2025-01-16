@@ -57,7 +57,7 @@ const statusLabels = {
   1: "Đang chuẩn bị hàng",
   2: "Đang giao hàng",
   3: "Hoàn thành",
-  4: "Đã huỷ",
+  4: "Đã hủy",
 };
 
 const OrderListScreen = () => {

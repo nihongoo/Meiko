@@ -365,7 +365,13 @@ namespace API.Controllers
 				{
 					// Thực hiện các hành động khác nếu cần, như ghi log hoặc thông báo người dùng.
 					await _IBillServices.CancelPaymentById(billId, orderCode);
-					return Redirect("http://localhost:3000/soldoffline");
+					await _IBillServices.ChangeStatusTo(billId, 9, null, Guid.NewGuid());
+					if(_IBillServices.GetBillById(billId).Result.StaffId !=null)
+					{
+						return Redirect("http://localhost:3000/soldoffline");
+					}
+					else
+					return Redirect("http://localhost:3000/homeUser");
 				}
 
 				// Xử lý trạng thái khác (nếu có)

@@ -34,7 +34,6 @@ namespace API.Services
                 VoucherCode = voucherViewModel.VoucherCode,
                 Value = voucherViewModel.Value,
                 MinimumOrderAmount = voucherViewModel.MinimumOrderAmount,
-                Quantity = voucherViewModel.Quantity,
                 StartDay = voucherViewModel.StartDay,
                 EndDay = voucherViewModel.EndDay,
                 Status = 0,

@@ -32,7 +32,6 @@ function ManageVoucher() {
         { field: 'voucherCode', headerName: 'Mã', flex: 1 },
         { field: 'isPublic', headerName: 'Kiểu', flex: 1 },
         { field: 'value', headerName: 'Giá trị', flex: 1 },
-        { field: 'quantity', headerName: 'Số lượng', flex: 1 },
         { field: 'startDay', headerName: 'Ngày bắt đầu', flex: 1 },
         { field: 'endDay', headerName: 'Ngày kết thúc', flex: 1 },
         { field: 'status', headerName: 'Trạng thái', flex: 1 },
