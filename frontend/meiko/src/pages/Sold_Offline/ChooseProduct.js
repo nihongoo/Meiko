@@ -20,12 +20,15 @@ function ChooseProduct({ open, onClose, reloadList, bill }) {
     const [detail, setDetail] = useState(false);
     const [item, setItem] = useState({});
     const { data: Data } = useFetchData(apiURL.productDetail.soldOff, (r) => {
-        return r.map((item) => ({
-            ...item,
-            priceFM: new Intl.NumberFormat('vi-VN').format(item.price) + ' VND',
-        }));
+        return r
+            .filter(item => item.status === 1)
+            .map((item) => ({
+                ...item,
+                priceFM: new Intl.NumberFormat('vi-VN').format(item.price) + ' VND',
+            }));
     }
     );
+    console.log(Data);
 
     // State cho tìm kiếm
     const [searchTerm, setSearchTerm] = useState("");
