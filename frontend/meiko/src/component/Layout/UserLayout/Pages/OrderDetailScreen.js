@@ -252,7 +252,7 @@ const OrderDetailScreen = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          statusType: 10,
+          statusType: 9,
           note: cancelReason,
           staffWhoCreatedThis: localStorage.getItem("customerId")
         }),

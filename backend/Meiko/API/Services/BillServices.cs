@@ -883,6 +883,7 @@ namespace API.Services
 						StatusType.TaoHoaDon when newStatus == StatusType.ChoXuLy => true,
 						StatusType.ChoXuLy when newStatus == StatusType.DangChuanBiHang => true,
 
+						StatusType.ChoXuLy when newStatus == StatusType.DaHuy => true,
 						StatusType.ChoXuLy when newStatus == StatusType.ChoCoHang => true,
 						StatusType.ChoCoHang when newStatus == StatusType.DangChuanBiHang => true,
 						StatusType.ChoCoHang when newStatus == StatusType.DaHuy => true,
@@ -901,6 +902,7 @@ namespace API.Services
 						StatusType.TaoHoaDon when newStatus == StatusType.DaThanhToan => true,
 						StatusType.DaThanhToan when newStatus == StatusType.ChoXuLy => true,
 
+						StatusType.ChoXuLy when newStatus == StatusType.DaHuy => true,
 						StatusType.ChoXuLy when newStatus == StatusType.ChoCoHang => true,
 						StatusType.ChoCoHang when newStatus == StatusType.DangChuanBiHang => true,
 						StatusType.ChoCoHang when newStatus == StatusType.DaHuy => true,

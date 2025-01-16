@@ -165,7 +165,7 @@ function Order({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                statusType: 1,
+                statusType: 2,
                 note: "Bill Status",
                 staffWhoCreatedThis: localStorage.getItem("customerId"),
             }),
