@@ -101,7 +101,6 @@ const Home = () => {
                     Doanh thu theo ngày
                 </Typography>
                 <div className="d-flex justify-content-between">
-                    <Typography>Doanh thu ngày {day || 'Vui lòng chọn ngày!'}: {totalRevenue} VND</Typography>
                     <TextField
                         type='date'
                         label='Chọn ngày'
