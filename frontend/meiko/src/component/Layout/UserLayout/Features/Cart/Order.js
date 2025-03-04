@@ -47,7 +47,7 @@ function Order({
         if (selectedPayment === "Online") {
             const result = await Swal.fire({
                 title: 'Xác nhận thanh toán online',
-                text: "Khi thanh toán online bạn không thể sửa số lượng hoặc địa chỉ của đơn hàng, bạn chắc chắn chứ?",
+                text: "Khi thanh toán online bạn không thể chỉnh sửa địa chỉ giao hàng cũng như hủy đơn, khi bạn muốn hủy đơn thì hãy liên hệ với nhân viên bán hàng, bạn chắc chắn chứ?",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Xác nhận',

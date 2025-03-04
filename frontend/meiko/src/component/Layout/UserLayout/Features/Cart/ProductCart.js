@@ -114,10 +114,6 @@ function ProductCart() {
   const validateVoucher = (coupon, total) => {
     const { minimumOrderAmount, startDay, endDay } = coupon;
     const totalAmount = total;
-    if (totalAmount < minimumOrderAmount) {
-      setErrorMessage(`Để sử dụng mã giảm giá này, bạn cần đơn hàng có giá trị tối thiểu là ${formatCurrency(minimumOrderAmount)}.`);
-      return false;
-    }
     const currentDate = new Date();
     const startDate = new Date(startDay);
     const endDate = new Date(endDay);
@@ -125,10 +121,11 @@ function ProductCart() {
       setErrorMessage(`Mã giảm giá này đã hết hạn hoặc chưa bắt đầu hiệu lực.`);
       return false;
     }
-    if (coupon.quantity <= 0) {
-      setErrorMessage(`Mã giảm giá này đã hết số lượng sử dụng.`);
+    if (totalAmount < minimumOrderAmount) {
+      setErrorMessage(`Để sử dụng mã giảm giá này, bạn cần đơn hàng có giá trị tối thiểu là ${formatCurrency(minimumOrderAmount)}.`);
       return false;
     }
+
     setErrorMessage(null);
     return true;
   };

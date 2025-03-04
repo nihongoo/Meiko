@@ -121,18 +121,9 @@ function SideBar({ collapsed }) {
                                 Đối tượng sử dụng
                             </MenuItem>
                         </SubMenu>
-                        <MenuItem
-                            icon={<CachedIcon />}
-                            component={<Link className='p-2' to="/returnproduct" />}
-                        >
-                            Trả hàng
-                        </MenuItem>
                         <SubMenu style={{ padding: '0.5rem' }} label="Giảm giá" icon={<LocalOfferIcon />}>
                             <MenuItem component={<Link to="/managevoucher" />}>
                                 Phiếu giảm giá
-                            </MenuItem>
-                            <MenuItem component={<Link to="/managesale" />}>
-                                Đợt giảm giá
                             </MenuItem>
                         </SubMenu>
                         <SubMenu style={{ padding: '0.5rem' }} label="Tài khoản" icon={<AccountCircleIcon />}>

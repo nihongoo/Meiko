@@ -146,7 +146,7 @@ function ManageProduct() {
             </Box>
 
             <DataGrid
-                autoHeight
+                
                 rows={product}
                 columns={columns}
                 initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
